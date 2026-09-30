@@ -2,6 +2,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
+import { createHash } from 'crypto';
 import type { Role } from '@prisma/client';
 import { prisma } from './db';
 import { AppError } from './errors';
@@ -74,3 +75,23 @@ export function throttle(key: string, max = 8, windowMs = 15 * 60 * 1000) {
   if (a.n > max) throw new AppError(429, 'RATE_LIMIT', 'Too many attempts. Please wait a few minutes and try again.');
 }
 export const clearThrottle = (key: string) => attempts.delete(key);
+
+// ---- Password reset: stateless, single-use (token is bound to the current password hash) ----
+const RESET_TTL = 60 * 60; // 1 hour
+const fingerprint = (hash: string) => createHash('sha256').update(hash).digest('hex').slice(0, 24);
+
+export async function createResetToken(user: { id: string; passwordHash: string }) {
+  return new SignJWT({ purpose: 'pwd-reset', fp: fingerprint(user.passwordHash) })
+    .setProtectedHeader({ alg: 'HS256' }).setSubject(user.id).setIssuedAt().setExpirationTime(`${RESET_TTL}s`).sign(secret());
+}
+
+/** Returns the user if the token is valid, unexpired and not yet used (password unchanged since issue). */
+export async function verifyResetToken(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, secret());
+    if (payload.purpose !== 'pwd-reset' || !payload.sub) return null;
+    const u = await prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!u || !u.isActive || payload.fp !== fingerprint(u.passwordHash)) return null;
+    return u;
+  } catch { return null; }
+}

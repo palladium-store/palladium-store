@@ -47,3 +47,12 @@ export async function processOutbox(limit = 25): Promise<{ sent: number; logged:
 export async function queueCustomerEmail(kind: string, title: string, recipient: string, orderId: string) {
   await prisma.notification.create({ data: { audience: 'CUSTOMER', kind, title, channel: 'EMAIL', recipient, link: `/account/orders/${orderId}` } });
 }
+
+/** Sends a password-reset email immediately. With no SMTP configured it logs the link (dev / first launch). */
+export async function sendPasswordResetEmail(to: string, name: string, link: string) {
+  const store = (await getSetting('store')).name;
+  const html = wrap('Reset your password', `<p>Hi ${name},</p><p>We received a request to reset your password. This link works once and expires in 1 hour.</p><p><a href="${link}" style="display:inline-block;background:#0b0b0c;color:#fff;padding:12px 20px;text-decoration:none;font-weight:700">Reset password</a></p><p style="font-size:12px;color:#666">If you did not ask for this, you can ignore this email. Your password will not change.</p>`, store);
+  const t = getTransport();
+  if (!t) { console.log(`[email:dev] password reset for ${to}: ${link}`); return; }
+  await t.sendMail({ from: process.env.MAIL_FROM ?? 'Palladium <orders@palladium.ph>', to, subject: `Reset your ${store} password`, html });
+}

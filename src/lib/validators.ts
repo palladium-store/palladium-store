@@ -22,6 +22,8 @@ export const shipAddress = z.object({
 
 export const registerSchema = z.object({ name, email, password, source: z.string().max(60).optional(), phone: phMobile.optional().or(z.literal('').transform(() => undefined)) });
 export const loginSchema = z.object({ email, password: z.string().min(1, 'Enter your password.') });
+export const forgotSchema = z.object({ email });
+export const resetSchema = z.object({ token: z.string().min(20), password });
 export const changePasswordSchema = z.object({ current: z.string().min(1), next: password });
 export const profileSchema = z.object({ name, phone: phMobile.optional().or(z.literal('').transform(() => undefined)) });
 

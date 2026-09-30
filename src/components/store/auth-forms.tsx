@@ -46,7 +46,7 @@ export function LoginForm({ next, storeEmail }: { next: string | null; storeEmai
       </div>
       <button type="submit" className="btn-primary w-full py-4" disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button>
       <p className="text-center text-sm text-mute">New to Palladium? <Link href={next ? `/register?next=${encodeURIComponent(next)}` : '/register'} className="font-semibold text-ink underline underline-offset-4">Create an account</Link></p>
-      <p className="text-center text-xs text-mute">Forgot your password? Contact us at <a href={`mailto:${storeEmail}`} className="underline">{storeEmail}</a></p>
+      <p className="text-center text-xs text-mute"><Link href="/forgot-password" className="underline">Forgot your password?</Link> Or contact us at <a href={`mailto:${storeEmail}`} className="underline">{storeEmail}</a></p>
     </form>
   );
 }
@@ -102,6 +102,62 @@ export function RegisterForm({ next }: { next: string | null }) {
       </div>
       <button type="submit" className="btn-primary w-full py-4" disabled={busy}>{busy ? 'Creating account...' : 'Create account'}</button>
       <p className="text-center text-sm text-mute">Already have an account? <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} className="font-semibold text-ink underline underline-offset-4">Sign in</Link></p>
+    </form>
+  );
+}
+
+export function ForgotForm() {
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true); setErr(null);
+    try { await api('/api/auth/forgot', { body: { email } }); setDone(true); }
+    catch (ex) { setErr(ex instanceof Error ? ex.message : 'Something went wrong.'); }
+    setBusy(false);
+  }
+  if (done) return <p className="border border-line p-4 text-sm" role="status">If an account exists for that email, a reset link is on its way. Check your inbox and spam folder. The link expires in 1 hour.</p>;
+  return (
+    <form onSubmit={submit} noValidate className="space-y-5">
+      {err && <p className="border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">{err}</p>}
+      <div>
+        <label htmlFor="f-email" className="label">Email</label>
+        <input id="f-email" type="email" autoComplete="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      </div>
+      <button type="submit" className="btn-primary w-full py-4" disabled={busy}>{busy ? 'Sending...' : 'Send reset link'}</button>
+      <p className="text-center text-sm text-mute"><Link href="/login" className="underline underline-offset-4">Back to sign in</Link></p>
+    </form>
+  );
+}
+
+export function ResetForm({ token }: { token: string }) {
+  const { toast } = useToast();
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true); setErr(null);
+    try { await api('/api/auth/reset', { body: { token, password } }); setDone(true); toast('Password updated.'); }
+    catch (ex) { setErr(ex instanceof Error ? ex.message : 'Could not reset your password.'); }
+    setBusy(false);
+  }
+  if (!token) return <p className="border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">This reset link is incomplete. <Link href="/forgot-password" className="underline">Request a new one</Link>.</p>;
+  if (done) return <p className="border border-line p-4 text-sm" role="status">Your password has been changed. <Link href="/login" className="font-semibold underline underline-offset-4">Sign in</Link></p>;
+  return (
+    <form onSubmit={submit} noValidate className="space-y-5">
+      {err && <p className="border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">{err} <Link href="/forgot-password" className="underline">Request a new link</Link></p>}
+      <div>
+        <label htmlFor="r-pass" className="label">New password</label>
+        <input id="r-pass" type="password" autoComplete="new-password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <p className="mt-1 text-xs text-mute">At least 8 characters, with a letter and a number.</p>
+      </div>
+      <button type="submit" className="btn-primary w-full py-4" disabled={busy}>{busy ? 'Saving...' : 'Set new password'}</button>
     </form>
   );
 }
