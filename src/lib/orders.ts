@@ -77,7 +77,7 @@ export async function placeOrder(input: Checkout) {
     if (input.marketingOptIn) await prisma.newsletterSubscriber.upsert({ where: { email: emailLower }, create: { email: emailLower }, update: {} });
   }
   const init = await providerFor(input.method).initiate({ id: res.orderId, orderNumber: res.orderNumber, totalCentavos: res.totalCentavos, method: input.method, email: emailLower });
-  void processOutbox().catch(() => {});
+  await processOutbox(10).catch(() => {});
   return { orderId: res.orderId, orderNumber: res.orderNumber, totalCentavos: res.totalCentavos, token: orderToken(res.orderId), init, duplicate: res.duplicate };
 }
 
@@ -89,7 +89,7 @@ export async function confirmOrder(orderId: string, user: SessionUser, opts: { m
   const markPaid = opts.markPaid ?? o.paymentMethod !== 'COD';
   await prisma.$executeRaw`SELECT pal_confirm_order(${orderId}::text, ${user.id}::text, ${markPaid}::boolean, ${opts.reference ?? null}::text)`;
   await audit(user, markPaid ? 'ORDER_PAYMENT_CONFIRMED' : 'ORDER_CONFIRMED', 'Order', orderId, `${markPaid ? 'Confirmed payment for' : 'Confirmed'} ${o.orderNumber}`);
-  void processOutbox().catch(() => {});
+  await processOutbox(10).catch(() => {});
 }
 export async function failPayment(orderId: string, user: SessionUser, reason?: string) {
   const o = await orderNo(orderId);
@@ -101,14 +101,14 @@ export async function cancelOrder(orderId: string, user: SessionUser, reason?: s
   await prisma.$executeRaw`SELECT pal_cancel_order(${orderId}::text, ${reason ?? null}::text, ${user.id}::text)`;
   await audit(user, 'ORDER_CANCELLED', 'Order', orderId, `Cancelled ${o.orderNumber}${reason ? `: ${reason}` : ''}`);
   await queueCustomerEmail('ORDER_CANCELLED', `Order ${o.orderNumber} was cancelled`, o.email, orderId);
-  void processOutbox().catch(() => {});
+  await processOutbox(10).catch(() => {});
 }
 export async function refundOrder(orderId: string, user: SessionUser, a: { amountCentavos: number; restock: boolean; items?: { orderItemId: string; qty: number }[]; reason?: string }) {
   const o = await orderNo(orderId);
   const items = a.items?.length ? JSON.stringify(a.items) : null;
   await prisma.$executeRaw`SELECT pal_refund_order(${orderId}::text, ${a.amountCentavos}::int, ${a.restock}::boolean, ${items}::jsonb, ${a.reason ?? null}::text, ${user.id}::text)`;
   await audit(user, 'ORDER_REFUNDED', 'Order', orderId, `Refunded ${(a.amountCentavos / 100).toFixed(2)} PHP on ${o.orderNumber}${a.restock ? ' (returned to stock)' : ''}`);
-  void processOutbox().catch(() => {});
+  await processOutbox(10).catch(() => {});
 }
 
 const NEXT: Partial<Record<OrderStatus, OrderStatus[]>> = {
@@ -137,7 +137,7 @@ export async function updateFulfillment(orderId: string, user: SessionUser, to: 
   await audit(user, 'ORDER_STATUS', 'Order', orderId, `Marked ${o.orderNumber} as ${to.toLowerCase()}`);
   const titles: Partial<Record<OrderStatus, [string, string]>> = { PROCESSING: ['ORDER_PROCESSING', 'is being prepared'], SHIPPED: ['ORDER_SHIPPED', 'has shipped'], DELIVERED: ['ORDER_DELIVERED', 'was delivered'] };
   const t = titles[to];
-  if (t) { await queueCustomerEmail(t[0], `Your order ${o.orderNumber} ${t[1]}`, o.email, orderId); void processOutbox().catch(() => {}); }
+  if (t) { await queueCustomerEmail(t[0], `Your order ${o.orderNumber} ${t[1]}`, o.email, orderId); await processOutbox(10).catch(() => {}); }
 }
 
 export async function saveTracking(orderId: string, user: SessionUser, ship: { courier?: string; trackingNumber?: string }) {

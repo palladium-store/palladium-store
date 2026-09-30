@@ -432,7 +432,7 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
             </select>
           </Field>
           <div className="border border-line bg-bone p-4" aria-label="Search preview">
-            <div className="text-xs text-mute">palladium.ph/products/{slug || '...'}</div>
+            <div className="text-xs text-mute">palladiumpickleball.com/products/{slug || '...'}</div>
             <div className="text-base font-semibold text-blue-700">{seoTitle.trim() || name.trim() || 'Product name'}</div>
             <div className="text-sm text-mute">{seoDescription.trim() || shortDescription.trim() || 'Add a description to control how this page appears in search results.'}</div>
           </div>

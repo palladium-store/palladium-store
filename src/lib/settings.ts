@@ -14,7 +14,7 @@ export interface ContentSettings {
 }
 
 export const DEFAULTS = {
-  store: { name: 'Palladium', email: 'hello@palladium.ph', phone: '+63 917 000 0000', address: 'Metro Manila, Philippines', instagram: '', facebook: '' } as StoreSettings,
+  store: { name: 'Palladium', email: 'hello@palladiumpickleball.com', phone: '+63 917 000 0000', address: 'Metro Manila, Philippines', instagram: '', facebook: '' } as StoreSettings,
   payments: {
     GCASH: { enabled: true, instructions: 'Send the exact amount to GCash 0917 000 0000 (Palladium) and use your order number as the reference. We confirm within business hours.' },
     MAYA: { enabled: true, instructions: 'Send the exact amount to Maya 0917 000 0000 (Palladium) and use your order number as the reference.' },
