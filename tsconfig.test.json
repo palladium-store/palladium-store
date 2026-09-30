@@ -1,0 +1,1 @@
+{ "extends": "./tsconfig.json", "compilerOptions": { "paths": { "@/*": ["./src/*"], "@prisma/client": ["./tests/shim/prisma.ts"], "bcryptjs": ["./tests/shim/bcryptjs.ts"], "server-only": ["./tests/shim/empty.ts"], "zod": ["./tests/shim/zod.ts"] } } }
