@@ -32,6 +32,8 @@ export function Footer({ store, content, categories }: { store: StoreSettings; c
             <ul className="space-y-3">
               <li><Link href="/pages/about" className={a}>About Palladium</Link></li>
               {content.policies.map((p) => <li key={p.slug}><Link href={`/pages/${p.slug}`} className={a}>{p.title}</Link></li>)}
+              <li><Link href="/pages/palladium-token" className={a}>$PALLADIUM</Link></li>
+              <li><Link href="/pages/token-terms" className={a}>Token terms</Link></li>
               <li><Link href="/account" className={a}>My account</Link></li>
             </ul>
           </div>

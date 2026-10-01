@@ -18,6 +18,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...categories.filter((c) => c.count > 0).map((c) => ({ url: `${site}/shop?category=${c.slug}`, changeFrequency: 'weekly' as const, priority: 0.8 })),
     ...products.map((p) => ({ url: `${site}/products/${p.slug}`, lastModified: p.updatedAt, changeFrequency: 'weekly' as const, priority: 0.7 })),
     { url: `${site}/pages/about`, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${site}/pages/palladium-token`, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${site}/pages/tokenomics`, changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${site}/pages/token-terms`, changeFrequency: 'monthly', priority: 0.2 },
     ...content.policies.map((p) => ({ url: `${site}/pages/${p.slug}`, changeFrequency: 'monthly' as const, priority: 0.3 })),
   ];
 }

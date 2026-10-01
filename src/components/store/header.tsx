@@ -12,6 +12,7 @@ const NAV = [
   { label: 'Balls', href: '/shop?category=pickleballs' },
   { label: 'Grips', href: '/shop?category=grips' },
   { label: 'Accessories', href: '/shop?category=accessories' },
+  { label: '$PALLADIUM', href: '/pages/palladium-token' },
   { label: 'About', href: '/pages/about' },
 ];
 const icon = 'h-5 w-5';
