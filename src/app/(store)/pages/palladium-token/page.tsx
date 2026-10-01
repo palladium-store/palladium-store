@@ -4,6 +4,8 @@ import { Container } from '@/components/store/container';
 import { StatusPill, TokenFacts, TokenNav, TOKEN_NOTICE } from '@/components/store/token-parts';
 import { getTokenInfo, getWalletConfig } from '@/lib/token';
 import { WalletPanel } from '@/components/store/wallet-panel';
+import { getCurrentPrice } from '@/lib/pricing';
+import { formatPrice } from '@/lib/token-math';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
@@ -20,8 +22,10 @@ const UTILITIES = [
   { title: 'Future ecosystem integrations', body: 'Authorized retailers, clubs and Palladium Touchpoints, once approvals are in place.' },
 ];
 
-export default function PalladiumTokenPage() {
+export default async function PalladiumTokenPage() {
   const t = getTokenInfo();
+  const p = await getCurrentPrice();
+  const price = p.available ? { text: `₱${formatPrice(p.priceScaled, 4)} per ${t.symbol}`, note: p.fixed ? '(fixed rate set by Palladium, indicative)' : '(indicative, not a guarantee)' } : null;
   const wallet = getWalletConfig();
   return (
     <>
@@ -48,7 +52,7 @@ export default function PalladiumTokenPage() {
             <p className="mt-3 text-sm text-mute">Every detail here is read from the official configuration. Nothing is estimated or invented. Where something is not available yet, we say so.</p>
             {!t.deployed && <p className="mt-4"><StatusPill tone="pending">Token deployment pending</StatusPill></p>}
           </div>
-          <TokenFacts t={t} />
+          <TokenFacts t={t} price={price} />
         </section>
 
         <section className="mt-16" aria-labelledby="utility">

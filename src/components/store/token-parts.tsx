@@ -6,7 +6,7 @@ export function StatusPill({ tone, children }: { tone: 'live' | 'planned' | 'pen
   return <span className={`inline-block border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] ${c}`}>{children}</span>;
 }
 
-export function TokenFacts({ t }: { t: TokenInfo }) {
+export function TokenFacts({ t, price }: { t: TokenInfo; price?: { text: string; note: string } | null }) {
   const rows: [string, React.ReactNode][] = [
     ['Token name', t.name],
     ['Symbol', t.symbol],
@@ -14,7 +14,7 @@ export function TokenFacts({ t }: { t: TokenInfo }) {
     ['Contract address', t.contractAddress ? <span className="break-all font-mono text-xs">{t.contractAddress}</span> : <StatusPill tone="pending">Token deployment pending</StatusPill>],
     ['Maximum supply', <>{t.maxSupply.toLocaleString('en-PH')} <span className="text-mute">{t.deployed ? '' : '(proposed, final once deployed)'}</span></>],
     ['Circulating supply', t.circulatingSupply ?? <span className="text-mute">Not yet verified</span>],
-    ['Market price', <span className="text-mute">Unavailable</span>],
+    ['Price', price ? <>{price.text} <span className="text-mute">{price.note}</span></> : <span className="text-mute">Unavailable</span>],
     ['Blockchain explorer', t.explorerUrl ? <a className="underline underline-offset-4" href={t.explorerUrl} target="_blank" rel="noopener noreferrer">View on explorer</a> : <span className="text-mute">Available after deployment</span>],
   ];
   return (

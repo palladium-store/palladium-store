@@ -4,7 +4,7 @@ import { CHAINS, isAddress, type WalletConfig } from './chain-config';
 /**
  * Public token facts for the information pages. Everything comes from environment variables, so nothing is ever invented:
  * with no TOKEN_CONTRACT_ADDRESS set, the site says "Token deployment pending".
- * Prices are intentionally absent here; the pricing engine (a later phase) is the only source of market prices.
+ * Prices are intentionally absent here; src/lib/pricing.ts is the only source of prices.
  */
 export const TOKEN_NAME = 'Palladium';
 export const TOKEN_SYMBOL = '$PALLADIUM';
@@ -30,7 +30,6 @@ export interface TokenInfo {
   explorerUrl: string | null;
   maxSupply: number;
   circulatingSupply: string | null;
-  priceAvailable: false;
 }
 
 /** TOKEN_NETWORK=mainnet switches to mainnet; anything else (or unset) means testnet. */
@@ -56,6 +55,5 @@ export function getTokenInfo(): TokenInfo {
     explorerUrl: contractAddress && /^https:\/\//.test(explorer) ? explorer : null,
     maxSupply: PROPOSED_MAX_SUPPLY,
     circulatingSupply: /^\d+$/.test(circ) ? Number(circ).toLocaleString('en-PH') : null,
-    priceAvailable: false,
   };
 }
