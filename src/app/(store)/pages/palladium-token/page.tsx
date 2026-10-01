@@ -2,7 +2,8 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Container } from '@/components/store/container';
 import { StatusPill, TokenFacts, TokenNav, TOKEN_NOTICE } from '@/components/store/token-parts';
-import { getTokenInfo } from '@/lib/token';
+import { getTokenInfo, getWalletConfig } from '@/lib/token';
+import { WalletPanel } from '@/components/store/wallet-panel';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ const UTILITIES = [
 
 export default function PalladiumTokenPage() {
   const t = getTokenInfo();
+  const wallet = getWalletConfig();
   return (
     <>
       <section className="bg-ink text-white">
@@ -29,11 +31,11 @@ export default function PalladiumTokenPage() {
           <h1 className="h-display max-w-3xl text-5xl sm:text-7xl">Introducing $PALLADIUM</h1>
           <p className="mt-5 max-w-2xl text-xl text-white/90">Powering the Palladium Pickleball Commerce Ecosystem.</p>
           <p className="mt-4 max-w-2xl text-white/70">Discover a new way to shop, participate, and engage with Palladium through digital payments and community rewards.</p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <button type="button" className="btn-gold" disabled aria-describedby="wallet-note">Connect wallet</button>
-            <Link href="/shop" className="btn border border-white text-white hover:bg-white hover:text-ink">Explore Palladium products</Link>
+          <div className="mt-8 grid max-w-xl gap-4">
+            <WalletPanel config={wallet} dark compact />
+            <div><Link href="/shop" className="btn border border-white text-white hover:bg-white hover:text-ink">Explore Palladium products</Link></div>
           </div>
-          <p id="wallet-note" className="mt-3 text-xs text-white/60">Wallet connection is coming soon. You never need a wallet to browse or to pay in pesos.</p>
+          <p className="mt-3 text-xs text-white/60">Connecting only shares your public address. You never need a wallet to browse or to pay in pesos.</p>
         </Container>
       </section>
 

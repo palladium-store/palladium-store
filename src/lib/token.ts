@@ -1,4 +1,5 @@
 import 'server-only';
+import { CHAINS, isAddress, type WalletConfig } from './chain-config';
 
 /**
  * Public token facts for the information pages. Everything comes from environment variables, so nothing is ever invented:
@@ -32,18 +33,25 @@ export interface TokenInfo {
   priceAvailable: false;
 }
 
-const ADDRESS = /^0x[a-fA-F0-9]{40}$/;
+/** TOKEN_NETWORK=mainnet switches to mainnet; anything else (or unset) means testnet. */
+export const activeChain = () => ((process.env.TOKEN_NETWORK ?? '').trim().toLowerCase() === 'mainnet' ? CHAINS.mainnet : CHAINS.testnet);
+const contract = () => { const raw = (process.env.TOKEN_CONTRACT_ADDRESS ?? '').trim(); return isAddress(raw) ? raw : null; };
+
+export function getWalletConfig(): WalletConfig {
+  const d = Number(process.env.TOKEN_DECIMALS ?? 18);
+  return { chain: activeChain(), contract: contract(), decimals: Number.isInteger(d) && d >= 0 && d <= 36 ? d : 18, symbol: TOKEN_SYMBOL };
+}
 
 export function getTokenInfo(): TokenInfo {
-  const raw = (process.env.TOKEN_CONTRACT_ADDRESS ?? '').trim();
-  const contractAddress = ADDRESS.test(raw) ? raw : null;
-  const explorer = (process.env.TOKEN_EXPLORER_URL ?? '').trim();
+  const contractAddress = contract();
+  const chain = activeChain();
+  const explorer = (process.env.TOKEN_EXPLORER_URL ?? '').trim() || (contractAddress ? `${chain.explorerUrl}/token/${contractAddress}` : '');
   const circ = (process.env.TOKEN_CIRCULATING_SUPPLY_VERIFIED ?? '').trim();
   return {
     deployed: !!contractAddress,
     name: TOKEN_NAME,
     symbol: TOKEN_SYMBOL,
-    network: (process.env.TOKEN_NETWORK_NAME ?? '').trim() || 'Robinhood Chain',
+    network: chain.name,
     contractAddress,
     explorerUrl: contractAddress && /^https:\/\//.test(explorer) ? explorer : null,
     maxSupply: PROPOSED_MAX_SUPPLY,
