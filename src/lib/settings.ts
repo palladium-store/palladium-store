@@ -25,7 +25,7 @@ export const DEFAULTS = {
   } as PaymentSettings,
   inventory: { allowOversell: false },
   content: {
-    hero: { eyebrow: '', title: 'Play with edge.', subtitle: 'Premium paddles, balls and gear for players who want more from every rally.', cta: 'Shop now', image: '/products/koru-cutout.webp' },
+    hero: { eyebrow: '', title: 'Play with edge.', subtitle: 'Premium paddles, balls and gear for players who want more from every rally.', cta: 'Shop now', image: '/products/koru-hero.webp' },
     banners: [
       { title: 'Koru Limited Edition', text: 'A numbered run of the Gen4 16mm. Once it is gone, it is gone.', href: '/products/palladium-koru-limited-edition', cta: 'See the paddle' },
       { title: 'Free shipping nationwide', text: 'On orders over ₱3,000.', href: '/shop', cta: 'Start shopping' },
