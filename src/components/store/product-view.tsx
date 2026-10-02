@@ -132,7 +132,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <QtyStepper value={Math.min(qty, maxQty)} max={maxQty} onChange={setQty} disabled={soldOut} />
-          <button type="button" className="btn-primary min-w-[12rem] flex-1 py-4" disabled={soldOut || busy !== null} aria-busy={busy === 'add'} onClick={onAdd}>{busy === 'add' ? 'Working...' : soldOut ? 'Sold out' : 'Add to cart'}</button>
+          <button type="button" className="btn-primary min-w-[12rem] flex-1 py-4" disabled={soldOut || busy !== null} onClick={onAdd}>{busy === 'add' ? 'Working...' : soldOut ? 'Sold out' : 'Add to cart'}</button>
         </div>
         <button type="button" className="btn-gold mt-3 w-full py-4" disabled={soldOut || busy !== null} onClick={onBuy}>{busy === 'buy' ? 'Working...' : 'Buy now'}</button>
         {inCart > 0 && <p className="mt-2 text-xs text-mute">{inCart} of this option already in your cart.</p>}
