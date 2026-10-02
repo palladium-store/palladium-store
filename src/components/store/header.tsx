@@ -30,7 +30,7 @@ export function Header({ userName }: { userName: string | null }) {
           <button type="button" className={`${iconBtn} -ml-2 lg:hidden`} aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} aria-controls="mobile-nav" onClick={() => { setMenu((m) => !m); setSearch(false); }}>
             <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">{menu ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
           </button>
-          <Link href="/" aria-label="Palladium home" onClick={() => setMenu(false)}><Logo className="text-2xl sm:text-[1.7rem]" /></Link>
+          <Link href="/" aria-label="Palladium home" onClick={() => setMenu(false)}><Logo className="h-6 sm:h-7" /></Link>
         </div>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Main">

@@ -12,7 +12,7 @@ export function Footer({ store, content, categories }: { store: StoreSettings; c
     <footer className="mt-24 bg-ink text-white">
       <Container className="grid gap-12 py-16 lg:grid-cols-12">
         <div className="lg:col-span-4">
-          <Logo light className="text-4xl" />
+          <Logo light className="h-10 sm:h-12" />
           <p className="mt-4 max-w-sm text-sm text-white/70">Premium pickleball equipment designed in New Zealand and delivered across the Philippines.</p>
           <div className="mt-8 max-w-sm">
             <p className="mb-3 text-sm font-semibold">New drops and limited runs, first.</p>

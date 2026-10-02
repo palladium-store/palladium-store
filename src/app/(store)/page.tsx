@@ -72,7 +72,6 @@ export default async function HomePage() {
           <div className="order-1 lg:order-2">
             <div className="relative mx-auto aspect-[4/5] max-h-[70vh] w-full max-w-md overflow-hidden bg-black lg:max-w-none">
               <Img src={hero.image} alt="Palladium paddle" priority sizes="(min-width:1024px) 45vw, 90vw" className="object-contain" />
-              <span className="absolute bottom-4 right-4 font-display text-6xl leading-none tracking-tightest text-gold/90" aria-hidden="true">x</span>
             </div>
           </div>
         </Container>
