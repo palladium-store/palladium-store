@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/components/ui/api-client';
 import { useToast } from '@/components/ui/toast';
 import { toCentavos, toPesos, peso } from '@/lib/money';
+import { compressImage } from '@/lib/image-compress';
 import { Field, Toggle, inputCls } from './Field';
 
 export interface ProductInitial {
@@ -75,6 +76,10 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState('');
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [overKey, setOverKey] = useState<string | null>(null);
+  const [dropZone, setDropZone] = useState(false);
 
   const images = useMemo(() => media.filter((m) => m.kind === 'image'), [media]);
   const activeRows = rows.filter((r) => !r.removed);
@@ -92,34 +97,49 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
   function moveMedia(i: number, d: -1 | 1) {
     setMedia((ms) => { const j = i + d; if (j < 0 || j >= ms.length) return ms; const c = [...ms]; [c[i], c[j]] = [c[j], c[i]]; return c; });
   }
+  function dropMedia(targetKey: string) {
+    setMedia((ms) => {
+      const from = ms.findIndex((m) => m.key === dragKey), to = ms.findIndex((m) => m.key === targetKey);
+      if (from < 0 || to < 0 || from === to) return ms;
+      const c = [...ms]; const [it] = c.splice(from, 1); c.splice(to, 0, it); return c;
+    });
+    setDragKey(null); setOverKey(null);
+  }
   function removeRow(r: Row) {
     if (r.id) patchRow(r.key, { removed: true });
     else setRows((rs) => rs.filter((x) => x.key !== r.key));
   }
 
-  async function upload(files: FileList | null) {
+  async function upload(files: FileList | File[] | null) {
     if (!files || !files.length) return;
     const room = 20 - media.length;
     if (room <= 0) { toast('A product can have up to 20 images and videos.', 'error'); return; }
-    const picked = Array.from(files).slice(0, room);
-    if (picked.length < files.length) toast(`Only the first ${picked.length} file(s) were uploaded (limit is 20 per product).`, 'info');
+    const all = Array.from(files).filter((f) => /^(image\/(jpeg|png|webp|avif)|video\/(mp4|webm))$/.test(f.type));
+    if (all.length < files.length) toast('Some files were skipped. Use JPG, PNG, WebP or AVIF images, or MP4 or WebM video.', 'info');
+    const picked = all.slice(0, room);
+    if (picked.length < all.length) toast(`Only the first ${picked.length} file(s) were uploaded (limit is 20 per product).`, 'info');
+    if (!picked.length) return;
     setUploading(true);
-    try {
-      const added: Media[] = [];
-      for (let i = 0; i < picked.length; i += 10) {
+    const added: Media[] = [];
+    let failed = 0, lastError = '';
+    // One file per request: keeps every request under the host's body-size limit, and one bad file never blocks the rest.
+    for (let i = 0; i < picked.length; i++) {
+      setProgress(`Uploading ${i + 1} of ${picked.length}...`);
+      try {
+        const f = await compressImage(picked[i]);
         const fd = new FormData();
-        for (const f of picked.slice(i, i + 10)) fd.append('file', f);
+        fd.append('file', f);
         const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, credentials: 'same-origin' });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new ApiError(res.status, data?.error?.code ?? 'ERROR', data?.error?.message ?? 'Upload failed.');
-        for (const f of data.files as { url: string; kind: 'image' | 'video' }[]) added.push({ key: nextKey(), url: f.url, kind: f.kind, alt: '' });
+        if (!res.ok) throw new ApiError(res.status, data?.error?.code ?? 'ERROR', res.status === 413 ? 'That file is too large to upload. Try a smaller file.' : data?.error?.message ?? 'Upload failed.');
+        for (const u of data.files as { url: string; kind: 'image' | 'video' }[]) added.push({ key: nextKey(), url: u.url, kind: u.kind, alt: '' });
+      } catch (e) {
+        failed++; lastError = e instanceof ApiError ? e.message : 'Upload failed. Please try again.';
       }
-      setMedia((ms) => [...ms, ...added]);
-      toast(`${added.length} file${added.length === 1 ? '' : 's'} uploaded.`);
-    } catch (e) {
-      toast(e instanceof ApiError ? e.message : 'Upload failed. Please try again.', 'error');
     }
-    setUploading(false);
+    if (added.length) { setMedia((ms) => [...ms, ...added]); toast(`${added.length} file${added.length === 1 ? '' : 's'} uploaded.`); }
+    if (failed) toast(`${failed} file${failed === 1 ? '' : 's'} failed: ${lastError}`, 'error');
+    setUploading(false); setProgress('');
     if (fileRef.current) fileRef.current.value = '';
   }
 
@@ -289,12 +309,14 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
 
       <section className={card}>
         <h2 className={h2}>Media</h2>
-        <p className="mb-3 text-sm text-mute">Upload JPG, PNG, WebP or AVIF images (up to 8 MB) and MP4 or WebM videos (up to 40 MB). The first item is the primary image shown in listings. Up to 20 files.</p>
+        <p className="mb-3 text-sm text-mute">Drag and drop photos here or use the button. Large photos are resized and compressed automatically. Drag a photo to reorder; the first one is the primary image shown in listings. Up to 20 files (JPG, PNG, WebP, AVIF, MP4 or WebM).</p>
         {err('images') && <p className="field-error mb-2">{err('images')}</p>}
         {media.length > 0 && (
           <ul className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {media.map((m, i) => (
-              <li key={m.key} className="border border-line bg-bone p-3">
+              <li key={m.key} draggable onDragStart={() => setDragKey(m.key)} onDragEnd={() => { setDragKey(null); setOverKey(null); }}
+                onDragOver={(e) => { if (dragKey) { e.preventDefault(); setOverKey(m.key); } }} onDrop={(e) => { if (dragKey) { e.preventDefault(); e.stopPropagation(); dropMedia(m.key); } }}
+                className={`cursor-grab border bg-bone p-3 active:cursor-grabbing ${dragKey === m.key ? 'opacity-40' : ''} ${overKey === m.key && dragKey !== m.key ? 'border-gold ring-2 ring-gold' : 'border-line'}`}>
                 <div className="relative mb-2 aspect-square overflow-hidden bg-white">
                   {m.kind === 'video'
                     ? <video src={m.url} muted playsInline controls className="h-full w-full object-cover" />
@@ -316,7 +338,12 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
         )}
         {media[0]?.kind === 'video' && <p className="mb-3 text-xs text-gold-deep">The first item is a video. Move an image to the top so listings have a primary photo.</p>}
         <input ref={fileRef} type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif,video/mp4,video/webm" className="hidden" onChange={(e) => upload(e.target.files)} />
-        <button type="button" className="btn-outline btn-sm" onClick={() => fileRef.current?.click()} disabled={uploading || media.length >= 20}>{uploading ? 'Uploading...' : 'Upload images or videos'}</button>
+        <div onDragOver={(e) => { if (!dragKey && e.dataTransfer.types.includes('Files')) { e.preventDefault(); setDropZone(true); } }} onDragLeave={() => setDropZone(false)}
+          onDrop={(e) => { if (!dragKey && e.dataTransfer.files.length) { e.preventDefault(); setDropZone(false); upload(e.dataTransfer.files); } }}
+          className={`flex flex-col items-center gap-2 border-2 border-dashed p-6 text-center ${dropZone ? 'border-gold bg-gold-soft' : 'border-line'}`}>
+          <p className="text-sm text-mute">{uploading ? progress : 'Drop images here'}</p>
+          <button type="button" className="btn-outline btn-sm" onClick={() => fileRef.current?.click()} disabled={uploading || media.length >= 20}>{uploading ? 'Uploading...' : 'Upload images or videos'}</button>
+        </div>
       </section>
 
       <section className={card}>
