@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 
 export interface ProductCard {
-  id: string; name: string; slug: string; category: string; categorySlug: string; isLimited: boolean; isFeatured: boolean; createdAt: Date; variants: { name: string; image: string | null }[];
+  id: string; name: string; slug: string; category: string; categorySlug: string; isLimited: boolean; isFeatured: boolean; createdAt: Date; shortDescription: string | null; image2: string | null; variants: { id: string; name: string; image: string | null; price: number; compareAt: number | null; available: number }[];
   price: number; compareAt: number | null; image: string | null; inStock: boolean; rating: number | null; reviewCount: number; sold: number; variantCount: number;
 }
 export type Sort = 'featured' | 'newest' | 'best' | 'price_asc' | 'price_desc';
@@ -17,7 +17,12 @@ const SORTS: Record<Sort, Prisma.Sql> = {
 
 const base = Prisma.sql`
   SELECT p.id, p.name, p.slug, c.name AS category, c.slug AS "categorySlug", p."isLimited", p."isFeatured", p."createdAt", p."sortOrder", p.tags,
-    (SELECT COALESCE(json_agg(json_build_object('name', x.name, 'image', x."imageUrl") ORDER BY x.position, x."createdAt"), '[]'::json) FROM product_variants x WHERE x."productId"=p.id AND x."isActive") AS variants,
+    (SELECT COALESCE(json_agg(json_build_object('id', x.id, 'name', x.name, 'image', x."imageUrl", 'price', x."priceCentavos", 'compareAt', x."compareAtCentavos",
+        'available', (SELECT CASE WHEN COALESCE(bool_or(i."allowOversell"), false) THEN 999 ELSE GREATEST(COALESCE(sum(i."onHand" - i.reserved), 0), 0) END
+                      FROM inventory i JOIN locations l ON l.id = i."locationId" AND l."isDefault" WHERE i."variantId" = x.id)::int)
+      ORDER BY x.position, x."createdAt"), '[]'::json) FROM product_variants x WHERE x."productId"=p.id AND x."isActive") AS variants,
+    p."shortDescription" AS "shortDescription",
+    (SELECT url FROM product_images pi2 WHERE pi2."productId"=p.id AND pi2.kind='image' ORDER BY position OFFSET 1 LIMIT 1) AS image2,
     MIN(v."priceCentavos")::int AS price,
     MIN(v."compareAtCentavos") FILTER (WHERE v."compareAtCentavos" > v."priceCentavos")::int AS "compareAt",
     (SELECT url FROM product_images pi WHERE pi."productId"=p.id AND pi.kind='image' ORDER BY position LIMIT 1) AS image,

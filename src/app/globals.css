@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --gold: #e6b422; }
+:root { --gold: #b99432; }
 html { scroll-behavior: smooth; }
 body { @apply bg-paper text-ink font-sans antialiased; }
 ::selection { background: var(--gold); color: #000; }
@@ -23,7 +23,7 @@ body { @apply bg-paper text-ink font-sans antialiased; }
   .label { @apply mb-1 block text-xs font-semibold uppercase tracking-wider text-mute; }
   .field-error { @apply mt-1 text-xs text-red-600; }
   .card { @apply border border-line bg-white; }
-  .h-display { @apply font-display tracking-tightest; }
+  .h-display { @apply font-display font-extrabold tracking-tightest; }
   .table-wrap { @apply overflow-x-auto border border-line bg-white; }
   .tbl { @apply w-full min-w-[640px] text-left text-sm; }
   .tbl th { @apply whitespace-nowrap border-b border-line bg-bone px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-mute; }
@@ -45,3 +45,7 @@ body { @apply bg-paper text-ink font-sans antialiased; }
 .rte li, .rte-view li { margin: 0.2em 0; }
 .rte a, .rte-view a { text-decoration: underline; text-underline-offset: 2px; }
 .rte strong, .rte-view strong { font-weight: 700; color: inherit; }
+
+@layer utilities {
+  .font-display { font-weight: 800; }
+}

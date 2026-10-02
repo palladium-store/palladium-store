@@ -68,12 +68,11 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   const category = searchParams.category || undefined;
 
   const [res, cats, bounds] = await Promise.all([
-    listProducts({ category, q, min: min != null ? Math.round(min * 100) : undefined, max: max != null ? Math.round(max * 100) : undefined, availability, sort, page, pageSize: 12 }),
+    listProducts({ category, q, min: min != null ? Math.round(min * 100) : undefined, max: max != null ? Math.round(max * 100) : undefined, availability, sort, page, pageSize: 24 }),
     listCategories(),
     priceBounds(),
   ]);
   const activeCat = cats.find((c) => c.slug === category);
-  const allCount = cats.reduce((a, c) => a + c.count, 0);
 
   const sp: Record<string, string | undefined> = {
     category, q, min: min != null ? String(min) : undefined, max: max != null ? String(max) : undefined, availability,
@@ -85,48 +84,59 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   if (min != null || max != null) chips.push({ label: `${min != null ? peso(Math.round(min * 100)) : 'Any'} to ${max != null ? peso(Math.round(max * 100)) : 'Any'}`, to: href(sp, { min: undefined, max: undefined }) });
   if (availability) chips.push({ label: availability === 'in' ? 'In stock' : 'Sold out', to: href(sp, { availability: undefined }) });
 
-  const pill = (active: boolean) => `whitespace-nowrap border px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${active ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`;
+  const tab = (active: boolean) => `relative whitespace-nowrap px-1 pb-3 pt-1 text-[13px] font-semibold tracking-tight transition after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:transition ${active ? 'text-ink after:bg-ink' : 'text-mute hover:text-ink after:bg-transparent hover:after:bg-line'}`;
+  const visibleCats = cats.filter((c) => c.count > 0 || c.slug === category);
 
   return (
-    <Container className="pb-8 pt-8 sm:pt-12">
-      <nav aria-label="Breadcrumb" className="mb-4 text-xs text-mute"><Link href="/" className="hover:text-ink">Home</Link> / <span className="text-ink">Shop</span>{activeCat && <> / <span className="text-ink">{activeCat.name}</span></>}</nav>
-      <h1 className="h-display text-4xl sm:text-6xl">{activeCat ? activeCat.name : q ? `Results for "${q}"` : 'All products'}</h1>
+    <>
+      <section className="border-b border-line bg-bone">
+        <Container className="pb-0 pt-8 sm:pt-12">
+          <nav aria-label="Breadcrumb" className="mb-5 text-xs text-mute"><Link href="/" className="hover:text-ink">Home</Link> / <span className="text-ink">Shop</span>{activeCat && <> / <span className="text-ink">{activeCat.name}</span></>}</nav>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-gold-deep">Palladium / {activeCat ? activeCat.name : 'Performance Equipment'}</p>
+          <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tightest sm:text-6xl">{q ? `Results for \u201c${q}\u201d` : 'Built for Your Next Level.'}</h1>
+          <p className="mt-4 max-w-xl text-base text-mute sm:text-lg">Performance equipment engineered for power, control, and confidence.</p>
+          <div className="-mx-4 mt-8 flex gap-6 overflow-x-auto px-4 sm:mx-0 sm:gap-8 sm:px-0" role="navigation" aria-label="Categories">
+            <Link href={href(sp, { category: undefined, page: undefined })} className={tab(!activeCat)} aria-current={!activeCat ? 'true' : undefined}>All Products</Link>
+            {visibleCats.map((c) => <Link key={c.id} href={href(sp, { category: c.slug, page: undefined })} className={tab(c.slug === category)} aria-current={c.slug === category ? 'true' : undefined}>{c.name}</Link>)}
+          </div>
+        </Container>
+      </section>
 
-      <div className="-mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0" role="navigation" aria-label="Categories">
-        <Link href={href(sp, { category: undefined, page: undefined })} className={pill(!activeCat)} aria-current={!activeCat ? 'true' : undefined}>All ({allCount})</Link>
-        {cats.map((c) => <Link key={c.id} href={href(sp, { category: c.slug, page: undefined })} className={pill(c.slug === category)} aria-current={c.slug === category ? 'true' : undefined}>{c.name} ({c.count})</Link>)}
-      </div>
-
-      <div className="mt-8 grid gap-10 lg:grid-cols-[16rem_1fr]">
-        <aside aria-label="Filters">
-          <details className="border border-line lg:hidden">
-            <summary className="cursor-pointer px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em]">Filters{chips.length > 0 ? ` (${chips.length})` : ''}</summary>
-            <div className="border-t border-line p-4"><FilterForm idp="m" sp={sp} bounds={bounds} /></div>
-          </details>
-          <div className="hidden lg:sticky lg:top-24 lg:block"><FilterForm idp="d" sp={sp} bounds={bounds} /></div>
-        </aside>
-
-        <div>
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-            <p className="text-sm text-mute" aria-live="polite">{res.total.toLocaleString('en-PH')} product{res.total === 1 ? '' : 's'}</p>
+      <Container className="pb-12 pt-6 sm:pt-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-mute" aria-live="polite"><span className="font-semibold text-ink">{res.total.toLocaleString('en-PH')}</span> product{res.total === 1 ? '' : 's'}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <details className="group relative">
+              <summary className="flex cursor-pointer list-none items-center gap-2 border border-line px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition hover:border-ink group-open:border-ink">
+                Filters{chips.filter((c) => !c.label.startsWith('Search') && c.label !== activeCat?.name).length > 0 ? ` (${chips.filter((c) => !c.label.startsWith('Search') && c.label !== activeCat?.name).length})` : ''}
+                <span aria-hidden="true" className="text-[10px] transition group-open:rotate-180">&#9660;</span>
+              </summary>
+              <div className="absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-2rem))] border border-ink bg-white p-5 shadow-sm">
+                <FilterForm idp="f" sp={sp} bounds={bounds} />
+              </div>
+            </details>
             <SortSelect action="/shop" value={sort} hidden={{ category, q, min: sp.min, max: sp.max, availability }} />
           </div>
-          {chips.length > 0 && (
-            <div className="mb-6 flex flex-wrap items-center gap-2">
-              {chips.map((c) => (
-                <Link key={c.label} href={c.to} className="inline-flex items-center gap-2 bg-bone px-3 py-1.5 text-xs font-semibold transition hover:bg-ink hover:text-white" aria-label={`Remove filter ${c.label}`}>{c.label}<span aria-hidden="true">&times;</span></Link>
-              ))}
-              <Link href="/shop" className="text-xs font-semibold underline underline-offset-4">Clear all</Link>
-            </div>
-          )}
+        </div>
+
+        {chips.length > 0 && (
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            {chips.map((c) => (
+              <Link key={c.label} href={c.to} className="inline-flex items-center gap-2 border border-line bg-white px-3 py-1.5 text-xs font-semibold transition hover:border-ink" aria-label={`Remove filter ${c.label}`}>{c.label}<span aria-hidden="true">&times;</span></Link>
+            ))}
+            <Link href="/shop" className="text-xs font-semibold underline underline-offset-4">Clear all</Link>
+          </div>
+        )}
+
+        <div className="mt-8">
           {res.items.length === 0 ? (
             <EmptyState title="No products match" text="Try removing a filter or searching for something else." action={<Link href="/shop" className="btn-primary">Clear filters</Link>} />
           ) : (
-            <ProductGrid items={res.items} className="grid-cols-2 lg:grid-cols-3" priorityCount={3} />
+            <ProductGrid items={res.items} className="grid-cols-2 md:grid-cols-3 lg:grid-cols-4" priorityCount={4} />
           )}
           <Pagination page={res.page} pages={res.pages} total={res.total} base="/shop" params={sp} />
         </div>
-      </div>
-    </Container>
+      </Container>
+    </>
   );
 }
