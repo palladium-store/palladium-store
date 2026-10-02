@@ -28,6 +28,7 @@ export const NAV: { href: string; label: string; perm: Permission | null }[] = [
   { href: '/admin/orders', label: 'Orders', perm: 'VIEW_ORDERS' },
   { href: '/admin/products', label: 'Products', perm: 'MANAGE_PRODUCTS' },
   { href: '/admin/inventory', label: 'Inventory', perm: 'MANAGE_INVENTORY' },
+  { href: '/admin/categories', label: 'Categories', perm: 'MANAGE_PRODUCTS' },
   { href: '/admin/customers', label: 'Customers', perm: 'VIEW_CUSTOMERS' },
   { href: '/admin/discounts', label: 'Discounts', perm: 'MANAGE_DISCOUNTS' },
   { href: '/admin/reports', label: 'Reports', perm: 'VIEW_REPORTS' },
