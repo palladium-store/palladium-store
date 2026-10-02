@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import { getSetting } from '@/lib/settings';
-import { homeData } from '@/lib/queries/catalog';
+import { homeData, listProducts } from '@/lib/queries/catalog';
 import { fmtDate } from '@/lib/time';
 import { Container } from '@/components/store/container';
 import { Img } from '@/components/store/img';
@@ -34,21 +34,16 @@ function Section({ eyebrow, title, href, children }: { eyebrow: string; title: s
 }
 
 export default async function HomePage() {
-  const [content, data, shipped] = await Promise.all([
+  const [content, data, shipped, shopRes] = await Promise.all([
     getSetting('content'),
     homeData(),
     prisma.order.count({ where: { status: { in: ['SHIPPED', 'DELIVERED'] } } }),
+    listProducts({ pageSize: 12 }),
   ]);
-  const { hero, banners, brandStory } = content;
+  const shopItems: CardProduct[] = shopRes.items;
+  const { hero, brandStory } = content;
   const cats = data.categories.filter((c) => c.count > 0);
   const totalProducts = cats.reduce((a, c) => a + c.count, 0);
-  const sections: { eyebrow: string; title: string; href?: string; items: CardProduct[] }[] = [
-    { eyebrow: 'Hand picked', title: 'Featured', href: '/shop?sort=featured', items: data.featured },
-    { eyebrow: 'Court proven', title: 'Best sellers', href: '/shop?sort=best', items: data.best },
-    { eyebrow: 'Just landed', title: 'New arrivals', href: '/shop?sort=newest', items: data.fresh },
-    { eyebrow: 'Numbered runs', title: 'Limited editions', href: '/shop', items: data.limited },
-  ].filter((s) => s.items.length > 0);
-
   const proof: { value: string; label: string }[] = [];
   if (data.ratingCount > 0 && data.ratingAvg != null) proof.push({ value: data.ratingAvg.toFixed(1), label: `average from ${data.ratingCount.toLocaleString('en-PH')} review${data.ratingCount === 1 ? '' : 's'}` });
   if (shipped > 0) proof.push({ value: shipped.toLocaleString('en-PH'), label: `order${shipped === 1 ? '' : 's'} shipped` });
@@ -88,55 +83,12 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* Categories */}
-      {cats.length > 0 && (
-        <section className="mt-16 sm:mt-24">
-          <Container>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-              {cats.map((c, i) => (
-                <Link key={c.id} href={`/shop?category=${c.slug}`} className="group relative flex min-h-[9.5rem] flex-col justify-between overflow-hidden bg-ink p-5 text-white transition hover:bg-gold hover:text-ink sm:min-h-[13rem] sm:p-7">
-                  <span className="text-xs font-semibold tracking-[0.2em] text-gold transition group-hover:text-ink">{String(i + 1).padStart(2, '0')}</span>
-                  <div>
-                    <h3 className="h-display text-2xl sm:text-4xl">{c.name}</h3>
-                    <p className="mt-1 flex items-center justify-between text-xs uppercase tracking-[0.14em] text-white/60 transition group-hover:text-ink/70">
-                      <span>{c.count} product{c.count === 1 ? '' : 's'}</span>
-                      <span className="text-lg transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true">&rarr;</span>
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </Container>
-        </section>
-      )}
-
-      {sections.slice(0, 2).map((s) => (
-        <Section key={s.title} eyebrow={s.eyebrow} title={s.title} href={s.href}><ProductGrid items={s.items} /></Section>
-      ))}
-
-      {/* Promo banners */}
-      {banners.length > 0 && (
-        <section className="mt-20 sm:mt-28">
-          <Container className={`grid gap-4 ${banners.length > 1 ? 'md:grid-cols-2' : ''}`}>
-            {banners.slice(0, 2).map((b, i) => (
-              <Link key={b.title} href={b.href || '/shop'} className={`group flex min-h-[18rem] flex-col justify-between p-7 sm:p-10 ${i % 2 === 0 ? 'bg-gold text-ink' : 'bg-ink text-white'}`}>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-70">{i === 0 ? 'Featured' : 'Good to know'}</span>
-                <div>
-                  <h3 className="h-display text-3xl sm:text-5xl">{b.title}</h3>
-                  <p className="mt-3 max-w-md text-sm opacity-80">{b.text}</p>
-                  <span className="mt-6 inline-block border-b-2 border-current pb-1 text-xs font-semibold uppercase tracking-[0.14em] transition-all group-hover:pr-3">{b.cta}</span>
-                </div>
-              </Link>
-            ))}
-          </Container>
-        </section>
-      )}
-
-      {sections.slice(2).map((s) => (
-        <Section key={s.title} eyebrow={s.eyebrow} title={s.title} href={s.href}>
-          <ProductGrid items={s.items} className="grid-cols-2 lg:grid-cols-4" />
+      {/* Shop */}
+      {shopItems.length > 0 && (
+        <Section eyebrow="Palladium" title="Shop" href="/shop">
+          <ProductGrid items={shopItems} className="grid-cols-2 lg:grid-cols-4" />
         </Section>
-      ))}
+      )}
 
       {/* Brand story */}
       <section className="mt-20 bg-ink text-white sm:mt-28">
