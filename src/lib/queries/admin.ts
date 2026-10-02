@@ -67,20 +67,63 @@ export async function getCustomerDetail(id: string) {
 }
 
 // ---------- Products (admin) ----------
-export async function listAdminProducts(o: { q?: string; status?: string; category?: string; page?: number; pageSize?: number }) {
+export type AdminProductSort = 'newest' | 'oldest' | 'name' | 'price_asc' | 'price_desc' | 'stock_asc' | 'stock_desc';
+export type AdminStockFilter = 'in' | 'low' | 'out';
+const SORT_SQL: Record<AdminProductSort, Prisma.Sql> = {
+  newest: Prisma.sql`p."createdAt" DESC`, oldest: Prisma.sql`p."createdAt" ASC`, name: Prisma.sql`lower(p.name) ASC`,
+  price_asc: Prisma.sql`s.pmin ASC NULLS LAST`, price_desc: Prisma.sql`s.pmin DESC NULLS LAST`,
+  stock_asc: Prisma.sql`s.stock ASC`, stock_desc: Prisma.sql`s.stock DESC`,
+};
+const escLike = (q: string) => q.replace(/[\\%_]/g, (m) => `\\${m}`);
+
+type AdminProductQuery = { q?: string; status?: string; category?: string; stock?: AdminStockFilter; sort?: AdminProductSort; page?: number; pageSize?: number };
+
+/** Builds the SQL for one page of product ids plus the total count. Exported so it can be tested against a real database. */
+export function buildAdminProductQuery(o: AdminProductQuery) {
   const page = Math.max(o.page ?? 1, 1), size = Math.min(o.pageSize ?? 20, 100);
-  const where: Prisma.ProductWhereInput = {
-    ...(o.status ? { status: o.status as never } : { status: { not: 'ARCHIVED' } }),
-    ...(o.category ? { categoryId: o.category } : {}),
-    ...(o.q ? { OR: [{ name: { contains: o.q, mode: 'insensitive' } }, { variants: { some: { OR: [{ sku: { contains: o.q, mode: 'insensitive' } }, { barcode: { contains: o.q } }] } } }] } : {}),
-  };
-  const [rows, total] = await Promise.all([
-    prisma.product.findMany({ where, orderBy: { updatedAt: 'desc' }, skip: (page - 1) * size, take: size, include: { category: { select: { name: true } }, images: { take: 1, orderBy: { position: 'asc' } }, variants: { include: { levels: true } } } }),
-    prisma.product.count({ where }),
-  ]);
-  return { rows: rows.map((p) => ({ id: p.id, name: p.name, slug: p.slug, status: p.status, category: p.category.name, image: p.images[0]?.url ?? null, isDemo: p.isDemo,
-    variants: p.variants.length, priceMin: Math.min(...p.variants.map((v) => v.priceCentavos)), priceMax: Math.max(...p.variants.map((v) => v.priceCentavos)),
-    stock: p.variants.reduce((a, v) => a + v.levels.reduce((b, l) => b + l.onHand - l.reserved, 0), 0) })), total, page, pageSize: size, pages: Math.max(Math.ceil(total / size), 1) };
+  const conds: Prisma.Sql[] = [o.status ? Prisma.sql`p.status = ${o.status}::"ProductStatus"` : Prisma.sql`p.status <> 'ARCHIVED'::"ProductStatus"`];
+  if (o.category) conds.push(Prisma.sql`p."categoryId" = ${o.category}`);
+  if (o.stock === 'in') conds.push(Prisma.sql`s.stock > 0`);
+  if (o.stock === 'out') conds.push(Prisma.sql`s.stock <= 0`);
+  if (o.stock === 'low') conds.push(Prisma.sql`s.low`);
+  if (o.q) {
+    const like = `%${escLike(o.q)}%`;
+    conds.push(Prisma.sql`(p.name ILIKE ${like} OR c.name ILIKE ${like}
+      OR EXISTS (SELECT 1 FROM unnest(p.tags) AS t WHERE t ILIKE ${like})
+      OR EXISTS (SELECT 1 FROM product_variants x WHERE x."productId" = p.id AND (x.sku ILIKE ${like} OR x.barcode ILIKE ${like})))`);
+  }
+  const from = Prisma.sql`FROM products p JOIN categories c ON c.id = p."categoryId"
+    LEFT JOIN LATERAL (
+      SELECT min(v."priceCentavos") AS pmin, coalesce(sum(a.avail), 0)::int AS stock, coalesce(bool_or(a.avail > 0 AND a.avail <= v."lowStockThreshold"), false) AS low
+      FROM product_variants v
+      LEFT JOIN LATERAL (SELECT coalesce(sum(l."onHand" - l."reserved"), 0) AS avail FROM inventory l WHERE l."variantId" = v.id) a ON true
+      WHERE v."productId" = p.id AND v."isActive"
+    ) s ON true
+    WHERE ${Prisma.join(conds, ' AND ')}`;
+  const order = SORT_SQL[o.sort ?? 'newest'] ?? SORT_SQL.newest;
+  return { page, size, idSql: Prisma.sql`SELECT p.id ${from} ORDER BY ${order}, p.id ASC LIMIT ${size} OFFSET ${(page - 1) * size}`, countSql: Prisma.sql`SELECT count(*)::int AS n ${from}` };
+}
+
+/** Filtering, searching and sorting run in SQL so the list stays fast with thousands of products. */
+export async function listAdminProducts(o: AdminProductQuery) {
+  const { page, size, idSql, countSql } = buildAdminProductQuery(o);
+  const [idRows, countRows] = await Promise.all([prisma.$queryRaw<{ id: string }[]>(idSql), prisma.$queryRaw<{ n: number }[]>(countSql)]);
+  const total = countRows[0]?.n ?? 0;
+  const ids = idRows.map((r) => r.id);
+  const found = ids.length ? await prisma.product.findMany({ where: { id: { in: ids } }, include: { category: { select: { name: true } }, images: { take: 1, orderBy: { position: 'asc' } }, variants: { orderBy: { position: 'asc' }, include: { levels: true } } } }) : [];
+  const byId = new Map(found.map((p) => [p.id, p]));
+  const rows = ids.map((id) => byId.get(id)).filter((p): p is NonNullable<typeof p> => !!p).map((p) => {
+    const live = p.variants.filter((v) => v.isActive);
+    const prices = live.map((v) => v.priceCentavos);
+    return {
+      id: p.id, name: p.name, slug: p.slug, status: p.status, category: p.category.name, image: p.images[0]?.url ?? null, isDemo: p.isDemo, createdAt: p.createdAt,
+      variants: live.length, sku: live[0]?.sku ?? '', extraSkus: Math.max(live.length - 1, 0),
+      priceMin: prices.length ? Math.min(...prices) : NaN, priceMax: prices.length ? Math.max(...prices) : NaN,
+      stock: live.reduce((a, v) => a + v.levels.reduce((b, l) => b + l.onHand - l.reserved, 0), 0),
+      low: live.some((v) => { const av = v.levels.reduce((b, l) => b + l.onHand - l.reserved, 0); return av > 0 && av <= v.lowStockThreshold; }),
+    };
+  });
+  return { rows, total, page, pageSize: size, pages: Math.max(Math.ceil(total / size), 1) };
 }
 export async function getAdminProduct(id: string) {
   return prisma.product.findUnique({ where: { id }, include: { images: { orderBy: { position: 'asc' } }, variants: { orderBy: { position: 'asc' }, include: { levels: true } } } });

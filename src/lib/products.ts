@@ -92,3 +92,38 @@ export async function deleteProduct(user: SessionUser, id: string) {
   await prisma.product.delete({ where: { id } });
   await audit(user, 'PRODUCT_DELETED', 'Product', id, `Deleted product ${p.name}`);
 }
+
+export const bulkSchema = z.object({
+  ids: z.array(z.string().min(1).max(40)).min(1, 'Select at least one product.').max(200, 'Select 200 products or fewer at a time.'),
+  action: z.enum(['status', 'category', 'delete']),
+  status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED', 'SOLD_OUT']).optional(),
+  categoryId: z.string().min(1).max(40).optional(),
+});
+export type BulkInput = z.infer<typeof bulkSchema>;
+
+/** Applies one action to many products. Status and category changes are single updates; deletes run one by one so a product
+ *  with order or stock history is skipped (and reported) without stopping the rest. */
+export async function bulkProducts(user: SessionUser, input: BulkInput) {
+  const ids = Array.from(new Set(input.ids));
+  if (input.action === 'status') {
+    if (!input.status) throw new AppError(422, 'VALIDATION', 'Choose a status.');
+    const r = await prisma.product.updateMany({ where: { id: { in: ids } }, data: { status: input.status, ...(input.status === 'ACTIVE' ? { publishedAt: new Date() } : {}) } });
+    await audit(user, 'PRODUCTS_BULK_STATUS', 'Product', null, `Set ${r.count} product(s) to ${input.status.toLowerCase()}`, { ids });
+    return { done: r.count, skipped: [] as { id: string; name: string; reason: string }[] };
+  }
+  if (input.action === 'category') {
+    if (!input.categoryId) throw new AppError(422, 'VALIDATION', 'Choose a category.');
+    const cat = await prisma.category.findUnique({ where: { id: input.categoryId }, select: { name: true } });
+    if (!cat) throw new AppError(422, 'VALIDATION', 'That category no longer exists.');
+    const r = await prisma.product.updateMany({ where: { id: { in: ids } }, data: { categoryId: input.categoryId } });
+    await audit(user, 'PRODUCTS_BULK_CATEGORY', 'Product', null, `Moved ${r.count} product(s) to ${cat.name}`, { ids });
+    return { done: r.count, skipped: [] as { id: string; name: string; reason: string }[] };
+  }
+  const names = new Map((await prisma.product.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } })).map((p) => [p.id, p.name]));
+  let done = 0; const skipped: { id: string; name: string; reason: string }[] = [];
+  for (const id of ids) {
+    try { await deleteProduct(user, id); done++; }
+    catch (e) { skipped.push({ id, name: names.get(id) ?? id, reason: e instanceof AppError ? e.message : 'Could not delete.' }); }
+  }
+  return { done, skipped };
+}

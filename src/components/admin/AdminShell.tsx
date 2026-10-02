@@ -18,14 +18,14 @@ export function AdminShell({ user, nav, canAudit, children }: { user: { name: st
           <Link href="/admin" className="font-display text-xl tracking-tightest" onClick={() => setOpen(false)}>palladium<span className="text-gold">x</span> <span className="ml-1 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">Admin</span></Link>
           <button className="text-2xl leading-none text-white/60 lg:hidden" onClick={() => setOpen(false)} aria-label="Close menu">&times;</button>
         </div>
-        <nav className="mt-2 flex flex-col px-3" aria-label="Admin">
+        <nav className="mt-2 flex max-h-[calc(100vh-9rem)] flex-col overflow-y-auto px-3 pb-4" aria-label="Admin">
           {nav.map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)} aria-current={active(n.href) ? 'page' : undefined}
               className={`border-l-2 px-4 py-2.5 text-sm font-medium transition ${active(n.href) ? 'border-gold bg-white/10 text-white' : 'border-transparent text-white/60 hover:bg-white/5 hover:text-white'}`}>{n.label}</Link>
           ))}
           {canAudit && <Link href="/admin/activity" onClick={() => setOpen(false)} className={`border-l-2 px-4 py-2.5 text-sm font-medium ${path.startsWith('/admin/activity') ? 'border-gold bg-white/10 text-white' : 'border-transparent text-white/60 hover:bg-white/5 hover:text-white'}`}>Activity log</Link>}
         </nav>
-        <div className="absolute inset-x-0 bottom-0 border-t border-white/10 p-4 text-xs text-white/50">
+        <div className="absolute inset-x-0 bottom-0 border-t border-white/10 bg-ink p-4 text-xs text-white/50">
           <Link href="/" className="hover:text-white" target="_blank">View storefront &rarr;</Link>
         </div>
       </aside>
