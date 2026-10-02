@@ -12,6 +12,7 @@ import { BundleBox, type BundleItem } from '@/components/store/bundle-box';
 import { ReviewForm } from '@/components/store/review-form';
 import { Stars } from '@/components/store/stars';
 import { paragraphs } from '@/components/store/labels';
+import { toHtml, htmlToText } from '@/lib/rich-text';
 
 export const dynamic = 'force-dynamic';
 type Params = { params: { slug: string } };
@@ -67,7 +68,7 @@ export default async function ProductPage({ params }: Params) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
-    description: product.shortDescription || product.description || product.name,
+    description: product.shortDescription || htmlToText(product.description) || product.name,
     sku: (firstAvail ?? variants[0])?.sku,
     image: images.map((i) => (i.url.startsWith('http') ? i.url : `${site}${i.url}`)),
     brand: { '@type': 'Brand', name: 'Palladium' },
@@ -99,9 +100,9 @@ export default async function ProductPage({ params }: Params) {
         <section className="mt-16 grid gap-10 border-t border-line pt-12 lg:grid-cols-12" aria-label="Product details">
           <div className="lg:col-span-7">
             <h2 className="h-display text-2xl sm:text-3xl">About this product</h2>
-            <div className="mt-5 max-w-2xl space-y-4 text-base leading-relaxed text-mute">
-              {paragraphs(product.description || product.shortDescription).map((t, i) => <p key={i}>{t}</p>)}
-            </div>
+            {product.description
+              ? <div className="rte-view mt-5 max-w-2xl space-y-4 text-base leading-relaxed text-mute" dangerouslySetInnerHTML={{ __html: toHtml(product.description) }} />
+              : <div className="mt-5 max-w-2xl space-y-4 text-base leading-relaxed text-mute">{paragraphs(product.shortDescription).map((t, i) => <p key={i}>{t}</p>)}</div>}
           </div>
           {specs.length > 0 && (
             <div className="lg:col-span-5">

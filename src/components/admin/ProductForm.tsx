@@ -6,6 +6,8 @@ import { api, ApiError } from '@/components/ui/api-client';
 import { useToast } from '@/components/ui/toast';
 import { toCentavos, toPesos, peso } from '@/lib/money';
 import { compressImage } from '@/lib/image-compress';
+import { RichTextEditor } from './RichTextEditor';
+import { htmlToText } from '@/lib/rich-text';
 import { Field, Toggle, inputCls } from './Field';
 
 export interface ProductInitial {
@@ -150,7 +152,7 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
     if (slug.trim() && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.trim().toLowerCase())) e.slug = 'Lowercase letters, numbers and dashes only.';
     if (!categoryId) e.categoryId = 'Choose a category.';
     if (shortDescription.length > 300) e.shortDescription = 'Use 300 characters or fewer.';
-    if (description.length > 10000) e.description = 'Use 10,000 characters or fewer.';
+    if (description.length > 20000 || htmlToText(description).length > 10000) e.description = 'The description is too long. Shorten it a little.';
     const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean);
     if (tagList.length > 30) e.tags = 'Use 30 tags or fewer.'; else if (tagList.some((t) => t.length > 40)) e.tags = 'Each tag must be 40 characters or fewer.';
     for (const s of specs) if (s.v.length > 300) e.specs = 'Specification values must be 300 characters or fewer.';
@@ -212,7 +214,7 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
       ...(slug.trim() ? { slug: slug.trim().toLowerCase() } : {}),
       categoryId,
       shortDescription: shortDescription.trim() || null,
-      description: description.trim() || null,
+      description: htmlToText(description) ? description.trim() : null,
       specs: Object.keys(specsObj).length ? specsObj : null,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       status, isFeatured, isLimited,
@@ -301,8 +303,8 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
           <Field label="Short description" error={err('shortDescription')} hint={<Counter value={shortDescription} max={300} />} className="md:col-span-2">
             <textarea className={inputCls(err('shortDescription'))} rows={2} value={shortDescription} onChange={(e) => setShort(e.target.value)} />
           </Field>
-          <Field label="Description" error={err('description')} hint={<Counter value={description} max={10000} />} className="md:col-span-2">
-            <textarea className={inputCls(err('description'))} rows={7} value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Field label="Description" error={err('description')} hint="Use the toolbar for bold, headings, lists and links. Pasted text is added as plain text." className="md:col-span-2">
+            <RichTextEditor id="description" value={description} onChange={setDescription} invalid={!!err('description')} />
           </Field>
         </div>
       </section>

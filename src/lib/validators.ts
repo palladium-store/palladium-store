@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PROVINCES } from './ph';
+import { sanitizeHtml } from './rich-text';
 
 const trim = (s: string) => s.trim();
 export const email = z.string().transform(trim).pipe(z.string().email('Enter a valid email address.').max(160));
@@ -62,7 +63,7 @@ export const variantSchema = z.object({
 export const productSchema = z.object({
   name: text(160), slug: z.string().transform((s) => s.trim().toLowerCase()).pipe(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Lowercase letters, numbers and dashes only.')).optional(),
   categoryId: z.string().min(1, 'Choose a category.'),
-  shortDescription: z.string().max(300).optional().nullable(), description: z.string().max(10000).optional().nullable(),
+  shortDescription: z.string().max(300).optional().nullable(), description: z.string().max(20000).transform((v) => sanitizeHtml(v) || null).optional().nullable(),
   specs: z.record(z.string().max(300)).optional().nullable(), tags: z.array(z.string().max(40)).max(30).default([]),
   status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED', 'SOLD_OUT']).default('DRAFT'),
   isFeatured: z.boolean().default(false), isLimited: z.boolean().default(false),
