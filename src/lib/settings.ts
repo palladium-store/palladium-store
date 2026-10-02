@@ -3,7 +3,7 @@ import { cache } from 'react';
 import { prisma } from './db';
 
 export interface StoreSettings { name: string; email: string; phone: string; address: string; facebook?: string; instagram?: string; freeShippingNote?: string }
-export interface PaymentSettings { GCASH: MethodCfg; MAYA: MethodCfg; CARD: MethodCfg; BANK_TRANSFER: MethodCfg; COD: MethodCfg }
+export interface PaymentSettings { QRPH: MethodCfg; GCASH: MethodCfg; MAYA: MethodCfg; CARD: MethodCfg; BANK_TRANSFER: MethodCfg; COD: MethodCfg }
 export interface MethodCfg { enabled: boolean; instructions: string }
 export interface ContentSettings {
   hero: { eyebrow: string; title: string; subtitle: string; cta: string; image: string };
@@ -16,6 +16,7 @@ export interface ContentSettings {
 export const DEFAULTS = {
   store: { name: 'Palladium', email: 'hello@palladiumpickleball.com', phone: '+63 917 000 0000', address: 'Metro Manila, Philippines', instagram: '', facebook: '' } as StoreSettings,
   payments: {
+    QRPH: { enabled: false, instructions: 'Scan the QR code with any bank or e-wallet app that supports QR Ph (GCash, Maya, BPI, BDO, UnionBank and more). We confirm your payment automatically.' },
     GCASH: { enabled: true, instructions: 'Send the exact amount to GCash 0917 000 0000 (Palladium) and use your order number as the reference. We confirm within business hours.' },
     MAYA: { enabled: true, instructions: 'Send the exact amount to Maya 0917 000 0000 (Palladium) and use your order number as the reference.' },
     CARD: { enabled: false, instructions: 'Card payments are not available yet.' },

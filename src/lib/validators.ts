@@ -10,7 +10,7 @@ const name = z.string().transform(trim).pipe(z.string().min(2, 'Enter your full 
 const text = (max: number, msg = 'Required.') => z.string().transform(trim).pipe(z.string().min(1, msg).max(max));
 export const password = z.string().min(8, 'Use at least 8 characters.').max(100).regex(/[A-Za-z]/, 'Include a letter.').regex(/\d/, 'Include a number.');
 
-export const paymentMethod = z.enum(['GCASH', 'MAYA', 'CARD', 'BANK_TRANSFER', 'COD']);
+export const paymentMethod = z.enum(['QRPH', 'GCASH', 'MAYA', 'CARD', 'BANK_TRANSFER', 'COD']);
 export const shipAddress = z.object({
   name, phone: phMobile,
   line1: text(200, 'Enter your street address.'),

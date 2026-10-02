@@ -7,7 +7,7 @@ import { z } from 'zod';
 const method = z.object({ enabled: z.boolean(), instructions: z.string().max(1000) });
 const schemas = {
   store: z.object({ name: z.string().min(1).max(80), email: z.string().email(), phone: z.string().max(40), address: z.string().max(300), facebook: z.string().max(200).optional(), instagram: z.string().max(200).optional() }),
-  payments: z.object({ GCASH: method, MAYA: method, CARD: method, BANK_TRANSFER: method, COD: method }),
+  payments: z.object({ QRPH: method, GCASH: method, MAYA: method, CARD: method, BANK_TRANSFER: method, COD: method }),
   content: z.object({
     hero: z.object({ eyebrow: z.string().max(120), title: z.string().min(1).max(120), subtitle: z.string().max(300), cta: z.string().max(40), image: z.string().max(500) }),
     banners: z.array(z.object({ title: z.string().max(80), text: z.string().max(200), href: z.string().max(200), cta: z.string().max(40) })).max(4),

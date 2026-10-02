@@ -2,6 +2,7 @@ import 'server-only';
 import type { PaymentMethod } from '@prisma/client';
 import { getSetting } from './settings';
 import { AppError } from './errors';
+import { paymongoProvider, paymongoConfigured } from './paymongo';
 
 export interface PaymentInit { instructions: string; redirectUrl?: string; reference?: string }
 export interface PaymentProvider {
@@ -24,11 +25,12 @@ export const manualProvider: PaymentProvider = {
 
 // Register real providers here later (PayMongo, Xendit, Maya Business, GCash), each implementing PaymentProvider and
 // calling pal_confirm_order from a verified webhook route (see /api/payments/webhook).
-const registry: PaymentProvider[] = [manualProvider];
+// Lazy so the payments <-> paymongo <-> orders import cycle never touches an uninitialised binding.
+const registry = (): PaymentProvider[] => [paymongoProvider, manualProvider];
 export function providerFor(method: PaymentMethod): PaymentProvider {
-  return registry.find((p) => p.methods.includes(method)) ?? manualProvider;
+  return registry().find((p) => p.methods.includes(method)) ?? manualProvider;
 }
 export async function enabledMethods() {
   const s = await getSetting('payments');
-  return (Object.keys(s) as PaymentMethod[]).filter((k) => s[k].enabled);
+  return (Object.keys(s) as PaymentMethod[]).filter((k) => s[k].enabled && (k !== 'QRPH' || paymongoConfigured()));
 }

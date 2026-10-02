@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
-  images: { formats: ['image/avif', 'image/webp'], remotePatterns: [] },
+  images: { formats: ['image/webp'], remotePatterns: [] },
   experimental: { serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs', 'exceljs', 'nodemailer'] },
   async headers() {
     return [{ source: '/(.*)', headers: [

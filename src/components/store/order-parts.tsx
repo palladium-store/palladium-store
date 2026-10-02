@@ -4,6 +4,7 @@ import { peso } from '@/lib/money';
 import { fmtDateTime } from '@/lib/time';
 import { Img } from './img';
 import { METHOD_HEADING, METHOD_LABEL } from './labels';
+import { QrPayment } from './qr-payment';
 
 export function OrderItemsList({ items }: { items: OrderItem[] }) {
   return (
@@ -49,7 +50,7 @@ export function AddressBlock({ order }: { order: Order }) {
 }
 
 /** Shown while payment is outstanding. Wording depends on the payment method. */
-export function PaymentInstructions({ order, instructions }: { order: Order; instructions: string }) {
+export function PaymentInstructions({ order, instructions, token }: { order: Order; instructions: string; token?: string }) {
   if (order.paymentStatus !== 'PENDING' && order.paymentStatus !== 'AUTHORIZED') return null;
   if (order.status === 'CANCELLED' || order.status === 'REFUNDED') return null;
   const cod = order.paymentMethod === 'COD';
@@ -57,11 +58,12 @@ export function PaymentInstructions({ order, instructions }: { order: Order; ins
     <section className="border-2 border-gold bg-gold-soft p-5 sm:p-7" aria-labelledby="pay-h">
       <h2 id="pay-h" className="font-display text-xl tracking-tightest">{METHOD_HEADING[order.paymentMethod] ?? 'Payment'}</h2>
       <p className="mt-2 text-sm">{instructions}</p>
+      {order.paymentMethod === 'QRPH' && token && <QrPayment orderNumber={order.orderNumber} token={token} amount={peso(order.totalCentavos)} />}
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
         <div><dt className="text-xs uppercase tracking-wider text-mute">{cod ? 'Amount to prepare' : 'Amount to pay'}</dt><dd className="font-display text-2xl tracking-tightest">{peso(order.totalCentavos)}</dd></div>
         {!cod && <div><dt className="text-xs uppercase tracking-wider text-mute">Reference to use</dt><dd className="font-display text-2xl tracking-tightest">{order.orderNumber}</dd></div>}
       </dl>
-      <p className="mt-4 text-xs text-mute">{cod ? 'We will confirm your order before it ships. Keep your phone nearby in case the courier calls.' : 'Your order is held for you. We confirm it as soon as we see your payment, and you will get an email.'}</p>
+      <p className="mt-4 text-xs text-mute">{cod ? 'We will confirm your order before it ships. Keep your phone nearby in case the courier calls.' : order.paymentMethod === 'QRPH' ? 'Your order is held while you pay. You will get an email as soon as your payment is confirmed.' : 'Your order is held for you. We confirm it as soon as we see your payment, and you will get an email.'}</p>
     </section>
   );
 }

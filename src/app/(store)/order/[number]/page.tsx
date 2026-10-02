@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getUser } from '@/lib/auth';
 import { getSetting } from '@/lib/settings';
-import { verifyOrderToken } from '@/lib/orders';
+import { verifyOrderToken, orderToken } from '@/lib/orders';
 import { fmtDateTime } from '@/lib/time';
 import { Badge } from '@/components/ui/bits';
 import { Container } from '@/components/store/container';
@@ -44,7 +44,7 @@ export default async function OrderPage({ params, searchParams }: { params: { nu
         <p className="mt-3 text-sm text-mute">{orderStatusNote(order)} We will send updates to {order.email}.</p>
 
         <div className="mt-8 space-y-6">
-          <PaymentInstructions order={order} instructions={payments[order.paymentMethod]?.instructions ?? ''} />
+          <PaymentInstructions order={order} instructions={payments[order.paymentMethod]?.instructions ?? ''} token={orderToken(order.id)} />
           <TrackingBlock shipment={shipment} />
           <section aria-labelledby="items-h">
             <h2 id="items-h" className="mb-3 font-display text-xl tracking-tightest">Items</h2>

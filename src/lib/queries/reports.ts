@@ -76,10 +76,10 @@ export async function paymentReport(r: { from: Date; to: Date }): Promise<Paymen
     SELECT o."paymentMethod"::text AS method, count(*)::int AS orders, sum(o."totalCentavos")::float8 AS "salesCentavos", sum(o."refundedCentavos")::float8 AS "refundsCentavos",
       sum(o."totalCentavos"-o."refundedCentavos")::float8 AS "netCentavos"
     FROM orders o WHERE ${COUNTED} AND ${inRange(r)} GROUP BY 1`);
-  const order = ['GCASH', 'MAYA', 'CARD', 'BANK_TRANSFER', 'COD'];
+  const order = ['QRPH', 'GCASH', 'MAYA', 'CARD', 'BANK_TRANSFER', 'COD'];
   return order.map((m) => rows.find((x) => x.method === m) ?? { method: m, orders: 0, salesCentavos: 0, refundsCentavos: 0, netCentavos: 0 });
 }
-export const PAYMENT_LABELS: Record<string, string> = { GCASH: 'GCash', MAYA: 'Maya', CARD: 'Credit/debit card', BANK_TRANSFER: 'Bank transfer', COD: 'Cash on delivery' };
+export const PAYMENT_LABELS: Record<string, string> = { QRPH: 'QR Ph', GCASH: 'GCash', MAYA: 'Maya', CARD: 'Credit/debit card', BANK_TRANSFER: 'Bank transfer', COD: 'Cash on delivery' };
 
 export async function dailySalesTable(r: { from: Date; to: Date }) {
   return prisma.$queryRaw<{ day: string; orders: number; grossCentavos: number; discountsCentavos: number; refundsCentavos: number; shippingCentavos: number; netCentavos: number }[]>(Prisma.sql`

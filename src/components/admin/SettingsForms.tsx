@@ -48,9 +48,9 @@ export function GeneralSettings({ initial }: { initial: StoreData }) {
   );
 }
 
-type Method = 'GCASH' | 'MAYA' | 'CARD' | 'BANK_TRANSFER' | 'COD';
+type Method = 'QRPH' | 'GCASH' | 'MAYA' | 'CARD' | 'BANK_TRANSFER' | 'COD';
 const METHODS: { key: Method; label: string }[] = [
-  { key: 'GCASH', label: 'GCash' }, { key: 'MAYA', label: 'Maya' }, { key: 'CARD', label: 'Credit / debit card' }, { key: 'BANK_TRANSFER', label: 'Bank transfer' }, { key: 'COD', label: 'Cash on delivery' },
+  { key: 'QRPH', label: 'QR Ph (PayMongo, automatic)' }, { key: 'GCASH', label: 'GCash' }, { key: 'MAYA', label: 'Maya' }, { key: 'CARD', label: 'Credit / debit card' }, { key: 'BANK_TRANSFER', label: 'Bank transfer' }, { key: 'COD', label: 'Cash on delivery' },
 ];
 export type PaymentsData = Record<Method, { enabled: boolean; instructions: string }>;
 

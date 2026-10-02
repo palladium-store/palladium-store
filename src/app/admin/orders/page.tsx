@@ -12,7 +12,7 @@ export const metadata = { title: 'Orders' };
 
 const STATUSES = ['PENDING', 'PAYMENT_PENDING', 'PAID', 'PROCESSING', 'PACKED', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
 const PAY_STATUSES = ['PENDING', 'AUTHORIZED', 'PAID', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED'];
-const METHODS = ['GCASH', 'MAYA', 'CARD', 'BANK_TRANSFER', 'COD'];
+const METHODS = ['QRPH', 'GCASH', 'MAYA', 'CARD', 'BANK_TRANSFER', 'COD'];
 const SORTS: [string, string][] = [['newest', 'Newest first'], ['oldest', 'Oldest first'], ['total_desc', 'Total: high to low'], ['total_asc', 'Total: low to high']];
 const TABS: [string, string][] = [['', 'All'], ['PENDING', 'Pending'], ['PAID', 'Paid'], ['PROCESSING', 'Processing'], ['PACKED', 'Packed'], ['SHIPPED', 'Shipped'], ['DELIVERED', 'Delivered'], ['CANCELLED', 'Cancelled'], ['REFUNDED', 'Refunded']];
 

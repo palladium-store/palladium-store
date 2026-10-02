@@ -91,6 +91,13 @@ export async function confirmOrder(orderId: string, user: SessionUser, opts: { m
   await audit(user, markPaid ? 'ORDER_PAYMENT_CONFIRMED' : 'ORDER_CONFIRMED', 'Order', orderId, `${markPaid ? 'Confirmed payment for' : 'Confirmed'} ${o.orderNumber}`);
   await processOutbox(10).catch(() => {});
 }
+/** Confirms a verified provider payment with no human actor. Idempotent: pal_confirm_order is a no-op once the order is paid. */
+export async function confirmOrderAsSystem(orderId: string, reference: string, summary: string) {
+  const o = await orderNo(orderId);
+  await prisma.$executeRaw`SELECT pal_confirm_order(${orderId}::text, ${null}::text, ${true}::boolean, ${reference}::text)`;
+  await audit(null, 'ORDER_PAYMENT_CONFIRMED', 'Order', orderId, `${summary} confirmed ${o.orderNumber}`);
+  await processOutbox(10).catch(() => {});
+}
 export async function failPayment(orderId: string, user: SessionUser, reason?: string) {
   const o = await orderNo(orderId);
   await prisma.$executeRaw`SELECT pal_fail_payment(${orderId}::text, ${user.id}::text, ${reason ?? null}::text)`;

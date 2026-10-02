@@ -41,6 +41,7 @@ enum PaymentStatus {
   PARTIALLY_REFUNDED
 }
 enum PaymentMethod {
+  QRPH
   GCASH
   MAYA
   CARD

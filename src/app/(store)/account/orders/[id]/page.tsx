@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { customerGuard } from '@/lib/guard';
 import { prisma } from '@/lib/db';
 import { getSetting } from '@/lib/settings';
+import { orderToken } from '@/lib/orders';
 import { fmtDateTime } from '@/lib/time';
 import { Badge } from '@/components/ui/bits';
 import { METHOD_LABEL } from '@/components/store/labels';
@@ -35,7 +36,7 @@ export default async function OrderDetail({ params }: { params: { id: string } }
         </div>
       </div>
 
-      <PaymentInstructions order={order} instructions={payments[order.paymentMethod]?.instructions ?? ''} />
+      <PaymentInstructions order={order} instructions={payments[order.paymentMethod]?.instructions ?? ''} token={orderToken(order.id)} />
       <TrackingBlock shipment={shipment} />
 
       <section aria-labelledby="oi-h">
