@@ -64,8 +64,9 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="order-1 lg:order-2">
-            <div className="relative mx-auto aspect-[4/5] max-h-[70vh] w-full max-w-md overflow-hidden bg-[radial-gradient(ellipse_at_center,#262626_0%,#0a0a0a_70%)] lg:max-w-none">
-              <Img src={hero.image} alt="Palladium paddle" priority sizes="(min-width:1024px) 45vw, 90vw" className="object-contain" />
+            <div className="relative mx-auto aspect-[4/5] max-h-[70vh] w-full max-w-md lg:max-w-none">
+              <div aria-hidden="true" className="absolute inset-[8%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.10),rgba(255,255,255,0)_100%)]" />
+              <Img src={hero.image} alt="Palladium paddle" priority sizes="(min-width:1024px) 45vw, 90vw" className="object-contain drop-shadow-[0_24px_40px_rgba(0,0,0,0.6)]" />
             </div>
           </div>
         </Container>
