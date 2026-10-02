@@ -92,12 +92,9 @@ export default async function HomePage() {
 
       {/* Brand story */}
       <section className="mt-20 bg-ink text-white sm:mt-28">
-        <Container className="grid gap-10 py-16 sm:py-24 lg:grid-cols-12">
-          <div className="lg:col-span-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">The brand</p>
-            <p className="h-display mt-4 text-7xl leading-none text-gold sm:text-9xl" aria-hidden="true">x</p>
-          </div>
-          <div className="lg:col-span-7">
+        <Container className="py-16 sm:py-24">
+          <div className="max-w-3xl">
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">The brand</p>
             <h2 className="h-display text-3xl leading-tight sm:text-5xl">{brandStory.title}</h2>
             <div className="mt-6 max-w-2xl space-y-4 text-base text-white/70">
               {paragraphs(brandStory.body).map((p, i) => <p key={i}>{p}</p>)}
