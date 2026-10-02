@@ -16,12 +16,12 @@ export interface ContentSettings {
 export const DEFAULTS = {
   store: { name: 'Palladium', email: 'hello@palladiumpickleball.com', phone: '+63 917 000 0000', address: 'Metro Manila, Philippines', instagram: '', facebook: '' } as StoreSettings,
   payments: {
-    QRPH: { enabled: false, instructions: 'Scan the QR code with any bank or e-wallet app that supports QR Ph (GCash, Maya, BPI, BDO, UnionBank and more). We confirm your payment automatically.' },
-    GCASH: { enabled: true, instructions: 'Send the exact amount to GCash 0917 000 0000 (Palladium) and use your order number as the reference. We confirm within business hours.' },
-    MAYA: { enabled: true, instructions: 'Send the exact amount to Maya 0917 000 0000 (Palladium) and use your order number as the reference.' },
+    QRPH: { enabled: true, instructions: 'Scan the QR code with any bank or e-wallet app that supports QR Ph (GCash, Maya, BPI, BDO, UnionBank and more). We confirm your payment automatically.' },
+    GCASH: { enabled: false, instructions: 'Send the exact amount to GCash 0917 000 0000 (Palladium) and use your order number as the reference. We confirm within business hours.' },
+    MAYA: { enabled: false, instructions: 'Send the exact amount to Maya 0917 000 0000 (Palladium) and use your order number as the reference.' },
     CARD: { enabled: false, instructions: 'Card payments are not available yet.' },
-    BANK_TRANSFER: { enabled: true, instructions: 'Transfer to BDO account 0000 0000 0000 (Palladium Sports). Email your deposit slip with your order number.' },
-    COD: { enabled: true, instructions: 'Pay in cash when your order arrives.' },
+    BANK_TRANSFER: { enabled: false, instructions: 'Transfer to BDO account 0000 0000 0000 (Palladium Sports). Email your deposit slip with your order number.' },
+    COD: { enabled: false, instructions: 'Pay in cash when your order arrives.' },
   } as PaymentSettings,
   inventory: { allowOversell: false },
   content: {

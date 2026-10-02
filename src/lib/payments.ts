@@ -30,7 +30,7 @@ const registry = (): PaymentProvider[] => [paymongoProvider, manualProvider];
 export function providerFor(method: PaymentMethod): PaymentProvider {
   return registry().find((p) => p.methods.includes(method)) ?? manualProvider;
 }
-export async function enabledMethods() {
-  const s = await getSetting('payments');
-  return (Object.keys(s) as PaymentMethod[]).filter((k) => s[k].enabled && (k !== 'QRPH' || paymongoConfigured()));
+/** QR Ph (PayMongo) is the only payment method offered at checkout. It appears once PAYMONGO_SECRET_KEY is set. */
+export async function enabledMethods(): Promise<PaymentMethod[]> {
+  return paymongoConfigured() ? ['QRPH'] : [];
 }
