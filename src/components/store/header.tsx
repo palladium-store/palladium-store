@@ -8,10 +8,6 @@ import { useCart } from './cart-context';
 
 const NAV = [
   { label: 'Shop', href: '/shop' },
-  { label: 'Paddles', href: '/shop?category=paddles' },
-  { label: 'Balls', href: '/shop?category=pickleballs' },
-  { label: 'Grips', href: '/shop?category=grips' },
-  { label: 'Accessories', href: '/shop?category=accessories' },
   { label: '$PALLADIUM', href: '/pages/palladium-token' },
   { label: 'About', href: '/pages/about' },
 ];
