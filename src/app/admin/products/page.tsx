@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: 'Products' };
 const STATUSES = [['', 'All except archived'], ['ACTIVE', 'Active'], ['DRAFT', 'Draft'], ['ARCHIVED', 'Archived'], ['SOLD_OUT', 'Sold out']] as const;
 
 const STOCKS = [['', 'Any inventory'], ['in', 'In stock'], ['low', 'Low stock'], ['out', 'Out of stock']] as const;
-const SORTS: [AdminProductSort, string][] = [['newest', 'Newest first'], ['oldest', 'Oldest first'], ['name', 'Name A-Z'], ['price_asc', 'Price: low to high'], ['price_desc', 'Price: high to low'], ['stock_asc', 'Inventory: low to high'], ['stock_desc', 'Inventory: high to low']];
+const SORTS: [AdminProductSort, string][] = [['order', 'Shop order'], ['newest', 'Newest first'], ['oldest', 'Oldest first'], ['name', 'Name A-Z'], ['price_asc', 'Price: low to high'], ['price_desc', 'Price: high to low'], ['stock_asc', 'Inventory: low to high'], ['stock_desc', 'Inventory: high to low']];
 
 export default async function ProductsPage({ searchParams }: { searchParams: Record<string, string | undefined> }) {
   await guard('MANAGE_PRODUCTS');
@@ -22,7 +22,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Rec
   const status = STATUSES.some(([v]) => v && v === searchParams.status) ? searchParams.status : undefined;
   const category = searchParams.category || undefined;
   const stock = STOCKS.some(([v]) => v && v === searchParams.stock) ? (searchParams.stock as AdminStockFilter) : undefined;
-  const sort = SORTS.some(([v]) => v === searchParams.sort) ? (searchParams.sort as AdminProductSort) : 'newest';
+  const sort = SORTS.some(([v]) => v === searchParams.sort) ? (searchParams.sort as AdminProductSort) : 'order';
   const page = Math.max(parseInt(searchParams.page ?? '1', 10) || 1, 1);
   const [data, categories] = await Promise.all([
     listAdminProducts({ q, status, category, stock, sort, page, pageSize: 20 }),
@@ -52,12 +52,12 @@ export default async function ProductsPage({ searchParams }: { searchParams: Rec
         <EmptyState title={filtered ? 'No products match your filters' : 'No products yet'} text={filtered ? 'Try a different search or clear the filters.' : 'Add your first product to start selling.'}
           action={<Link href="/admin/products/new" className="btn-primary btn-sm">Add product</Link>} />
       ) : (
-        <ProductsTable categories={categories} rows={data.rows.map((p) => ({
+        <ProductsTable categories={categories} canReorder={sort === 'order' && !filtered && data.pages === 1} rows={data.rows.map((p) => ({
           id: p.id, name: p.name, slug: p.slug, status: p.status, category: p.category, image: p.image, isDemo: p.isDemo, addedLabel: fmtDateTime(p.createdAt),
           variants: p.variants, sku: p.sku, extraSkus: p.extraSkus, priceMin: Number.isFinite(p.priceMin) ? p.priceMin : null, priceMax: Number.isFinite(p.priceMax) ? p.priceMax : null, stock: p.stock, low: p.low,
         }))} />
       )}
-      <Pagination page={data.page} pages={data.pages} total={data.total} base="/admin/products" params={{ q, status, category, stock, sort: sort === 'newest' ? undefined : sort }} />
+      <Pagination page={data.page} pages={data.pages} total={data.total} base="/admin/products" params={{ q, status, category, stock, sort: sort === 'order' ? undefined : sort }} />
     </div>
   );
 }

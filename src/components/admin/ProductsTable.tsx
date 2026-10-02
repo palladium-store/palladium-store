@@ -21,13 +21,26 @@ function StockPill({ stock, low }: { stock: number; low: boolean }) {
   return <span className="inline-block bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">In stock</span>;
 }
 
-export function ProductsTable({ rows, categories }: { rows: ProductRow[]; categories: { id: string; name: string }[] }) {
+export function ProductsTable({ rows, categories, canReorder = false }: { rows: ProductRow[]; categories: { id: string; name: string }[]; canReorder?: boolean }) {
   const router = useRouter();
   const { toast } = useToast();
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<Bulk | null>(null);
   const [catPick, setCatPick] = useState('');
+  const [moving, setMoving] = useState<string | null>(null);
+  async function move(id: string, to: 'up' | 'down' | 'top' | 'bottom') {
+    setMoving(id);
+    try { await api('/api/admin/products/order', { method: 'PATCH', body: { id, to } }); router.refresh(); }
+    catch (e) { toast(e instanceof ApiError ? e.message : 'Could not move the product.', 'error'); }
+    setMoving(null);
+  }
+  const Mover = ({ id, i, name }: { id: string; i: number; name: string }) => (
+    <span className="inline-flex gap-1">
+      <button type="button" className="btn-outline btn-sm !px-2.5" disabled={moving !== null || i === 0} aria-busy={moving === id} onClick={() => move(id, 'up')} aria-label={`Move ${name} up`} title="Move up">&uarr;</button>
+      <button type="button" className="btn-outline btn-sm !px-2.5" disabled={moving !== null || i === rows.length - 1} onClick={() => move(id, 'down')} aria-label={`Move ${name} down`} title="Move down">&darr;</button>
+    </span>
+  );
   const ids = useMemo(() => rows.map((r) => r.id), [rows]);
   const allOn = ids.length > 0 && ids.every((i) => sel.has(i));
   const toggle = (id: string) => setSel((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
@@ -71,7 +84,7 @@ export function ProductsTable({ rows, categories }: { rows: ProductRow[]; catego
 
       {/* Phone layout: cards */}
       <ul className="space-y-3 md:hidden">
-        {rows.map((p) => (
+        {rows.map((p, i) => (
           <li key={p.id} className={`card flex gap-3 p-3 ${sel.has(p.id) ? 'ring-2 ring-gold' : ''}`}>
             <input type="checkbox" className="mt-1 h-5 w-5 shrink-0" checked={sel.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Select ${p.name}`} />
             {p.image ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.image} alt="" className="h-16 w-16 shrink-0 border border-line bg-bone object-cover" /> : <div className="h-16 w-16 shrink-0 border border-line bg-bone" />}
@@ -80,7 +93,7 @@ export function ProductsTable({ rows, categories }: { rows: ProductRow[]; catego
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-mute"><Badge status={p.status} /><StockPill stock={p.stock} low={p.low} /><span>{p.stock} avail.</span></div>
               <div className="mt-1 text-xs text-mute">{p.category}{p.sku ? ` · ${p.sku}` : ''}</div>
               <div className="mt-1 text-sm font-semibold">{p.priceMin == null ? '-' : p.priceMin === p.priceMax ? peso(p.priceMin) : `${peso(p.priceMin)} - ${peso(p.priceMax!)}`}</div>
-              <div className="mt-2"><ProductRowActions id={p.id} name={p.name} status={p.status} /></div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">{canReorder && <Mover id={p.id} i={i} name={p.name} />}<ProductRowActions id={p.id} name={p.name} status={p.status} /></div>
             </div>
           </li>
         ))}
@@ -91,12 +104,13 @@ export function ProductsTable({ rows, categories }: { rows: ProductRow[]; catego
         <table className="tbl min-w-[1000px]">
           <thead><tr>
             <th className="w-10"><input type="checkbox" checked={allOn} onChange={toggleAll} aria-label="Select all products on this page" /></th>
-            <th className="w-16"></th><th>Product</th><th>SKU</th><th>Status</th><th>Category</th><th className="text-right">Price</th><th className="text-right">Inventory</th><th>Added</th><th className="text-right">Actions</th>
+            {canReorder && <th className="w-24">Order</th>}<th className="w-16"></th><th>Product</th><th>SKU</th><th>Status</th><th>Category</th><th className="text-right">Price</th><th className="text-right">Inventory</th><th>Added</th><th className="text-right">Actions</th>
           </tr></thead>
           <tbody>
-            {rows.map((p) => (
+            {rows.map((p, i) => (
               <tr key={p.id} className={sel.has(p.id) ? 'bg-gold-soft/40' : ''}>
                 <td><input type="checkbox" checked={sel.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Select ${p.name}`} /></td>
+                {canReorder && <td><Mover id={p.id} i={i} name={p.name} /></td>}
                 <td>{p.image ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.image} alt="" className="h-12 w-12 border border-line bg-bone object-cover" /> : <div className="h-12 w-12 border border-line bg-bone" />}</td>
                 <td className="max-w-[260px]">
                   <Link href={`/admin/products/${p.id}`} className="font-semibold hover:text-gold-deep">{p.name}</Link>

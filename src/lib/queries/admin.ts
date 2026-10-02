@@ -67,9 +67,10 @@ export async function getCustomerDetail(id: string) {
 }
 
 // ---------- Products (admin) ----------
-export type AdminProductSort = 'newest' | 'oldest' | 'name' | 'price_asc' | 'price_desc' | 'stock_asc' | 'stock_desc';
+export type AdminProductSort = 'order' | 'newest' | 'oldest' | 'name' | 'price_asc' | 'price_desc' | 'stock_asc' | 'stock_desc';
 export type AdminStockFilter = 'in' | 'low' | 'out';
 const SORT_SQL: Record<AdminProductSort, Prisma.Sql> = {
+  order: Prisma.sql`p."sortOrder" ASC, p."createdAt" DESC`,
   newest: Prisma.sql`p."createdAt" DESC`, oldest: Prisma.sql`p."createdAt" ASC`, name: Prisma.sql`lower(p.name) ASC`,
   price_asc: Prisma.sql`s.pmin ASC NULLS LAST`, price_desc: Prisma.sql`s.pmin DESC NULLS LAST`,
   stock_asc: Prisma.sql`s.stock ASC`, stock_desc: Prisma.sql`s.stock DESC`,
@@ -100,7 +101,7 @@ export function buildAdminProductQuery(o: AdminProductQuery) {
       WHERE v."productId" = p.id AND v."isActive"
     ) s ON true
     WHERE ${Prisma.join(conds, ' AND ')}`;
-  const order = SORT_SQL[o.sort ?? 'newest'] ?? SORT_SQL.newest;
+  const order = SORT_SQL[o.sort ?? 'order'] ?? SORT_SQL.order;
   return { page, size, idSql: Prisma.sql`SELECT p.id ${from} ORDER BY ${order}, p.id ASC LIMIT ${size} OFFSET ${(page - 1) * size}`, countSql: Prisma.sql`SELECT count(*)::int AS n ${from}` };
 }
 
