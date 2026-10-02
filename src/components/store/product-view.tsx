@@ -1,4 +1,5 @@
 'use client';
+import { swatchColor } from './swatch';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -67,7 +68,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
     <div className="grid gap-8 lg:grid-cols-2 lg:gap-14">
       {/* Gallery */}
       <div className="lg:sticky lg:top-24 lg:self-start">
-        <div className="relative aspect-[4/5] overflow-hidden bg-white">
+        <div className="relative aspect-[4/5] overflow-hidden border border-line bg-white">
           <Img key={active ?? 'none'} src={active} alt={activeAlt} priority sizes="(min-width:1024px) 50vw, 100vw" className="object-contain" />
           <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-1">
             {onSale && <span className="bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink">Sale</span>}
@@ -108,22 +109,35 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
         </div>
         {shortDescription && <p className="mt-5 max-w-xl text-base text-mute">{shortDescription}</p>}
 
-        {variants.length > 1 && (
-          <fieldset className="mt-7">
-            <legend className="label">Option: <span className="text-ink normal-case tracking-normal">{v.name}</span></legend>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {variants.map((x) => {
-                const sel = x.id === v.id, out = x.available <= 0;
-                return (
-                  <button key={x.id} type="button" disabled={out} aria-pressed={sel} onClick={() => pick(x.id)}
-                    className={`min-w-[4.5rem] border px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:text-mute disabled:line-through disabled:opacity-50 ${sel ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}>
-                    {x.name}{out ? ' (sold out)' : ''}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-        )}
+        {variants.length > 1 && (() => {
+          const swatches = variants.every((x) => swatchColor(x.name));
+          const label = swatches ? 'Colour' : 'Option';
+          return (
+            <fieldset className="mt-7">
+              <legend className="label">{label}: <span className="text-ink normal-case tracking-normal">{v.name}</span></legend>
+              <div className={`mt-3 flex flex-wrap ${swatches ? 'gap-3' : 'gap-2'}`}>
+                {variants.map((x) => {
+                  const sel = x.id === v.id, out = x.available <= 0;
+                  if (swatches) {
+                    return (
+                      <button key={x.id} type="button" disabled={out} aria-pressed={sel} aria-label={`${x.name}${out ? ' (sold out)' : ''}`} title={`${x.name}${out ? ' (sold out)' : ''}`} onClick={() => pick(x.id)}
+                        className={`relative h-11 w-11 rounded-full p-[3px] transition disabled:cursor-not-allowed disabled:opacity-40 ${sel ? 'ring-2 ring-ink ring-offset-2' : 'ring-1 ring-line hover:ring-ink'}`}>
+                        <span className="block h-full w-full rounded-full border border-black/10" style={{ backgroundColor: swatchColor(x.name) as string }} />
+                        {out && <span className="pointer-events-none absolute inset-0 flex items-center justify-center"><span className="h-px w-full rotate-45 bg-ink" /></span>}
+                      </button>
+                    );
+                  }
+                  return (
+                    <button key={x.id} type="button" disabled={out} aria-pressed={sel} onClick={() => pick(x.id)}
+                      className={`min-w-[4.5rem] border px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:text-mute disabled:line-through disabled:opacity-50 ${sel ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}>
+                      {x.name}{out ? ' (sold out)' : ''}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          );
+        })()}
 
         <p className={`mt-6 flex items-center gap-2 text-sm font-semibold ${soldOut ? 'text-red-600' : v.lowStock ? 'text-amber-700' : 'text-emerald-700'}`} role="status">
           <span className={`h-2 w-2 rounded-full ${soldOut ? 'bg-red-600' : v.lowStock ? 'bg-amber-500' : 'bg-emerald-600'}`} aria-hidden="true" />
@@ -132,7 +146,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <QtyStepper value={Math.min(qty, maxQty)} max={maxQty} onChange={setQty} disabled={soldOut} />
-          <button type="button" className="btn-primary min-w-[12rem] flex-1 py-4" disabled={soldOut || busy !== null} onClick={onAdd}>{busy === 'add' ? 'Working...' : soldOut ? 'Sold out' : 'Add to cart'}</button>
+          <button type="button" className="btn-primary min-w-[12rem] flex-1 py-4" disabled={soldOut || busy !== null} aria-busy={busy === 'add'} onClick={onAdd}>{busy === 'add' ? 'Working...' : soldOut ? 'Sold out' : 'Add to cart'}</button>
         </div>
         <button type="button" className="btn-gold mt-3 w-full py-4" disabled={soldOut || busy !== null} onClick={onBuy}>{busy === 'buy' ? 'Working...' : 'Buy now'}</button>
         {inCart > 0 && <p className="mt-2 text-xs text-mute">{inCart} of this option already in your cart.</p>}
