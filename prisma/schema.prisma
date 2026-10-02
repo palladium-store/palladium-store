@@ -166,6 +166,7 @@ model Product {
   isFeatured  Boolean @default(false)
   isLimited   Boolean @default(false)
   isDemo      Boolean @default(false)
+  sortOrder   Int     @default(0)
   weightGrams Int?
   lengthMm    Int?
   widthMm     Int?
@@ -183,6 +184,7 @@ model Product {
   wishlist    WishlistItem[]
   @@index([categoryId, status])
   @@index([status, createdAt])
+  @@index([sortOrder])
   @@map("products")
 }
 

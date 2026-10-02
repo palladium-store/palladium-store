@@ -1,7 +1,7 @@
 // Client-safe shapes shared by storefront components (no server imports here).
 export interface CardProduct {
   id: string; name: string; slug: string; category: string; categorySlug: string; isLimited: boolean;
-  price: number; compareAt: number | null; image: string | null; inStock: boolean; rating: number | null; reviewCount: number; variantCount: number;
+  price: number; compareAt: number | null; image: string | null; inStock: boolean; rating: number | null; reviewCount: number; variantCount: number; variants?: { name: string; image: string | null }[];
 }
 export interface QuoteLine {
   variantId: string; qty: number; productId: string; productName: string; variantName: string; slug: string; sku: string;

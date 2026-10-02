@@ -33,7 +33,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Rec
   return (
     <div>
       <PageHeader title="Products" subtitle="Manage the catalogue, variants, pricing and publishing status."
-        actions={<Link href="/admin/products/new" className="btn-primary btn-sm">Add product</Link>} />
+        actions={<><Link href="/admin/products/order" className="btn-outline btn-sm">Arrange order</Link><Link href="/admin/products/new" className="btn-primary btn-sm">Add product</Link></>} />
 
       <form method="get" className="card mb-4 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
         <div className="sm:col-span-2 lg:col-span-1"><label className="label" htmlFor="q">Search</label><input id="q" name="q" defaultValue={q ?? ''} placeholder="Name, SKU, barcode, tag or category" className="input" /></div>
