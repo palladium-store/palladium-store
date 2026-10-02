@@ -188,7 +188,7 @@ export function ShippingEditor({ initial }: { initial: ZoneData[] }) {
       <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 py-3 backdrop-blur lg:left-64">
         <div className="mx-auto flex max-w-[1400px] items-center justify-end gap-3">
           {conflicts.length > 0 && <span className="text-xs text-amber-700">Provinces assigned twice</span>}
-          <button type="button" className="btn-primary" onClick={save} disabled={saving}>{saving ? 'Saving...' : 'Save shipping'}</button>
+          <button type="button" className="btn-primary" onClick={save} aria-busy={saving} disabled={saving}>{saving ? 'Saving...' : 'Save shipping'}</button>
         </div>
       </div>
 

@@ -33,8 +33,8 @@ export function ConfirmDialog({ open, title, message, confirmLabel = 'Confirm', 
       <div className="text-sm text-mute">{message}</div>
       {children}
       <div className="mt-6 flex justify-end gap-2">
-        <button className="btn-ghost btn-sm" onClick={onClose} disabled={busy}>Cancel</button>
-        <button className={`${danger ? 'btn-danger' : 'btn-primary'} btn-sm`} onClick={onConfirm} disabled={busy}>{busy ? 'Working...' : confirmLabel}</button>
+        <button className="btn-ghost btn-sm" onClick={onClose} aria-busy={busy} disabled={busy}>Cancel</button>
+        <button className={`${danger ? 'btn-danger' : 'btn-primary'} btn-sm`} onClick={onConfirm} aria-busy={busy} disabled={busy}>{busy ? 'Working...' : confirmLabel}</button>
       </div>
     </Modal>
   );

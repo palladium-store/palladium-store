@@ -207,7 +207,7 @@ export function DiscountManager({ rows, products, categories }: { rows: Discount
           <Toggle checked={form.isActive} onChange={(v) => set('isActive', v)} label="Active" hint="Disabled codes are rejected at checkout." />
           <div className="flex justify-end gap-2">
             <button type="button" className="btn-ghost btn-sm" onClick={() => setEditing(null)} disabled={busy}>Cancel</button>
-            <button type="submit" className="btn-primary btn-sm" disabled={busy}>{busy ? 'Saving...' : editing === 'new' ? 'Create discount' : 'Save changes'}</button>
+            <button type="submit" className="btn-primary btn-sm" aria-busy={busy} disabled={busy}>{busy ? 'Saving...' : editing === 'new' ? 'Create discount' : 'Save changes'}</button>
           </div>
         </form>
       </Modal>

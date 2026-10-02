@@ -55,16 +55,16 @@ export function ProductsTable({ rows, categories }: { rows: ProductRow[]; catego
       {count > 0 && (
         <div className="sticky top-16 z-10 mb-3 flex flex-wrap items-center gap-2 border border-ink bg-white p-3 shadow-sm" role="region" aria-label="Bulk actions">
           <span className="mr-2 text-sm font-semibold">{count} selected</span>
-          <button className={sbtn} disabled={busy} onClick={() => setConfirm({ kind: 'status', status: 'ACTIVE' })}>Set active</button>
-          <button className={sbtn} disabled={busy} onClick={() => setConfirm({ kind: 'status', status: 'DRAFT' })}>Set draft</button>
-          <button className={sbtn} disabled={busy} onClick={() => setConfirm({ kind: 'status', status: 'ARCHIVED' })}>Archive</button>
+          <button className={sbtn} aria-busy={busy} disabled={busy} onClick={() => setConfirm({ kind: 'status', status: 'ACTIVE' })}>Set active</button>
+          <button className={sbtn} aria-busy={busy} disabled={busy} onClick={() => setConfirm({ kind: 'status', status: 'DRAFT' })}>Set draft</button>
+          <button className={sbtn} aria-busy={busy} disabled={busy} onClick={() => setConfirm({ kind: 'status', status: 'ARCHIVED' })}>Archive</button>
           <span className="flex items-center gap-1">
             <select className="input h-8 w-44 py-0 text-xs" value={catPick} onChange={(e) => setCatPick(e.target.value)} aria-label="Move to category" disabled={busy}>
               <option value="">Move to category...</option>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <button className={sbtn} disabled={busy || !catPick} onClick={() => run({ kind: 'category', categoryId: catPick })}>Move</button>
           </span>
-          <button className={`${sbtn} text-red-600 hover:bg-red-600`} disabled={busy} onClick={() => setConfirm({ kind: 'delete' })}>Delete</button>
+          <button className={`${sbtn} text-red-600 hover:bg-red-600`} aria-busy={busy} disabled={busy} onClick={() => setConfirm({ kind: 'delete' })}>Delete</button>
           <button className="ml-auto text-xs font-semibold underline" onClick={() => setSel(new Set())}>Clear</button>
         </div>
       )}

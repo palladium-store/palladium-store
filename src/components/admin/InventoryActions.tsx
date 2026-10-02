@@ -105,7 +105,7 @@ export function InventoryActions({ row, locations }: { row: InvRowProps; locatio
             </div>
             {error && <div className="border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{error}</div>}
             <div className="flex justify-end gap-2">
-              <button type="button" className="btn-ghost btn-sm" onClick={close} disabled={busy}>Cancel</button>
+              <button type="button" className="btn-ghost btn-sm" onClick={close} aria-busy={busy} disabled={busy}>Cancel</button>
               <button type="submit" className="btn-primary btn-sm" disabled={!canSubmit || busy}>{busy ? 'Saving...' : `Confirm ${meta.label.toLowerCase()}`}</button>
             </div>
           </form>

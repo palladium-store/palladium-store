@@ -11,14 +11,14 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false }
   return (
     <article className="group relative flex flex-col">
       <Link href={`/products/${p.slug}`} className="block" aria-label={p.name}>
-        <div className="relative aspect-[4/5] overflow-hidden bg-ink">
+        <div className="relative aspect-[4/5] overflow-hidden bg-white">
           <Img src={p.image} alt={p.name} sizes="(min-width:1024px) 25vw, 50vw" priority={priority} className={`object-contain transition duration-500 ease-out group-hover:scale-105 ${p.inStock ? '' : 'opacity-50'}`} />
           <div className="pointer-events-none absolute left-2 top-2 flex flex-col items-start gap-1">
             {onSale && <span className="bg-gold px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-ink">Sale</span>}
             {p.isLimited && <span className="border border-white/70 bg-ink px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Limited</span>}
           </div>
           {!p.inStock && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-white py-2 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-ink">Sold out</div>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-ink py-2 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-white">Sold out</div>
           )}
         </div>
         <div className="mt-3 space-y-1">

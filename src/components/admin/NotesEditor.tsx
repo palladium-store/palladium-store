@@ -32,7 +32,7 @@ export function OrderNotes({ orderId, initial, canEdit }: { orderId: string; ini
       {error && <p role="alert" className="field-error">{error}</p>}
       <div className="mt-2 flex items-center justify-between">
         <span className="text-xs text-mute">{value.length}/4000</span>
-        <button className="btn-primary btn-sm" onClick={save} disabled={busy || value === saved}>{busy ? 'Working...' : 'Save note'}</button>
+        <button className="btn-primary btn-sm" onClick={save} aria-busy={busy} disabled={busy || value === saved}>{busy ? 'Working...' : 'Save note'}</button>
       </div>
     </div>
   );

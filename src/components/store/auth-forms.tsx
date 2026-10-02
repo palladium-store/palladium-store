@@ -44,7 +44,7 @@ export function LoginForm({ next, storeEmail }: { next: string | null; storeEmai
         <input id="l-pass" type="password" autoComplete="current-password" className={`input ${fe.password ? 'input-error' : ''}`} value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={!!fe.password} required />
         <Err id="l-pass-err" msg={fe.password} />
       </div>
-      <button type="submit" className="btn-primary w-full py-4" disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button>
+      <button type="submit" className="btn-primary w-full py-4" aria-busy={busy} disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button>
       <p className="text-center text-sm text-mute">New to Palladium? <Link href={next ? `/register?next=${encodeURIComponent(next)}` : '/register'} className="font-semibold text-ink underline underline-offset-4">Create an account</Link></p>
       <p className="text-center text-xs text-mute"><Link href="/forgot-password" className="underline">Forgot your password?</Link> Or contact us at <a href={`mailto:${storeEmail}`} className="underline">{storeEmail}</a></p>
     </form>
@@ -100,7 +100,7 @@ export function RegisterForm({ next }: { next: string | null }) {
         <input id="r-pass" type="password" autoComplete="new-password" className={`input ${fe.password ? 'input-error' : ''}`} value={f.password} onChange={(e) => up('password', e.target.value)} aria-invalid={!!fe.password} aria-describedby="r-pass-hint" required />
         {fe.password ? <Err id="r-pass-err" msg={fe.password} /> : <p id="r-pass-hint" className="mt-1 text-xs text-mute">At least 8 characters, with a letter and a number.</p>}
       </div>
-      <button type="submit" className="btn-primary w-full py-4" disabled={busy}>{busy ? 'Creating account...' : 'Create account'}</button>
+      <button type="submit" className="btn-primary w-full py-4" aria-busy={busy} disabled={busy}>{busy ? 'Creating account...' : 'Create account'}</button>
       <p className="text-center text-sm text-mute">Already have an account? <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} className="font-semibold text-ink underline underline-offset-4">Sign in</Link></p>
     </form>
   );
@@ -127,7 +127,7 @@ export function ForgotForm() {
         <label htmlFor="f-email" className="label">Email</label>
         <input id="f-email" type="email" autoComplete="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
       </div>
-      <button type="submit" className="btn-primary w-full py-4" disabled={busy}>{busy ? 'Sending...' : 'Send reset link'}</button>
+      <button type="submit" className="btn-primary w-full py-4" aria-busy={busy} disabled={busy}>{busy ? 'Sending...' : 'Send reset link'}</button>
       <p className="text-center text-sm text-mute"><Link href="/login" className="underline underline-offset-4">Back to sign in</Link></p>
     </form>
   );
@@ -157,7 +157,7 @@ export function ResetForm({ token }: { token: string }) {
         <input id="r-pass" type="password" autoComplete="new-password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <p className="mt-1 text-xs text-mute">At least 8 characters, with a letter and a number.</p>
       </div>
-      <button type="submit" className="btn-primary w-full py-4" disabled={busy}>{busy ? 'Saving...' : 'Set new password'}</button>
+      <button type="submit" className="btn-primary w-full py-4" aria-busy={busy} disabled={busy}>{busy ? 'Saving...' : 'Set new password'}</button>
     </form>
   );
 }

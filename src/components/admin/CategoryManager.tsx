@@ -110,8 +110,8 @@ export function CategoryManager({ rows }: { rows: CategoryRow[] }) {
             <input className={inputCls(errors.sortOrder)} inputMode="numeric" value={form.sortOrder} onChange={(e) => set('sortOrder', e.target.value)} />
           </Field>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" className="btn-ghost btn-sm" onClick={closeEditor} disabled={busy}>Cancel</button>
-            <button className="btn-primary btn-sm" disabled={busy}>{busy ? 'Saving...' : 'Save category'}</button>
+            <button type="button" className="btn-ghost btn-sm" onClick={closeEditor} aria-busy={busy} disabled={busy}>Cancel</button>
+            <button className="btn-primary btn-sm" aria-busy={busy} disabled={busy}>{busy ? 'Saving...' : 'Save category'}</button>
           </div>
         </form>
       </Modal>

@@ -123,7 +123,7 @@ export function WalletPanel({ config, dark = false, compact = false }: { config:
   if (!address) {
     return (
       <div className={box}>
-        <button type="button" className={btn} onClick={connect} disabled={busy}>{busy ? 'Check your wallet...' : 'Connect wallet'}</button>
+        <button type="button" className={btn} onClick={connect} aria-busy={busy} disabled={busy}>{busy ? 'Check your wallet...' : 'Connect wallet'}</button>
         {err && <p className="mt-2 text-sm text-red-500" role="alert">{err}</p>}
         {!compact && <p className={`mt-3 text-xs ${muted}`}>Connecting only shares your public address. Palladium will never ask for your seed phrase or private key.</p>}
       </div>
@@ -142,7 +142,7 @@ export function WalletPanel({ config, dark = false, compact = false }: { config:
       </dl>
       {err && <p className="mt-3 text-sm text-red-500" role="alert">{err}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
-        {!onChain && <button type="button" className={btn} onClick={switchNetwork} disabled={busy}>{busy ? 'Check your wallet...' : `Switch to ${config.chain.name}`}</button>}
+        {!onChain && <button type="button" className={btn} onClick={switchNetwork} aria-busy={busy} disabled={busy}>{busy ? 'Check your wallet...' : `Switch to ${config.chain.name}`}</button>}
         <button type="button" className={ghost} onClick={disconnect}>Disconnect</button>
       </div>
     </div>

@@ -20,5 +20,5 @@ export function ReorderButton({ orderId }: { orderId: string }) {
     } catch (e) { toast(e instanceof Error ? e.message : 'Could not reorder.', 'error'); }
     finally { setBusy(false); }
   }
-  return <button type="button" className="btn-primary" onClick={go} disabled={busy}>{busy ? 'Working...' : 'Reorder'}</button>;
+  return <button type="button" className="btn-primary" onClick={go} aria-busy={busy} disabled={busy}>{busy ? 'Working...' : 'Reorder'}</button>;
 }

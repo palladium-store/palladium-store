@@ -30,7 +30,7 @@ export function AccountNav() {
       {LINKS.map((l) => (
         <Link key={l.href} href={l.href} aria-current={active(l.href) ? 'page' : undefined} className={`${item} ${active(l.href) ? 'border-gold text-ink' : 'border-transparent text-mute hover:text-ink'}`}>{l.label}</Link>
       ))}
-      <button onClick={logout} disabled={busy} className={`${item} border-transparent text-mute hover:text-red-600 disabled:opacity-50`}>{busy ? 'Working...' : 'Log out'}</button>
+      <button onClick={logout} aria-busy={busy} disabled={busy} className={`${item} border-transparent text-mute hover:text-red-600 disabled:opacity-50`}>{busy ? 'Working...' : 'Log out'}</button>
     </nav>
   );
 }

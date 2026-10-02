@@ -57,7 +57,7 @@ export function ReviewForm({ productId }: { productId: string }) {
         {fields.body && <p className="field-error">{fields.body}</p>}
       </div>
       {err && !Object.keys(fields).length && <p className="field-error" role="alert">{err}</p>}
-      <button type="submit" className="btn-primary" disabled={busy}>{busy ? 'Working...' : 'Post review'}</button>
+      <button type="submit" className="btn-primary" aria-busy={busy} disabled={busy}>{busy ? 'Working...' : 'Post review'}</button>
     </form>
   );
 }

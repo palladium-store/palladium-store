@@ -31,7 +31,7 @@ export function NewsletterForm({ dark = false, buttonLabel = 'Subscribe' }: { da
       <div className="flex">
         <input id={id} type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email"
           className={`min-w-0 flex-1 border px-4 py-3 text-sm outline-none transition ${dark ? 'border-white/30 bg-transparent text-white placeholder:text-white/50 focus:border-gold' : 'border-ink bg-white focus:border-gold'}`} aria-invalid={!!error} />
-        <button type="submit" disabled={busy} className={dark ? 'btn-gold' : 'btn-primary'}>{busy ? 'Working...' : buttonLabel}</button>
+        <button type="submit" aria-busy={busy} disabled={busy} className={dark ? 'btn-gold' : 'btn-primary'}>{busy ? 'Working...' : buttonLabel}</button>
       </div>
       {error && <p className="field-error" role="alert">{error}</p>}
     </form>

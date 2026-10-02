@@ -138,7 +138,7 @@ export function StaffManager({ staff, activeSuperAdmins }: { staff: StaffRow[]; 
           </Field>
           <div className="flex justify-end gap-2">
             <button type="button" className="btn-ghost btn-sm" onClick={() => setMode(null)} disabled={busy}>Cancel</button>
-            <button type="submit" className="btn-primary btn-sm" disabled={busy}>{busy ? 'Saving...' : editing ? 'Save changes' : 'Create account'}</button>
+            <button type="submit" className="btn-primary btn-sm" aria-busy={busy} disabled={busy}>{busy ? 'Saving...' : editing ? 'Save changes' : 'Create account'}</button>
           </div>
         </form>
       </Modal>

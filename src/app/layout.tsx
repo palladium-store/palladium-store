@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Archivo_Black, Montserrat } from 'next/font/google';
 import './globals.css';
+import { Suspense } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
+import { NavProgress } from '@/components/store/nav-progress';
 
 const display = Archivo_Black({ weight: '400', subsets: ['latin'], variable: '--font-display', display: 'swap' });
 const body = Montserrat({ subsets: ['latin'], variable: '--font-body', display: 'swap' });
@@ -19,7 +21,7 @@ export const viewport: Viewport = { width: 'device-width', initialScale: 1, them
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-PH" className={`${display.variable} ${body.variable}`}>
-      <body><ToastProvider>{children}</ToastProvider></body>
+      <body><Suspense fallback={null}><NavProgress /></Suspense><ToastProvider>{children}</ToastProvider></body>
     </html>
   );
 }

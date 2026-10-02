@@ -67,7 +67,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
     <div className="grid gap-8 lg:grid-cols-2 lg:gap-14">
       {/* Gallery */}
       <div className="lg:sticky lg:top-24 lg:self-start">
-        <div className="relative aspect-[4/5] overflow-hidden bg-ink">
+        <div className="relative aspect-[4/5] overflow-hidden bg-white">
           <Img key={active ?? 'none'} src={active} alt={activeAlt} priority sizes="(min-width:1024px) 50vw, 100vw" className="object-contain" />
           <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-1">
             {onSale && <span className="bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink">Sale</span>}
@@ -78,7 +78,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
           <ul className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6" aria-label="Product images">
             {thumbs.map((t) => (
               <li key={t.url}>
-                <button type="button" onClick={() => setActive(t.url)} aria-label={`Show image: ${t.alt}`} aria-current={t.url === active} className={`relative block aspect-square w-full overflow-hidden bg-ink outline-offset-2 transition ${t.url === active ? 'ring-2 ring-gold' : 'opacity-70 hover:opacity-100'}`}>
+                <button type="button" onClick={() => setActive(t.url)} aria-label={`Show image: ${t.alt}`} aria-current={t.url === active} className={`relative block aspect-square w-full overflow-hidden bg-white outline-offset-2 transition ${t.url === active ? 'ring-2 ring-gold' : 'opacity-70 hover:opacity-100'}`}>
                   <Img src={t.url} alt="" sizes="100px" className="object-contain" />
                 </button>
               </li>
@@ -132,7 +132,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <QtyStepper value={Math.min(qty, maxQty)} max={maxQty} onChange={setQty} disabled={soldOut} />
-          <button type="button" className="btn-primary min-w-[12rem] flex-1 py-4" disabled={soldOut || busy !== null} onClick={onAdd}>{busy === 'add' ? 'Working...' : soldOut ? 'Sold out' : 'Add to cart'}</button>
+          <button type="button" className="btn-primary min-w-[12rem] flex-1 py-4" disabled={soldOut || busy !== null} aria-busy={busy === 'add'} onClick={onAdd}>{busy === 'add' ? 'Working...' : soldOut ? 'Sold out' : 'Add to cart'}</button>
         </div>
         <button type="button" className="btn-gold mt-3 w-full py-4" disabled={soldOut || busy !== null} onClick={onBuy}>{busy === 'buy' ? 'Working...' : 'Buy now'}</button>
         {inCart > 0 && <p className="mt-2 text-xs text-mute">{inCart} of this option already in your cart.</p>}

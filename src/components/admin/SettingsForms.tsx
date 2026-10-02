@@ -43,7 +43,7 @@ export function GeneralSettings({ initial }: { initial: StoreData }) {
         <Field label="Facebook URL" error={errors.facebook}><input className={inputCls(errors.facebook)} value={f.facebook} onChange={(e) => set('facebook', e.target.value)} placeholder="https://facebook.com/..." /></Field>
         <Field label="Instagram URL" error={errors.instagram}><input className={inputCls(errors.instagram)} value={f.instagram} onChange={(e) => set('instagram', e.target.value)} placeholder="https://instagram.com/..." /></Field>
       </div>
-      <div className="flex justify-end"><button className="btn-primary btn-sm" disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</button></div>
+      <div className="flex justify-end"><button className="btn-primary btn-sm" aria-busy={saving} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</button></div>
     </form>
   );
 }
@@ -91,7 +91,7 @@ export function PaymentSettings({ initial }: { initial: PaymentsData }) {
           </Field></div>
         </div>
       ))}
-      <div className="flex justify-end"><button className="btn-primary btn-sm" disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</button></div>
+      <div className="flex justify-end"><button className="btn-primary btn-sm" aria-busy={saving} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</button></div>
     </form>
   );
 }

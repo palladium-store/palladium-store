@@ -15,6 +15,8 @@ body { @apply bg-paper text-ink font-sans antialiased; }
   .btn-outline { @apply btn border border-ink text-ink hover:bg-ink hover:text-white; }
   .btn-ghost { @apply btn text-ink hover:bg-bone; }
   .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
+  .btn[aria-busy='true'] { @apply relative cursor-wait disabled:opacity-80; }
+  .btn[aria-busy='true']::before { content: ''; @apply h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent; }
   .btn-sm { @apply px-3 py-2 text-[11px]; }
   .input { @apply w-full border border-line bg-white px-3 py-2.5 text-sm outline-none transition focus:border-ink disabled:bg-bone; }
   .input-error { @apply border-red-500; }

@@ -285,7 +285,7 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
         <div className="mt-5 border-t border-line pt-4">
           {quote ? <QuoteTotals quote={quote} hasProvince={!!f.province} /> : <Spinner label="Pricing" />}
         </div>
-        <button type="submit" className="btn-gold mt-6 w-full py-4" disabled={!canPlace} aria-busy={pending}>{pending ? 'Placing order...' : 'Place order'}</button>
+        <button type="submit" className="btn-gold mt-6 w-full py-4" disabled={!canPlace || pending} aria-busy={pending}>{pending ? 'Placing order...' : 'Place order'}</button>
         {!pending && quote && !quote.ok && <p className="mt-2 text-xs text-red-600">Some items need attention. <Link href="/cart" className="underline">Review your cart</Link>.</p>}
         {!pending && quote?.shippingError && <p className="mt-2 text-xs text-red-600">{quote.shippingError}</p>}
         <p className="mt-3 text-center text-xs text-mute">By placing your order you agree to our <Link href="/pages/terms" className="underline">terms</Link> and <Link href="/pages/privacy" className="underline">privacy policy</Link>.</p>

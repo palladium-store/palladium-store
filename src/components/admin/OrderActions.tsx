@@ -90,16 +90,16 @@ export function OrderActions(p: OrderActionsProps) {
   return (
     <div>
       <div className="flex flex-wrap gap-2">
-        {p.canConfirmPayment && <button className="btn-primary btn-sm" disabled={busy} onClick={() => open('confirm')}>Confirm payment</button>}
-        {p.canConfirmCod && <button className="btn-primary btn-sm" disabled={busy} onClick={() => open('cod')}>Confirm COD order</button>}
+        {p.canConfirmPayment && <button className="btn-primary btn-sm" aria-busy={busy} disabled={busy} onClick={() => open('confirm')}>Confirm payment</button>}
+        {p.canConfirmCod && <button className="btn-primary btn-sm" aria-busy={busy} disabled={busy} onClick={() => open('cod')}>Confirm COD order</button>}
         {p.nextStatuses.map((s) => (
-          <button key={s} className={`${s === p.nextStatuses[0] && !p.canConfirmPayment && !p.canConfirmCod ? 'btn-gold' : 'btn-outline'} btn-sm`} disabled={busy}
+          <button key={s} className={`${s === p.nextStatuses[0] && !p.canConfirmPayment && !p.canConfirmCod ? 'btn-gold' : 'btn-outline'} btn-sm`} aria-busy={busy} disabled={busy}
             onClick={() => (s === 'SHIPPED' ? open('ship') : s === 'DELIVERED' ? open('delivered') : void setStatus(s))}>{busy && s !== 'SHIPPED' && s !== 'DELIVERED' ? 'Working...' : STATUS_LABEL[s] ?? s}</button>
         ))}
-        {p.canTrack && <button className="btn-outline btn-sm" disabled={busy} onClick={() => open('tracking')}>{p.trackingNumber ? 'Update tracking' : 'Add tracking'}</button>}
-        {p.canRefund && <button className="btn-outline btn-sm" disabled={busy} onClick={() => open('refund')}>Refund</button>}
-        {p.canFailPayment && <button className="btn-ghost btn-sm" disabled={busy} onClick={() => open('fail')}>Mark payment failed</button>}
-        {p.canCancel && <button className="btn-danger btn-sm" disabled={busy} onClick={() => open('cancel')}>Cancel order</button>}
+        {p.canTrack && <button className="btn-outline btn-sm" aria-busy={busy} disabled={busy} onClick={() => open('tracking')}>{p.trackingNumber ? 'Update tracking' : 'Add tracking'}</button>}
+        {p.canRefund && <button className="btn-outline btn-sm" aria-busy={busy} disabled={busy} onClick={() => open('refund')}>Refund</button>}
+        {p.canFailPayment && <button className="btn-ghost btn-sm" aria-busy={busy} disabled={busy} onClick={() => open('fail')}>Mark payment failed</button>}
+        {p.canCancel && <button className="btn-danger btn-sm" aria-busy={busy} disabled={busy} onClick={() => open('cancel')}>Cancel order</button>}
       </div>
 
       <ConfirmDialog open={modal === 'confirm'} title="Confirm payment" busy={busy} confirmLabel="Confirm payment" onClose={close}
@@ -146,8 +146,8 @@ export function OrderActions(p: OrderActionsProps) {
         </div>
         {error && <p role="alert" className="field-error mt-3">{error}</p>}
         <div className="mt-6 flex justify-end gap-2">
-          <button className="btn-ghost btn-sm" onClick={close} disabled={busy}>Cancel</button>
-          <button className="btn-primary btn-sm" disabled={busy} onClick={modal === 'ship' ? submitShip : submitTracking}>{busy ? 'Working...' : modal === 'ship' ? 'Mark as shipped' : 'Save tracking'}</button>
+          <button className="btn-ghost btn-sm" onClick={close} aria-busy={busy} disabled={busy}>Cancel</button>
+          <button className="btn-primary btn-sm" aria-busy={busy} disabled={busy} onClick={modal === 'ship' ? submitShip : submitTracking}>{busy ? 'Working...' : modal === 'ship' ? 'Mark as shipped' : 'Save tracking'}</button>
         </div>
       </Modal>
 
@@ -178,8 +178,8 @@ export function OrderActions(p: OrderActionsProps) {
         </div>
         {error && <p role="alert" className="field-error mt-3">{error}</p>}
         <div className="mt-6 flex justify-end gap-2">
-          <button className="btn-ghost btn-sm" onClick={close} disabled={busy}>Cancel</button>
-          <button className="btn-danger btn-sm" disabled={busy} onClick={submitRefund}>{busy ? 'Working...' : 'Issue refund'}</button>
+          <button className="btn-ghost btn-sm" onClick={close} aria-busy={busy} disabled={busy}>Cancel</button>
+          <button className="btn-danger btn-sm" aria-busy={busy} disabled={busy} onClick={submitRefund}>{busy ? 'Working...' : 'Issue refund'}</button>
         </div>
       </Modal>
     </div>

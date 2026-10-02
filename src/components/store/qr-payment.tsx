@@ -58,7 +58,7 @@ export function QrPayment({ orderNumber, token, amount }: { orderNumber: string;
       ) : (
         <div className="text-sm">
           <p className="font-semibold">{expired ? 'This QR code has expired.' : v ? 'Your QR code is not ready yet.' : 'Checking payment...'}</p>
-          {v && <button type="button" onClick={generate} disabled={busy} className="btn-primary btn-sm mt-3">{busy ? 'Please wait...' : expired ? 'Get a new QR code' : 'Show my QR code'}</button>}
+          {v && <button type="button" onClick={generate} aria-busy={busy} disabled={busy} className="btn-primary btn-sm mt-3">{busy ? 'Please wait...' : expired ? 'Get a new QR code' : 'Show my QR code'}</button>}
         </div>
       )}
       {err && <p role="alert" className="text-sm text-red-700">{err}</p>}
