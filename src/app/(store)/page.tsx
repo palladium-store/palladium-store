@@ -61,16 +61,15 @@ export default async function HomePage() {
       <section className="relative overflow-hidden bg-ink text-white">
         <Container className="grid items-center gap-8 py-12 sm:py-16 lg:grid-cols-2 lg:gap-16 lg:py-20">
           <div className="order-2 lg:order-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{hero.eyebrow}</p>
-            <h1 className="h-display mt-5 text-6xl leading-[0.92] sm:text-8xl xl:text-[8.5rem]">{hero.title}</h1>
+            {hero.eyebrow && <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">{hero.eyebrow}</p>}
+            <h1 className="h-display text-6xl leading-[0.92] sm:text-8xl xl:text-[8.5rem]">{hero.title}</h1>
             <p className="mt-6 max-w-lg text-base text-white/70 sm:text-lg">{hero.subtitle}</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link href={shipCta(hero.cta)} className="btn-gold px-8 py-4">{hero.cta}</Link>
-              <Link href="/pages/about" className="btn border border-white/40 px-8 py-4 text-white hover:bg-white hover:text-ink">Our story</Link>
             </div>
           </div>
           <div className="order-1 lg:order-2">
-            <div className="relative mx-auto aspect-[4/5] max-h-[70vh] w-full max-w-md overflow-hidden bg-black lg:max-w-none">
+            <div className="relative mx-auto aspect-[4/5] max-h-[70vh] w-full max-w-md overflow-hidden bg-[radial-gradient(ellipse_at_center,#262626_0%,#0a0a0a_70%)] lg:max-w-none">
               <Img src={hero.image} alt="Palladium paddle" priority sizes="(min-width:1024px) 45vw, 90vw" className="object-contain" />
             </div>
           </div>

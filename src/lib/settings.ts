@@ -25,12 +25,12 @@ export const DEFAULTS = {
   } as PaymentSettings,
   inventory: { allowOversell: false },
   content: {
-    hero: { eyebrow: 'Gen4 pickleball, designed in New Zealand', title: 'Play with edge.', subtitle: 'Premium paddles, balls and gear for Filipino players who want more from every rally.', cta: 'Shop paddles', image: '/products/koru.webp' },
+    hero: { eyebrow: '', title: 'Play with edge.', subtitle: 'Premium paddles, balls and gear for players who want more from every rally.', cta: 'Shop now', image: '/products/koru-cutout.webp' },
     banners: [
       { title: 'Koru Limited Edition', text: 'A numbered run of the Gen4 16mm. Once it is gone, it is gone.', href: '/products/palladium-koru-limited-edition', cta: 'See the paddle' },
       { title: 'Free shipping nationwide', text: 'On orders over ₱3,000.', href: '/shop', cta: 'Start shopping' },
     ],
-    brandStory: { title: 'Built in New Zealand. Played in the Philippines.', body: 'Palladium is a New Zealand registered pickleball brand. We design paddles and accessories around one idea: advanced performance engineering that feels simple on court. Every product carries the PalladiumX mark.' },
+    brandStory: { title: 'Built in New Zealand. Played everywhere.', body: 'Palladium is a New Zealand registered pickleball brand. We design paddles and accessories around one idea: advanced performance engineering that feels simple on court. Every product carries the PalladiumX mark.' },
     announcement: 'Free shipping nationwide over ₱3,000',
     policies: [
       { slug: 'shipping', title: 'Shipping policy', body: 'We ship nationwide from Metro Manila. Orders are packed within 1 to 2 business days. Metro Manila deliveries take 1 to 3 days, Luzon 3 to 5 days, Visayas and Mindanao 5 to 8 days. Tracking numbers are emailed when your order ships.' },
