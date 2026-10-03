@@ -26,9 +26,12 @@ export function phpToPalladium(priceCentavos: number, palladiumPricePhp: number 
   return Math.round((priceCentavos / 100 / palladiumPricePhp) * 100) / 100;
 }
 
-const nf = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const whole = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const cents = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/** Whole amounts without decimals ("3,875"), anything else with exactly two ("197.50"), so prices never mix "197.5" and "61.25". */
+const nf = { format: (n: number) => (Number.isInteger(Math.round(n * 100) / 100) ? whole : cents).format(n) };
 
-/** 3875 -> "≈ 3,875 PALLADIUM", 12.5 -> "≈ 12.5 PALLADIUM" (no trailing zeros). */
+/** 3875 -> "≈ 3,875 PALLADIUM", 12.5 -> "≈ 12.50 PALLADIUM". */
 export function formatPalladium(amount: number): string {
   return `≈ ${nf.format(amount)} PALLADIUM`;
 }

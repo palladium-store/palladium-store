@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { getSetting } from '@/lib/settings';
 import { Container } from '@/components/store/container';
@@ -7,17 +8,17 @@ import { paragraphs } from '@/components/store/labels';
 
 export const dynamic = 'force-dynamic';
 
-async function load(slug: string) {
+const load = cache(async (slug: string) => {
   const [content, store] = await Promise.all([getSetting('content'), getSetting('store')]);
   const policy = content.policies.find((p) => p.slug === slug);
   if (policy) return { title: policy.title, body: policy.body, content, store };
   if (slug === 'about') return { title: content.brandStory.title, body: content.brandStory.body, content, store };
   return null;
-}
+});
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const page = await load(params.slug);
-  if (!page) return { title: 'Page not found', robots: { index: false } };
+  if (!page) notFound();
   const title = params.slug === 'about' ? 'About Palladium' : page.title;
   return { title, description: page.body.slice(0, 160), alternates: { canonical: `/pages/${params.slug}` } };
 }

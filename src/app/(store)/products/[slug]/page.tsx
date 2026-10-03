@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { getProduct, boughtTogether, relatedProducts } from '@/lib/queries/catalog';
 import { getSetting } from '@/lib/settings';
@@ -16,10 +17,12 @@ import { toHtml, htmlToText } from '@/lib/rich-text';
 
 export const dynamic = 'force-dynamic';
 type Params = { params: { slug: string } };
+/** One database read per request, shared by the metadata and the page. */
+const loadProduct = cache((slug: string) => getProduct(slug));
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const p = await getProduct(params.slug);
-  if (!p) return { title: 'Product not found', robots: { index: false } };
+  const p = await loadProduct(params.slug);
+  if (!p) notFound(); // here, not only in the page, so the response is a real 404 rather than a 200 "not found" page
   const img = p.ogImageUrl || p.images.find((i) => i.kind === 'image')?.url;
   const title = p.seoTitle || p.name;
   const description = p.seoDescription || p.shortDescription || undefined;
@@ -33,7 +36,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Params) {
-  const product = await getProduct(params.slug);
+  const product = await loadProduct(params.slug);
   if (!product) notFound();
 
   const [content, user, together, related] = await Promise.all([
