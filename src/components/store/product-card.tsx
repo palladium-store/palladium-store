@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { peso } from '@/lib/money';
+import { getPalladiumPricePhp, phpToPalladium, formatPalladium } from '@/lib/palladium-price';
 import { Img } from './img';
 import { Stars } from './stars';
 import { WishButton } from './wish-button';
@@ -10,7 +11,7 @@ import { useCart } from './cart-context';
 import { useToast } from '@/components/ui/toast';
 import type { CardProduct } from './types';
 
-export function ProductCard({ p, priority = false, refreshOnWishChange = false }: { p: CardProduct; priority?: boolean; refreshOnWishChange?: boolean }) {
+export function ProductCard({ p, priority = false, refreshOnWishChange = false, palladiumPricePhp = getPalladiumPricePhp() }: { p: CardProduct; priority?: boolean; refreshOnWishChange?: boolean; palladiumPricePhp?: number }) {
   const { lines, add, openDrawer } = useCart();
   const { toast } = useToast();
   const variants = p.variants ?? [];
@@ -28,6 +29,8 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false }
   const compareAt = v ? v.compareAt : p.compareAt;
   const onSale = compareAt != null && compareAt > price;
   const priceVaries = multi && new Set(variants.map((x) => x.price)).size > 1;
+  const shownPrice = priceVaries && !picked ? p.price : price; // the PHP price on screen is the single source of truth
+  const tokenAmount = phpToPalladium(shownPrice, palladiumPricePhp);
   const main = picked && v?.image ? v.image : p.image;
   const soldOut = v ? v.available <= 0 : !p.inStock;
   const inCart = v ? lines.find((l) => l.variantId === v.id)?.qty ?? 0 : 0;
@@ -90,11 +93,16 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false }
           </>)}
         </div>
 
-        <p className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-3">
-          {priceVaries && !picked && <span className="text-xs font-medium text-mute">From</span>}
-          <span className="text-xl font-extrabold tracking-tight sm:text-[22px]">{peso(priceVaries && !picked ? p.price : price)}</span>
-          {onSale && !(priceVaries && !picked) && <span className="text-sm text-mute line-through">{peso(compareAt as number)}</span>}
-        </p>
+        <div className="mt-auto pt-3">
+          <p className="flex flex-wrap items-baseline gap-x-2">
+            {priceVaries && !picked && <span className="text-xs font-medium text-mute">From</span>}
+            <span className="text-xl font-extrabold tracking-tight sm:text-[22px]">{peso(shownPrice)}</span>
+            {onSale && !(priceVaries && !picked) && <span className="text-sm text-mute line-through">{peso(compareAt as number)}</span>}
+          </p>
+          <p className="mt-0.5 min-h-[1.25rem] whitespace-nowrap text-[13px] font-semibold tabular-nums text-gold-deep" aria-label={tokenAmount != null ? `About ${tokenAmount} PALLADIUM tokens` : undefined}>
+            {tokenAmount != null ? formatPalladium(tokenAmount) : null}
+          </p>
+        </div>
 
         <div className="mt-4 flex gap-2">
           {soldOut ? (
@@ -114,10 +122,10 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false }
   );
 }
 
-export function ProductGrid({ items, className = 'grid-cols-2 lg:grid-cols-4', priorityCount = 0, refreshOnWishChange = false }: { items: CardProduct[]; className?: string; priorityCount?: number; refreshOnWishChange?: boolean }) {
+export function ProductGrid({ items, className = 'grid-cols-2 lg:grid-cols-4', priorityCount = 0, refreshOnWishChange = false, palladiumPricePhp }: { items: CardProduct[]; className?: string; priorityCount?: number; palladiumPricePhp?: number; refreshOnWishChange?: boolean }) {
   return (
     <div className={`grid gap-x-4 gap-y-10 sm:gap-x-6 ${className}`}>
-      {items.map((p, i) => <ProductCard key={p.id} p={p} priority={i < priorityCount} refreshOnWishChange={refreshOnWishChange} />)}
+      {items.map((p, i) => <ProductCard key={p.id} p={p} priority={i < priorityCount} refreshOnWishChange={refreshOnWishChange} palladiumPricePhp={palladiumPricePhp} />)}
     </div>
   );
 }
