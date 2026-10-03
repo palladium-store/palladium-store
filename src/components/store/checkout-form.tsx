@@ -16,6 +16,8 @@ import { usePalladiumWallet } from './palladium/wallet';
 import { formatPalladiumMinor } from '@/lib/palladium-price';
 
 interface Props {
+  /** Arrived from a "Pay with crypto" button: start with PALLADIUM selected. */
+  preferCrypto?: boolean;
   methods: { id: string; instructions: string }[];
   user: { name: string; email: string; phone: string | null } | null;
   storeEmail: string;
@@ -33,7 +35,7 @@ function Field({ id, label, error, hint, children }: { id: string; label: string
   );
 }
 
-export function CheckoutForm({ methods, user, storeEmail }: Props) {
+export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const { lines, ready, clear } = useCart();
@@ -48,7 +50,7 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
     name: user?.name ?? '', email: user?.email ?? '', phone: user?.phone ?? '',
     diff: false, rName: '', rPhone: '',
     line1: '', barangay: '', city: '', province: '', postalCode: '',
-    notes: '', method: phpMethods[0]?.id ?? (hasPalladium ? 'PALLADIUM' : ''),
+    notes: '', method: preferCrypto && hasPalladium ? 'PALLADIUM' : (phpMethods[0]?.id ?? (hasPalladium ? 'PALLADIUM' : '')),
     createAccount: false, password: '', saveAddress: false, marketing: false,
   });
   const up = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
@@ -260,7 +262,7 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
                 <legend className="sr-only">Pay with</legend>
                 {[
                   { id: 'php', label: 'PHP', sub: phpMethods.length ? phpMethods.map((m) => METHOD_LABEL[m.id] ?? m.id).join(' / ') : 'Not available right now', on: f.method !== 'PALLADIUM', off: phpMethods.length === 0, pick: () => up('method', phpMethods[0]?.id ?? '') },
-                  { id: 'pal', label: 'PALLADIUM', sub: 'Simulated wallet payment', on: f.method === 'PALLADIUM', off: false, pick: () => up('method', 'PALLADIUM') },
+                  { id: 'pal', label: 'Pay with crypto', sub: 'PALLADIUM · simulated wallet', on: f.method === 'PALLADIUM', off: false, pick: () => up('method', 'PALLADIUM') },
                 ].map((o) => (
                   <label key={o.id} className={`block border p-4 transition ${o.off ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${o.on ? 'border-ink bg-bone' : 'border-line hover:border-ink'}`}>
                     <span className="flex items-center gap-3">

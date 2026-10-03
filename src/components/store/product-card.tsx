@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { usePalladiumWallet } from './palladium/wallet';
 import { peso } from '@/lib/money';
 import { getPalladiumPricePhp, phpToPalladium, formatPalladium } from '@/lib/palladium-price';
 import { Img } from './img';
@@ -13,6 +15,8 @@ import type { CardProduct } from './types';
 
 export function ProductCard({ p, priority = false, refreshOnWishChange = false, palladiumPricePhp = getPalladiumPricePhp() }: { p: CardProduct; priority?: boolean; refreshOnWishChange?: boolean; palladiumPricePhp?: number }) {
   const { lines, add, openDrawer } = useCart();
+  const router = useRouter();
+  const { enabled: cryptoEnabled } = usePalladiumWallet();
   const { toast } = useToast();
   const variants = p.variants ?? [];
   const firstAvail = Math.max(variants.findIndex((v) => v.available > 0), 0);
@@ -45,6 +49,14 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
       setState('done'); openDrawer();
       timer.current = setTimeout(() => setState('idle'), 1600);
     }, 350);
+  }
+
+  /** DEMO crypto checkout: add this variant, then go straight to checkout with PALLADIUM preselected. */
+  function payWithCrypto() {
+    if (!v || soldOut) return;
+    if (inCart >= Math.min(v.available, 99)) { toast(`All ${v.available} available are already in your cart.`, 'error'); return; }
+    add(v.id, 1);
+    router.push('/checkout?pay=crypto');
   }
 
   return (
@@ -99,7 +111,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
             <span className="text-xl font-extrabold tracking-tight sm:text-[22px]">{peso(shownPrice)}</span>
             {onSale && !(priceVaries && !picked) && <span className="text-sm text-mute line-through">{peso(compareAt as number)}</span>}
           </p>
-          <p className="mt-0.5 min-h-[1.25rem] whitespace-nowrap text-[13px] font-semibold tabular-nums text-gold-deep" aria-label={tokenAmount != null ? `About ${tokenAmount} PALLADIUM tokens` : undefined}>
+          <p className="mt-0.5 min-h-[1.25rem] whitespace-nowrap text-[13px] font-medium tabular-nums text-gold" aria-label={tokenAmount != null ? `About ${tokenAmount} PALLADIUM tokens` : undefined}>
             {tokenAmount != null ? formatPalladium(tokenAmount) : null}
           </p>
         </div>
@@ -117,6 +129,14 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
             </>
           )}
         </div>
+        {cryptoEnabled && (soldOut ? <div className="mt-2 h-[2.375rem]" aria-hidden="true" /> : (
+          <button type="button" onClick={payWithCrypto}
+            className="group/crypto mt-2 flex h-[2.375rem] w-full items-center justify-center gap-2 border border-gold/50 bg-white px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-deep transition hover:border-gold hover:bg-gold-soft">
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 8h4.5a2 2 0 0 1 0 4H9m0 0h5a2 2 0 0 1 0 4H9M9 8v8M11 6v2m0 8v2" /></svg>
+            Pay with crypto
+            <span className="border border-gold/60 px-1 text-[8px] leading-[14px] tracking-[0.14em] text-gold-deep">Demo</span>
+          </button>
+        ))}
       </div>
     </article>
   );

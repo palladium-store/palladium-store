@@ -16,7 +16,7 @@ export function PalladiumPayPanel({ totalCentavos }: { totalCentavos: number | n
   return (
     <div className="mt-5 border border-ink bg-bone p-5">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="font-display text-lg tracking-tightest">Pay with PALLADIUM</h3>
+        <h3 className="font-display text-lg tracking-tightest">Pay with crypto <span className="font-sans text-sm font-medium text-mute">(PALLADIUM)</span></h3>
         <DemoTag />
       </div>
       <div className="mt-3 border border-gold bg-gold-soft px-3 py-2 text-xs"><b>DEMO PAYMENT.</b> No real cryptocurrency will be transferred.</div>
