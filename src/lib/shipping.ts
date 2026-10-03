@@ -5,8 +5,11 @@ import { AppError } from './errors';
 export interface ShippingQuote { zone: string; rateName: string; courier: string | null; feeCentavos: number; free: boolean }
 
 /** Manual zone-based rates. Replace or extend with courier APIs later by returning the same shape. */
-export async function quoteShipping(province: string, weightGrams: number, subtotalCentavos: number): Promise<ShippingQuote> {
-  const zone = await prisma.shippingZone.findFirst({ where: { provinces: { has: province } }, include: { rates: true } });
+export const loadZone = (province: string) => prisma.shippingZone.findFirst({ where: { provinces: { has: province } }, include: { rates: true } });
+
+/** `zoneLoad` lets the caller start the zone query early, in parallel with other queries, to save a database round trip. */
+export async function quoteShipping(province: string, weightGrams: number, subtotalCentavos: number, zoneLoad?: ReturnType<typeof loadZone>): Promise<ShippingQuote> {
+  const zone = await (zoneLoad ?? loadZone(province));
   if (!zone) throw new AppError(422, 'NO_SHIPPING', `We do not ship to ${province} yet.`);
   const rates = zone.rates.filter((r) => weightGrams >= r.minWeightGrams && (r.maxWeightGrams == null || weightGrams <= r.maxWeightGrams));
   const rate = rates.sort((a, b) => a.rateCentavos - b.rateCentavos)[0] ?? zone.rates.sort((a, b) => b.rateCentavos - a.rateCentavos)[0];

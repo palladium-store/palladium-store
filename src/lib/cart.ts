@@ -1,6 +1,6 @@
 import 'server-only';
 import { prisma } from './db';
-import { quoteShipping } from './shipping';
+import { quoteShipping, loadZone } from './shipping';
 
 export interface PricedLine {
   variantId: string; qty: number; productId: string; productName: string; variantName: string; slug: string; sku: string;
@@ -17,6 +17,8 @@ export async function priceCart(items: { variantId: string; qty: number }[], dis
   const merged = new Map<string, number>();
   for (const i of items) merged.set(i.variantId, (merged.get(i.variantId) ?? 0) + i.qty);
   const ids = [...merged.keys()];
+  const zoneLoad = province && ids.length ? loadZone(province) : undefined;
+  zoneLoad?.catch(() => {});
   const variants = ids.length ? await prisma.productVariant.findMany({
     where: { id: { in: ids } },
     include: { product: { include: { images: { orderBy: { position: 'asc' }, take: 1 } } }, levels: { where: { location: { isDefault: true } } } },
@@ -69,7 +71,7 @@ export async function priceCart(items: { variantId: string; qty: number }[], dis
 
   let shippingCentavos: number | null = null, shippingZone: string | null = null, shippingError: string | null = null;
   if (province && lines.length) {
-    try { const q = await quoteShipping(province, weight, subtotal - discount); shippingCentavos = q.feeCentavos; shippingZone = q.zone; }
+    try { const q = await quoteShipping(province, weight, subtotal - discount, zoneLoad); shippingCentavos = q.feeCentavos; shippingZone = q.zone; }
     catch (e) { shippingError = (e as Error).message; }
   }
   const total = subtotal - discount + (shippingCentavos ?? 0);
