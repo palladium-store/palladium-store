@@ -27,9 +27,10 @@ async function bodyFor(n: { kind: string; title: string; link: string | null }) 
   return wrap(n.title, html, store);
 }
 
-/** Sends queued EMAIL notifications. Safe to call repeatedly; each row is marked sent once. */
+/** Sends queued EMAIL notifications. Safe to call repeatedly; each row is marked sent once.
+ *  Newest first, and demo addresses (@example.*) are skipped, so old undeliverable rows can never block a real customer's email. */
 export async function processOutbox(limit = 25): Promise<{ sent: number; logged: number; failed: number }> {
-  const rows = await prisma.notification.findMany({ where: { channel: 'EMAIL', sentAt: null, recipient: { not: null } }, orderBy: { createdAt: 'asc' }, take: limit });
+  const rows = await prisma.notification.findMany({ where: { channel: 'EMAIL', sentAt: null, recipient: { not: null }, NOT: { recipient: { contains: '@example.', mode: 'insensitive' } } }, orderBy: { createdAt: 'desc' }, take: limit });
   const t = getTransport();
   const from = process.env.MAIL_FROM ?? 'Palladium <orders@palladiumpickleball.com>';
   let sent = 0, logged = 0, failed = 0;
