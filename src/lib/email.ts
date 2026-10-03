@@ -12,7 +12,7 @@ function getTransport() {
   return transport;
 }
 
-const wrap = (title: string, body: string, store: string) => `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#111"><div style="background:#0b0b0c;color:#fff;padding:20px 24px;font-size:22px;font-weight:800;letter-spacing:-1px">${store.toLowerCase()}<span style="color:#e10600">x</span></div><div style="padding:24px"><h2 style="margin:0 0 12px">${title}</h2>${body}</div></div>`;
+const wrap = (title: string, body: string, store: string) => `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#111"><div style="background:#0b0b0c;color:#fff;padding:20px 24px;font-size:22px;font-weight:800;letter-spacing:-1px">${store.toLowerCase()}<span style="color:#f2cf46">x</span></div><div style="padding:24px"><h2 style="margin:0 0 12px">${title}</h2>${body}</div></div>`;
 
 async function bodyFor(n: { kind: string; title: string; link: string | null }) {
   const store = (await getSetting('store')).name;
