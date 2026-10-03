@@ -8,7 +8,7 @@ import { fmtDateTime } from '@/lib/time';
 import { Badge } from '@/components/ui/bits';
 import { METHOD_LABEL } from '@/components/store/labels';
 import { ReorderButton } from '@/components/store/reorder-button';
-import { AddressBlock, OrderItemsList, OrderTotalsBlock, PaymentInstructions, StatusTimeline, TrackingBlock, orderStatusNote } from '@/components/store/order-parts';
+import { AddressBlock, OrderItemsList, OrderTotalsBlock, PaymentInstructions, DemoPaymentReceipt, StatusTimeline, TrackingBlock, orderStatusNote } from '@/components/store/order-parts';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +36,8 @@ export default async function OrderDetail({ params }: { params: { id: string } }
         </div>
       </div>
 
-      <PaymentInstructions order={order} instructions={payments[order.paymentMethod]?.instructions ?? ''} token={orderToken(order.id)} />
+      <PaymentInstructions order={order} instructions={(payments as unknown as Record<string, { instructions: string } | undefined>)[order.paymentMethod]?.instructions ?? ''} token={orderToken(order.id)} />
+          <DemoPaymentReceipt order={order} />
       <TrackingBlock shipment={shipment} />
 
       <section aria-labelledby="oi-h">

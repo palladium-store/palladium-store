@@ -1,8 +1,9 @@
 import 'server-only';
 import type { PaymentMethod } from '@prisma/client';
-import { getSetting } from './settings';
+import { getSetting, type PaymentSettings } from './settings';
 import { AppError } from './errors';
 import { paymongoProvider, paymongoConfigured } from './paymongo';
+import { demoEnabled, palladiumDemoProvider } from './palladium/demo-server';
 
 export interface PaymentInit { instructions: string; redirectUrl?: string; reference?: string }
 export interface PaymentProvider {
@@ -17,7 +18,7 @@ export const manualProvider: PaymentProvider = {
   id: 'manual',
   methods: ['GCASH', 'MAYA', 'BANK_TRANSFER', 'COD', 'CARD'],
   async initiate(order) {
-    const cfg = (await getSetting('payments'))[order.method];
+    const cfg = (await getSetting('payments'))[order.method as keyof PaymentSettings];
     if (!cfg?.enabled) throw new AppError(422, 'METHOD_DISABLED', 'That payment method is not available.');
     return { instructions: cfg.instructions, reference: order.orderNumber };
   },
@@ -26,11 +27,14 @@ export const manualProvider: PaymentProvider = {
 // Register real providers here later (PayMongo, Xendit, Maya Business, GCash), each implementing PaymentProvider and
 // calling pal_confirm_order from a verified webhook route (see /api/payments/webhook).
 // Lazy so the payments <-> paymongo <-> orders import cycle never touches an uninitialised binding.
-const registry = (): PaymentProvider[] => [paymongoProvider, manualProvider];
+const registry = (): PaymentProvider[] => [paymongoProvider, palladiumDemoProvider, manualProvider];
 export function providerFor(method: PaymentMethod): PaymentProvider {
   return registry().find((p) => p.methods.includes(method)) ?? manualProvider;
 }
-/** QR Ph (PayMongo) is the only payment method offered at checkout. It appears once PAYMONGO_SECRET_KEY is set. */
+/** QR Ph (PayMongo) appears once PAYMONGO_SECRET_KEY is set. PALLADIUM appears only while the DEMO is switched on (PALLADIUM_DEMO_MODE=true). */
 export async function enabledMethods(): Promise<PaymentMethod[]> {
-  return paymongoConfigured() ? ['QRPH'] : [];
+  const out: PaymentMethod[] = [];
+  if (paymongoConfigured()) out.push('QRPH');
+  if (demoEnabled()) out.push('PALLADIUM');
+  return out;
 }

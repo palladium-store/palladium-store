@@ -157,6 +157,12 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
             <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-mute">Payment and fulfillment</h2>
             <dl className="space-y-1.5">
               <div className="flex justify-between gap-3"><dt className="text-mute">Method</dt><dd>{PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod}</dd></div>
+              {order.paymentMode === 'DEMO' && <>
+                <div className="flex justify-between gap-3"><dt className="text-mute">Payment mode</dt><dd className="font-semibold text-gold-deep">DEMO (simulated, not counted as sales)</dd></div>
+                {order.tokenAmountMinor != null && <div className="flex justify-between gap-3"><dt className="text-mute">Token amount</dt><dd>{(order.tokenAmountMinor / 100).toLocaleString('en-PH', { maximumFractionDigits: 2 })} PALLADIUM{order.tokenPriceCentavos != null ? ` @ ${peso(order.tokenPriceCentavos)}` : ''}</dd></div>}
+                {order.txId && <div className="flex justify-between gap-3"><dt className="text-mute">Transaction</dt><dd className="font-mono text-xs">{order.txId}</dd></div>}
+                {order.walletAddress && <div className="flex justify-between gap-3"><dt className="text-mute">Wallet</dt><dd className="font-mono text-xs">{order.walletAddress}</dd></div>}
+              </>}
               <div className="flex justify-between gap-3"><dt className="text-mute">Payment</dt><dd><Badge status={order.paymentStatus} /></dd></div>
               <div className="flex justify-between gap-3"><dt className="text-mute">Paid at</dt><dd>{order.paidAt ? fmtDateTime(order.paidAt) : '-'}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-mute">Fulfillment</dt><dd><Badge status={order.status} /></dd></div>

@@ -5,6 +5,8 @@ import { fmtDateTime } from '@/lib/time';
 import { Img } from './img';
 import { METHOD_HEADING, METHOD_LABEL } from './labels';
 import { QrPayment } from './qr-payment';
+import { formatPalladiumMinor } from '@/lib/palladium-price';
+import { DEMO_NETWORK_LABEL } from '@/lib/palladium/config';
 
 export function OrderItemsList({ items }: { items: OrderItem[] }) {
   return (
@@ -57,7 +59,7 @@ export function PaymentInstructions({ order, instructions, token }: { order: Ord
   return (
     <section className="border-2 border-gold bg-gold-soft p-5 sm:p-7" aria-labelledby="pay-h">
       <h2 id="pay-h" className="font-display text-xl tracking-tightest">{METHOD_HEADING[order.paymentMethod] ?? 'Payment'}</h2>
-      <p className="mt-2 text-sm">{instructions}</p>
+      <p className="mt-2 text-sm">{order.paymentMethod === 'PALLADIUM' ? 'DEMO order. Its simulated PALLADIUM payment has not been completed yet. Nothing real has been charged.' : instructions}</p>
       {order.paymentMethod === 'QRPH' && token && <QrPayment orderNumber={order.orderNumber} token={token} amount={peso(order.totalCentavos)} />}
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
         <div><dt className="text-xs uppercase tracking-wider text-mute">{cod ? 'Amount to prepare' : 'Amount to pay'}</dt><dd className="font-display text-2xl tracking-tightest">{peso(order.totalCentavos)}</dd></div>
@@ -126,6 +128,30 @@ export function NextSteps({ order }: { order: Order }) {
         {steps.map((s, i) => <li key={i} className="flex gap-3 text-sm"><span className="flex h-6 w-6 shrink-0 items-center justify-center bg-ink text-xs font-bold text-gold">{i + 1}</span><span className="pt-0.5">{s}</span></li>)}
       </ol>
       <p className="mt-5 text-sm text-mute">Questions? <Link href="/pages/shipping" className="underline">Shipping policy</Link> &middot; <Link href="/pages/returns" className="underline">Returns</Link></p>
+    </section>
+  );
+}
+
+/** DEMO $PALLADIUM payment receipt. Clearly labelled: nothing was transferred and nothing is on a blockchain. */
+export function DemoPaymentReceipt({ order }: { order: Order }) {
+  if (order.paymentMethod !== 'PALLADIUM' || order.paymentMode !== 'DEMO' || order.paymentStatus !== 'PAID' || order.tokenAmountMinor == null) return null;
+  const row = (k: string, v: React.ReactNode) => <div className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 text-sm last:border-0"><dt className="text-mute">{k}</dt><dd className="text-right font-semibold tabular-nums">{v}</dd></div>;
+  return (
+    <section className="border border-ink bg-bone p-5 sm:p-7" aria-labelledby="demo-pay-h">
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="demo-pay-h" className="font-display text-xl tracking-tightest">PALLADIUM payment</h2>
+        <span className="border border-gold px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.16em] text-gold-deep">Demo</span>
+      </div>
+      <p className="mt-2 text-xs text-mute">DEMO MODE. This payment was simulated. No real cryptocurrency was transferred and no blockchain transaction took place.</p>
+      <dl className="mt-3">
+        {row('Paid', `${formatPalladiumMinor(order.tokenAmountMinor)} PALLADIUM`)}
+        {row('PHP total', peso(order.totalCentavos))}
+        {row('PALLADIUM price', order.tokenPriceCentavos != null ? `${peso(order.tokenPriceCentavos)} (demo)` : '-')}
+        {row('Transaction', <span className="font-mono">{order.txId ?? '-'}</span>)}
+        {row('Wallet', <span className="font-mono">{order.walletAddress ?? '-'}</span>)}
+        {row('Network', DEMO_NETWORK_LABEL)}
+        {row('Status', 'Confirmed')}
+      </dl>
     </section>
   );
 }

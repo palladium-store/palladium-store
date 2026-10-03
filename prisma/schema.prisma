@@ -47,6 +47,7 @@ enum PaymentMethod {
   CARD
   BANK_TRANSFER
   COD
+  PALLADIUM
 }
 enum ShipmentStatus {
   PENDING
@@ -290,6 +291,12 @@ model Order {
   status        OrderStatus @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
   paymentMethod PaymentMethod
+  // $PALLADIUM DEMO payment details (null for every other method). Plain integers: tokenAmountMinor is hundredths of a token.
+  paymentMode   String?
+  tokenAmountMinor   Int?
+  tokenPriceCentavos Int?
+  txId          String?
+  walletAddress String?
   subtotalCentavos Int
   discountCentavos Int @default(0)
   shippingCentavos Int @default(0)
@@ -322,6 +329,7 @@ model Order {
   @@index([status, placedAt])
   @@index([placedAt])
   @@index([paymentMethod])
+  @@index([paymentMode])
   @@map("orders")
 }
 

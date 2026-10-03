@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Logo } from './logo';
 import { Container } from './container';
 import { SearchPanel } from './search-panel';
+import { WalletButton } from './palladium/wallet';
 import { useCart } from './cart-context';
 
 const NAV = [
@@ -39,6 +40,7 @@ export function Header({ userName }: { userName: string | null }) {
         </nav>
 
         <div className="flex items-center">
+          <WalletButton />
           <button type="button" className={iconBtn} aria-label="Search" aria-expanded={search} onClick={() => { setSearch((s) => !s); setMenu(false); }}>
             <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
           </button>

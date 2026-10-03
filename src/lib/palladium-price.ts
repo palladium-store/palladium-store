@@ -10,8 +10,10 @@
  * Display only. Checkout and the token quote flow use their own server-side pricing (src/lib/token-quote.ts).
  */
 
-/** DEMO price: PHP per 1 PALLADIUM token. */
-export const PALLADIUM_PRICE_PHP = 2.0;
+/** DEMO price: PHP per 1 PALLADIUM token. The one place to change it. */
+export const DEMO_PALLADIUM_PRICE_PHP = 2.0;
+/** Same value, kept for the shop-card helpers above. */
+export const PALLADIUM_PRICE_PHP = DEMO_PALLADIUM_PRICE_PHP;
 
 /** Current PHP price of 1 PALLADIUM. Replace the body with a live feed later. */
 export function getPalladiumPricePhp(): number {
@@ -29,4 +31,15 @@ const nf = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFra
 /** 3875 -> "≈ 3,875 PALLADIUM", 12.5 -> "≈ 12.5 PALLADIUM" (no trailing zeros). */
 export function formatPalladium(amount: number): string {
   return `≈ ${nf.format(amount)} PALLADIUM`;
+}
+
+/** Product/order price in centavos -> PALLADIUM in minor units (hundredths of a token), as an integer. 775000 centavos at PHP 2.00 = 387500 (3,875.00). */
+export function phpToPalladiumMinor(priceCentavos: number, palladiumPricePhp: number = getPalladiumPricePhp()): number {
+  if (!Number.isFinite(priceCentavos) || priceCentavos < 0 || !Number.isFinite(palladiumPricePhp) || palladiumPricePhp <= 0) throw new Error('Invalid price');
+  return Math.round(priceCentavos / palladiumPricePhp);
+}
+
+/** 387500 -> "3,875", 6125 -> "61.25", 1000000 -> "10,000". */
+export function formatPalladiumMinor(minor: number): string {
+  return nf.format(minor / 100);
 }

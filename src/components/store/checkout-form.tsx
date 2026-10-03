@@ -11,6 +11,9 @@ import { useQuote } from './use-quote';
 import { QuoteTotals, SummaryLine } from './order-summary';
 import { METHOD_LABEL, METHOD_SHORT } from './labels';
 import type { SavedAddress } from './types';
+import { PalladiumPayPanel, PalladiumPaymentModal, type PaymentJob } from './palladium/checkout';
+import { usePalladiumWallet } from './palladium/wallet';
+import { formatPalladiumMinor } from '@/lib/palladium-price';
 
 interface Props {
   methods: { id: string; instructions: string }[];
@@ -34,12 +37,18 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const { lines, ready, clear } = useCart();
+  const wallet = usePalladiumWallet();
+  // PALLADIUM is a separate (demo) choice from the PHP methods.
+  const phpMethods = methods.filter((m) => m.id !== 'PALLADIUM');
+  const hasPalladium = methods.some((m) => m.id === 'PALLADIUM');
+  const [job, setJob] = useState<PaymentJob | null>(null);
+  const [short, setShort] = useState<{ requiredMinor: number; availableMinor: number } | null>(null);
 
   const [f, setF] = useState({
     name: user?.name ?? '', email: user?.email ?? '', phone: user?.phone ?? '',
     diff: false, rName: '', rPhone: '',
     line1: '', barangay: '', city: '', province: '', postalCode: '',
-    notes: '', method: methods[0]?.id ?? '',
+    notes: '', method: phpMethods[0]?.id ?? (hasPalladium ? 'PALLADIUM' : ''),
     createAccount: false, password: '', saveAddress: false, marketing: false,
   });
   const up = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
@@ -106,6 +115,13 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
     if (!f.method) { setTopErr('No payment method is available right now.'); return; }
     if (quote && !quote.ok) { setTopErr('Some items in your cart need attention. Review your cart before ordering.'); return; }
     if (code && quote?.discountError) { setFe({ discountCode: quote.discountError }); setTopErr('Fix or remove the discount code to continue.'); return; }
+    const payToken = f.method === 'PALLADIUM';
+    if (payToken) {
+      if (!quote) { setTopErr('Your total is still being calculated. Try again in a moment.'); return; }
+      if (!wallet.session.connected) { setTopErr('Connect your demo wallet to pay with PALLADIUM.'); wallet.openConnect(); return; }
+      const need = wallet.service.quote(quote.totalCentavos).amountMinor;
+      if (!wallet.service.canAfford(need)) { setShort({ requiredMinor: need, availableMinor: wallet.session.palladiumMinor }); return; }
+    }
     submitting.current = true; setPending(true);
     if (!keyRef.current) keyRef.current = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `k-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     let source: string | undefined;
@@ -127,6 +143,13 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
           source,
         },
       });
+      if (payToken && quote) {
+        // DEMO: the order exists (awaiting payment). Run the simulated payment; the cart is cleared once it succeeds.
+        const first = quote.lines[0]?.productName ?? 'Palladium order';
+        setJob({ orderNumber: res.orderNumber, token: res.token, phpCentavos: quote.totalCentavos, label: quote.lines.length > 1 ? `${first} +${quote.lines.length - 1} more` : first });
+        submitting.current = false; setPending(false);
+        return;
+      }
       setPlaced(true);
       toast('Order placed. Thank you!');
       clear();
@@ -167,6 +190,7 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
   const h2 = 'font-display text-xl tracking-tightest';
 
   return (
+    <>
     <form onSubmit={submit} noValidate className="grid gap-10 lg:grid-cols-[1fr_26rem]">
       <div className="space-y-6">
         {(topErr || extras.length > 0) && (
@@ -230,10 +254,29 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
           <h2 id="c-pay" className={h2}>Payment</h2>
           {methods.length === 0 ? (
             <p className="mt-4 text-sm text-red-600">No payment methods are available right now. Please contact us at <a className="underline" href={`mailto:${storeEmail}`}>{storeEmail}</a>.</p>
-          ) : (
+          ) : (<>
+            {hasPalladium && (
+              <fieldset className="mt-5 grid gap-3 sm:grid-cols-2">
+                <legend className="sr-only">Pay with</legend>
+                {[
+                  { id: 'php', label: 'PHP', sub: phpMethods.length ? phpMethods.map((m) => METHOD_LABEL[m.id] ?? m.id).join(' / ') : 'Not available right now', on: f.method !== 'PALLADIUM', off: phpMethods.length === 0, pick: () => up('method', phpMethods[0]?.id ?? '') },
+                  { id: 'pal', label: 'PALLADIUM', sub: 'Simulated wallet payment', on: f.method === 'PALLADIUM', off: false, pick: () => up('method', 'PALLADIUM') },
+                ].map((o) => (
+                  <label key={o.id} className={`block border p-4 transition ${o.off ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${o.on ? 'border-ink bg-bone' : 'border-line hover:border-ink'}`}>
+                    <span className="flex items-center gap-3">
+                      <input type="radio" name="payMode" checked={o.on} disabled={o.off} onChange={o.pick} className="accent-black" />
+                      <span className="font-semibold">{o.label}</span>
+                      {o.id === 'pal' && <span className="border border-gold px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.16em] text-gold-deep">Demo</span>}
+                    </span>
+                    <span className="mt-1 block pl-7 text-xs text-mute">{o.sub}</span>
+                  </label>
+                ))}
+              </fieldset>
+            )}
+            {f.method === 'PALLADIUM' ? <PalladiumPayPanel totalCentavos={quote?.totalCentavos ?? null} /> : (
             <fieldset className="mt-5 space-y-3">
               <legend className="sr-only">Payment method</legend>
-              {methods.map((m) => (
+              {phpMethods.map((m) => (
                 <label key={m.id} className={`block cursor-pointer border p-4 transition ${f.method === m.id ? 'border-ink bg-bone' : 'border-line hover:border-ink'}`}>
                   <span className="flex items-center gap-3">
                     <input type="radio" name="method" value={m.id} checked={f.method === m.id} onChange={() => up('method', m.id)} className="accent-black" />
@@ -245,7 +288,8 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
               ))}
               {err('method') && <p className="field-error" role="alert">{err('method')}</p>}
             </fieldset>
-          )}
+            )}
+          </>)}
         </section>
 
         <section className={section} aria-labelledby="c-extra">
@@ -285,11 +329,18 @@ export function CheckoutForm({ methods, user, storeEmail }: Props) {
         <div className="mt-5 border-t border-line pt-4">
           {quote ? <QuoteTotals quote={quote} hasProvince={!!f.province} /> : <Spinner label="Pricing" />}
         </div>
-        <button type="submit" className="btn-gold mt-6 w-full py-4" disabled={!canPlace || pending} aria-busy={pending}>{pending ? 'Placing order...' : 'Place order'}</button>
+        <button type="submit" className="btn-gold mt-6 w-full py-4" disabled={!canPlace || pending} aria-busy={pending}>{pending ? 'Placing order...' : f.method === 'PALLADIUM' ? (quote ? `Pay ${formatPalladiumMinor(wallet.service.quote(quote.totalCentavos).amountMinor)} PALLADIUM` : 'Pay with PALLADIUM') : 'Place order'}</button>
         {!pending && quote && !quote.ok && <p className="mt-2 text-xs text-red-600">Some items need attention. <Link href="/cart" className="underline">Review your cart</Link>.</p>}
         {!pending && quote?.shippingError && <p className="mt-2 text-xs text-red-600">{quote.shippingError}</p>}
         <p className="mt-3 text-center text-xs text-mute">By placing your order you agree to our <Link href="/pages/terms" className="underline">terms</Link> and <Link href="/pages/privacy" className="underline">privacy policy</Link>.</p>
       </aside>
     </form>
+    <PalladiumPaymentModal
+      job={job}
+      precheck={short}
+      onClose={() => { setJob(null); setShort(null); }}
+      onDone={(num, token) => { setJob(null); setPlaced(true); clear(); try { localStorage.removeItem('pal-discount'); } catch { /* ignore */ } toast('Payment successful (demo).'); router.push(`/order/${encodeURIComponent(num)}?t=${encodeURIComponent(token)}`); }}
+    />
+  </>
   );
 }
