@@ -4,6 +4,8 @@ import { prisma } from './db';
 import { peso } from './money';
 import { getSetting } from './settings';
 
+/** Escapes text that came from a customer before it goes into email HTML (stops HTML/link injection in our emails). */
+const esc = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const site = () => process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 let transport: nodemailer.Transporter | null | undefined;
 function getTransport() {
@@ -18,13 +20,13 @@ async function bodyFor(n: { kind: string; title: string; link: string | null }) 
   const store = (await getSetting('store')).name;
   const orderId = n.link?.split('/').pop();
   const order = orderId ? await prisma.order.findUnique({ where: { id: orderId }, include: { items: true, shipments: { orderBy: { createdAt: 'desc' }, take: 1 } } }) : null;
-  let html = `<p>${n.title}.</p>`;
+  let html = `<p>${esc(n.title)}.</p>`;
   if (order) {
-    const rows = order.items.map((i) => `<tr><td>${i.productName} (${i.variantName}) x${i.quantity}</td><td style="text-align:right">${peso(i.lineTotalCentavos)}</td></tr>`).join('');
-    const track = order.shipments[0]?.trackingNumber ? `<p>Courier: ${order.shipments[0].courier ?? '-'}<br>Tracking number: <b>${order.shipments[0].trackingNumber}</b></p>` : '';
-    html = `<p>Hi ${order.shipName},</p><p>${n.title}.</p><table style="width:100%;border-collapse:collapse">${rows}<tr><td>Shipping</td><td style="text-align:right">${peso(order.shippingCentavos)}</td></tr><tr><td><b>Total</b></td><td style="text-align:right"><b>${peso(order.totalCentavos)}</b></td></tr></table>${track}<p><a href="${site()}${n.link}">View your order ${order.orderNumber}</a></p>`;
+    const rows = order.items.map((i) => `<tr><td>${esc(i.productName)} (${esc(i.variantName)}) x${i.quantity}</td><td style="text-align:right">${peso(i.lineTotalCentavos)}</td></tr>`).join('');
+    const track = order.shipments[0]?.trackingNumber ? `<p>Courier: ${esc(order.shipments[0].courier ?? '-')}<br>Tracking number: <b>${esc(order.shipments[0].trackingNumber)}</b></p>` : '';
+    html = `<p>Hi ${esc(order.shipName)},</p><p>${esc(n.title)}.</p><table style="width:100%;border-collapse:collapse">${rows}<tr><td>Shipping</td><td style="text-align:right">${peso(order.shippingCentavos)}</td></tr><tr><td><b>Total</b></td><td style="text-align:right"><b>${peso(order.totalCentavos)}</b></td></tr></table>${track}<p><a href="${site()}${n.link}">View your order ${order.orderNumber}</a></p>`;
   }
-  return wrap(n.title, html, store);
+  return wrap(esc(n.title), html, store);
 }
 
 /** Sends queued EMAIL notifications. Safe to call repeatedly; each row is marked sent once.
@@ -52,8 +54,17 @@ export async function queueCustomerEmail(kind: string, title: string, recipient:
 /** Sends a password-reset email immediately. With no SMTP configured it logs the link (dev / first launch). */
 export async function sendPasswordResetEmail(to: string, name: string, link: string) {
   const store = (await getSetting('store')).name;
-  const html = wrap('Reset your password', `<p>Hi ${name},</p><p>We received a request to reset your password. This link works once and expires in 1 hour.</p><p><a href="${link}" style="display:inline-block;background:#0b0b0c;color:#fff;padding:12px 20px;text-decoration:none;font-weight:700">Reset password</a></p><p style="font-size:12px;color:#666">If you did not ask for this, you can ignore this email. Your password will not change.</p>`, store);
+  const html = wrap('Reset your password', `<p>Hi ${esc(name)},</p><p>We received a request to reset your password. This link works once and expires in 1 hour.</p><p><a href="${link}" style="display:inline-block;background:#0b0b0c;color:#fff;padding:12px 20px;text-decoration:none;font-weight:700">Reset password</a></p><p style="font-size:12px;color:#666">If you did not ask for this, you can ignore this email. Your password will not change.</p>`, store);
   const t = getTransport();
   if (!t) { console.log(`[email:dev] password reset for ${to}: ${link}`); return; }
   await t.sendMail({ from: process.env.MAIL_FROM ?? 'Palladium <orders@palladiumpickleball.com>', to, subject: `Reset your ${store} password`, html });
+}
+
+/** Sends the "confirm your email" link. With no SMTP configured it logs the link (dev / first launch). */
+export async function sendVerifyEmail(to: string, name: string, link: string) {
+  const store = (await getSetting('store')).name;
+  const html = wrap('Confirm your email', `<p>Hi ${esc(name)},</p><p>Please confirm your email address to finish setting up your account and see your past orders. This link expires in 24 hours.</p><p><a href="${link}" style="display:inline-block;background:#0b0b0c;color:#fff;padding:12px 20px;text-decoration:none;font-weight:700">Confirm email</a></p><p style="font-size:12px;color:#666">If you did not create an account, you can ignore this email.</p>`, store);
+  const t = getTransport();
+  if (!t) { console.log(`[email:dev] verify email for ${to}: ${link}`); return; }
+  await t.sendMail({ from: process.env.MAIL_FROM ?? 'Palladium <orders@palladiumpickleball.com>', to, subject: `Confirm your ${store} account`, html });
 }

@@ -22,16 +22,32 @@ const useSupabase = () => Boolean(SB_URL() && SB_KEY());
  * (required on serverless hosts such as Vercel), otherwise the local disk (UPLOAD_DIR).
  * The bucket must exist and be PUBLIC. Returns the same shape either way.
  */
+/** The browser-declared MIME type can be faked, so check the file's own signature (magic bytes) too. */
+function matchesSignature(mime: string, b: Buffer): boolean {
+  const at = (off: number, s: string) => b.length >= off + s.length && b.subarray(off, off + s.length).toString('latin1') === s;
+  switch (mime) {
+    case 'image/jpeg': return b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
+    case 'image/png': return b.length > 8 && b[0] === 0x89 && at(1, 'PNG\r\n\x1a\n');
+    case 'image/webp': return at(0, 'RIFF') && at(8, 'WEBP');
+    case 'image/avif': return at(4, 'ftyp') && (at(8, 'avif') || at(8, 'avis'));
+    case 'video/mp4': return at(4, 'ftyp');
+    case 'video/webm': return b.length > 4 && b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3;
+    default: return false;
+  }
+}
+
 export async function saveUpload(file: File): Promise<{ url: string; kind: 'image' | 'video' }> {
   const t = TYPES[file.type];
   if (!t) throw new AppError(422, 'BAD_FILE', 'Upload a JPG, PNG, WebP, AVIF, MP4 or WebM file.');
   if (file.size > t.max) throw new AppError(422, 'FILE_TOO_LARGE', `File is too large (max ${Math.round(t.max / 1e6)} MB).`);
+  const bytes = Buffer.from(await file.arrayBuffer());
+  if (!matchesSignature(file.type, bytes)) throw new AppError(422, 'BAD_FILE', 'That file does not look like a real image or video of the type it claims to be.');
   const name = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${t.ext}`;
   if (useSupabase()) {
     const res = await fetch(`${SB_URL()}/storage/v1/object/${SB_BUCKET()}/${name}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${SB_KEY()}`, apikey: SB_KEY(), 'content-type': file.type, 'cache-control': '31536000' },
-      body: Buffer.from(await file.arrayBuffer()),
+      body: bytes,
     });
     if (!res.ok) throw new AppError(502, 'STORAGE_FAILED', `Image storage rejected the upload (${res.status}). Check the Supabase bucket and keys.`);
     return { url: `${SB_URL()}/storage/v1/object/public/${SB_BUCKET()}/${name}`, kind: t.kind };
@@ -39,7 +55,7 @@ export async function saveUpload(file: File): Promise<{ url: string; kind: 'imag
   if (process.env.VERCEL) throw new AppError(500, 'STORAGE_NOT_CONFIGURED', 'Image storage is not set up. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel and redeploy.');
   try {
     await mkdir(DIR(), { recursive: true });
-    await writeFile(path.join(DIR(), name), Buffer.from(await file.arrayBuffer()));
+    await writeFile(path.join(DIR(), name), bytes);
   } catch {
     throw new AppError(500, 'STORAGE_FAILED', 'Could not save the file on the server.');
   }

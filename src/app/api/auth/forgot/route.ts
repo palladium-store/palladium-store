@@ -1,14 +1,14 @@
-import { route, ok, readJson } from '@/lib/api';
+import { route, ok, readJson, clientIp } from '@/lib/api';
 import { forgotSchema } from '@/lib/validators';
 import { prisma } from '@/lib/db';
-import { throttle, createResetToken } from '@/lib/auth';
+import { throttleStrict, createResetToken } from '@/lib/auth';
 import { sendPasswordResetEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
 export const POST = route(async (req) => {
   const b = forgotSchema.parse(await readJson(req));
-  throttle(`forgot:${b.email.toLowerCase()}:${req.headers.get('x-forwarded-for') ?? 'ip'}`, 4);
+  await throttleStrict(`forgot:${b.email.toLowerCase()}:${clientIp(req)}`, 4, 60 * 60 * 1000);
   const u = await prisma.user.findFirst({ where: { email: { equals: b.email, mode: 'insensitive' } } });
   if (u && u.isActive) {
     try {

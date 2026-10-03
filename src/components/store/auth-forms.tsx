@@ -58,6 +58,7 @@ export function RegisterForm({ next }: { next: string | null }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [fe, setFe] = useState<Record<string, string>>({});
+  const [sent, setSent] = useState(false);
   const up = (k: keyof typeof f, v: string) => setF((s) => ({ ...s, [k]: v }));
 
   useEffect(() => { try { setSource(localStorage.getItem('pal-src') || undefined); } catch { /* ignore */ } }, []);
@@ -67,7 +68,8 @@ export function RegisterForm({ next }: { next: string | null }) {
     if (busy) return;
     setBusy(true); setErr(null); setFe({});
     try {
-      await api('/api/auth/register', { body: { name: f.name, email: f.email, phone: f.phone.trim() || undefined, password: f.password, source } });
+      const r = await api<{ verify?: boolean }>('/api/auth/register', { body: { name: f.name, email: f.email, phone: f.phone.trim() || undefined, password: f.password, source } });
+      if (r?.verify) { setSent(true); setBusy(false); return; }
       toast('Your account is ready. Welcome to Palladium!');
       window.location.assign(safeNext(next) ?? '/');
     } catch (ex) {
@@ -77,6 +79,7 @@ export function RegisterForm({ next }: { next: string | null }) {
       setBusy(false);
     }
   }
+  if (sent) return <p className="border border-line p-4 text-sm" role="status">Almost there. We emailed a confirmation link to <b>{f.email}</b>. Click it to finish setting up your account and see your past orders.</p>;
   return (
     <form onSubmit={submit} noValidate className="space-y-5">
       {err && <p className="border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">{err}</p>}

@@ -7,7 +7,8 @@ import { audit } from './audit';
 import { priceCart } from './cart';
 import { providerFor, enabledMethods } from './payments';
 import { processOutbox, queueCustomerEmail } from './email';
-import { hashPassword, startSession, getUser, assertStrongPassword } from './auth';
+import { hashPassword, startSession, getUser, assertStrongPassword, createVerifyToken } from './auth';
+import { sendVerifyEmail } from './email';
 import { normalizePhone } from './validators';
 import type { SessionUser } from './auth';
 import { z } from 'zod';
@@ -17,7 +18,9 @@ type Checkout = z.infer<typeof checkoutSchema>;
 
 /** Signed token so guests can open their own confirmation page without an account. */
 export function orderToken(orderId: string) {
-  return crypto.createHmac('sha256', process.env.AUTH_SECRET ?? '').update(`order:${orderId}`).digest('hex').slice(0, 32);
+  const key = process.env.AUTH_SECRET;
+  if (!key || key.length < 32) throw new Error('AUTH_SECRET must be set to at least 32 characters');
+  return crypto.createHmac('sha256', key).update(`order:${orderId}`).digest('hex').slice(0, 32);
 }
 export const verifyOrderToken = (orderId: string, t: string | undefined) => !!t && t.length === 32 && crypto.timingSafeEqual(Buffer.from(t), Buffer.from(orderToken(orderId)));
 
@@ -30,6 +33,7 @@ export async function placeOrder(input: Checkout) {
   const sessionUser = await getUser();
   let customer = sessionUser ? await prisma.customer.findUnique({ where: { userId: sessionUser.id } }) : null;
   let newUser: SessionUser | null = null;
+  let pendingVerify: { id: string; email: string; name: string; passwordHash: string } | null = null;
 
   if (!customer) {
     const existingUser = await prisma.user.findFirst({ where: { email: { equals: emailLower, mode: 'insensitive' } } });
@@ -41,13 +45,19 @@ export async function placeOrder(input: Checkout) {
       // Guest checkout with an e-mail that belongs to an account: allowed, but never attach the order to that account.
     }
     customer = await prisma.customer.findFirst({ where: { email: { equals: emailLower, mode: 'insensitive' } } });
+    const hadRecord = !!customer; // an existing guest record holds someone's past orders
     if (!customer) {
       customer = await prisma.customer.create({ data: { email: emailLower, name: input.ship.name, phone: normalizePhone(input.phone), marketingOptIn: !!input.marketingOptIn, source: acquisitionSource ?? null } });
     }
     if (input.createAccount && !customer.userId) {
       const u = await prisma.user.create({ data: { email: emailLower, name: input.ship.name, passwordHash: await hashPassword(input.password!), role: 'CUSTOMER' } });
-      customer = await prisma.customer.update({ where: { id: customer.id }, data: { userId: u.id } });
-      newUser = { id: u.id, email: u.email, name: u.name, role: u.role };
+      if (hadRecord) {
+        // Do not hand an existing record (past orders, addresses) to whoever typed the email: they must confirm it by email first.
+        pendingVerify = { id: u.id, email: u.email, name: u.name, passwordHash: u.passwordHash };
+      } else {
+        customer = await prisma.customer.update({ where: { id: customer.id }, data: { userId: u.id } });
+        newUser = { id: u.id, email: u.email, name: u.name, role: u.role };
+      }
     }
   }
 
@@ -68,6 +78,12 @@ export async function placeOrder(input: Checkout) {
   const res = rows[0].r;
 
   if (newUser) await startSession(newUser);
+  if (pendingVerify) {
+    try {
+      const site = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+      await sendVerifyEmail(pendingVerify.email, pendingVerify.name, `${site}/api/auth/verify-email?token=${await createVerifyToken(pendingVerify)}`);
+    } catch (e) { console.error('[checkout verify email]', e); }
+  }
   if (!res.duplicate) {
     await prisma.customer.update({ where: { id: customer.id }, data: { name: customer.name || input.ship.name, phone: customer.phone ?? normalizePhone(input.phone), ...(input.marketingOptIn ? { marketingOptIn: true } : {}) } });
     if (input.saveAddress && (sessionUser || newUser)) {

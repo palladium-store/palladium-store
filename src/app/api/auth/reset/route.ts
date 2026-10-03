@@ -1,13 +1,13 @@
-import { route, ok, readJson } from '@/lib/api';
+import { route, ok, readJson, clientIp } from '@/lib/api';
 import { resetSchema } from '@/lib/validators';
 import { prisma } from '@/lib/db';
 import { AppError } from '@/lib/errors';
-import { verifyResetToken, hashPassword, throttle } from '@/lib/auth';
+import { verifyResetToken, hashPassword, throttleStrict } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export const POST = route(async (req) => {
-  throttle(`reset:${req.headers.get('x-forwarded-for') ?? 'ip'}`, 10);
+  await throttleStrict(`reset:${clientIp(req)}`, 10, 60 * 60 * 1000);
   const b = resetSchema.parse(await readJson(req));
   const u = await verifyResetToken(b.token);
   if (!u) throw new AppError(400, 'BAD_TOKEN', 'This reset link is invalid or has expired. Please request a new one.');
