@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
-  images: { formats: ['image/webp'], remotePatterns: [] },
+  images: { formats: ['image/webp'], minimumCacheTTL: 31536000, remotePatterns: [{ protocol: 'https', hostname: '**.supabase.co', pathname: '/storage/v1/object/public/**' }] },
   experimental: { serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs', 'exceljs', 'nodemailer'] },
   async headers() {
     return [{ source: '/(.*)', headers: [

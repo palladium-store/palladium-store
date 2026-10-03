@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-/** Fills its (relative, sized) parent. Local /uploads and remote (Supabase) files skip the optimizer. */
+/** Fills its (relative, sized) parent. Supabase public files go through the Next image optimizer (resized and cached); local /uploads and other remote files skip it. */
 export function Img({ src, alt, sizes = '100vw', className = '', priority }: { src: string | null | undefined; alt: string; sizes?: string; className?: string; priority?: boolean }) {
   if (!src) {
     return (
@@ -10,5 +10,5 @@ export function Img({ src, alt, sizes = '100vw', className = '', priority }: { s
     );
   }
   const s = src;
-  return <Image src={s} alt={alt} fill sizes={sizes} priority={priority} unoptimized={s.startsWith('/uploads') || s.startsWith('http')} className={className} />;
+  return <Image src={s} alt={alt} fill sizes={sizes} priority={priority} unoptimized={s.startsWith('/uploads') || (s.startsWith('http') && !/^https:\/\/[^/]*\.supabase\.co\/storage\/v1\/object\/public\//.test(s))} className={className} />;
 }
