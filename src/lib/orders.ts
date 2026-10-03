@@ -74,7 +74,13 @@ export async function placeOrder(input: Checkout) {
     ship: { ...input.ship, phone: normalizePhone(input.ship.phone) },
     items: input.items,
   };
-  const rows = await prisma.$queryRaw<{ r: { orderId: string; orderNumber: string; totalCentavos: number; duplicate: boolean } }[]>`SELECT pal_place_order(${JSON.stringify(payload)}::jsonb) AS r`;
+  const place = () => prisma.$queryRaw<{ r: { orderId: string; orderNumber: string; totalCentavos: number; duplicate: boolean } }[]>`SELECT pal_place_order(${JSON.stringify(payload)}::jsonb) AS r`;
+  let rows;
+  try { rows = await place(); }
+  catch (e) {
+    // Two identical requests (double click, two tabs) racing: the loser hits the unique idempotency key. Ask again, it now finds the winner's order.
+    if (/idempotencyKey|23505|unique/i.test(String((e as Error)?.message ?? e))) rows = await place(); else throw e;
+  }
   const res = rows[0].r;
 
   if (newUser) await startSession(newUser);
