@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --gold: #ffd21f; }
+:root { --gold: #e10600; }
 html { scroll-behavior: smooth; }
 body { @apply bg-paper text-ink font-sans antialiased; }
 ::selection { background: var(--gold); color: #000; }

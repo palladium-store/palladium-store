@@ -50,7 +50,7 @@ function Bar() {
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[200] h-[3px]" style={{ opacity: on ? 1 : 0, transition: 'opacity 200ms' }}>
-      <div className="h-full bg-gold shadow-[0_0_8px_#ffd21f]" style={{ width: `${pct}%`, transition: pct === 0 ? 'none' : 'width 200ms ease-out' }} />
+      <div className="h-full bg-gold shadow-[0_0_8px_#e10600]" style={{ width: `${pct}%`, transition: pct === 0 ? 'none' : 'width 200ms ease-out' }} />
     </div>
   );
 }

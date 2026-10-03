@@ -2,7 +2,7 @@
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { peso } from '@/lib/money';
 
-const INK = '#0b0b0c', GOLD = '#ffd21f', GRID = '#e4e2dc', MUTE = '#6b6b70', GREY = '#b8b6ae';
+const INK = '#0b0b0c', GOLD = '#e10600', GRID = '#e4e2dc', MUTE = '#6b6b70', GREY = '#b8b6ae';
 
 const compact = (centavos: number) => {
   const p = centavos / 100;
