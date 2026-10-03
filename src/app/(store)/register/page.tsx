@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Create account', robots: { index: fa
 
 export default async function RegisterPage({ searchParams }: { searchParams: { next?: string } }) {
   const next = safeNext(searchParams.next);
-  if (await getUser()) redirect(next ?? '/account');
+  if (await getUser()) redirect(next ?? '/');
   return (
     <Container className="py-12 sm:py-20">
       <div className="mx-auto max-w-md">

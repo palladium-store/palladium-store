@@ -69,7 +69,7 @@ export function RegisterForm({ next }: { next: string | null }) {
     try {
       await api('/api/auth/register', { body: { name: f.name, email: f.email, phone: f.phone.trim() || undefined, password: f.password, source } });
       toast('Your account is ready. Welcome to Palladium!');
-      window.location.assign(safeNext(next) ?? '/account');
+      window.location.assign(safeNext(next) ?? '/');
     } catch (ex) {
       const m = ex instanceof Error ? ex.message : 'Could not create your account.';
       setErr(m); if (ex instanceof ApiError && ex.fields) setFe(ex.fields);
