@@ -74,7 +74,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
         </Link>
         <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-1">
           {onSale && <span className="bg-ink px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Sale</span>}
-          {p.isLimited && <span className="border border-gold bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-gold-deep">Limited</span>}
+          {p.isLimited && <span className="border border-[#d91e18] bg-[#d91e18] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">Limited</span>}
           {left != null && !soldOut && <span className="bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink">Only {left} left</span>}
         </div>
         {soldOut && <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-ink py-2 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-white">Sold out</div>}
@@ -111,8 +111,13 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
             <span className="text-xl font-extrabold tracking-tight sm:text-[22px]">{peso(shownPrice)}</span>
             {onSale && !(priceVaries && !picked) && <span className="text-sm text-mute line-through">{peso(compareAt as number)}</span>}
           </p>
-          <p className="mt-0.5 min-h-[1.25rem] whitespace-nowrap text-[13px] font-medium tabular-nums text-gold" aria-label={tokenAmount != null ? `About ${tokenAmount} PALLADIUM tokens` : undefined}>
-            {tokenAmount != null ? formatPalladium(tokenAmount) : null}
+          <p className="mt-1.5 min-h-[1.5rem] whitespace-nowrap" aria-label={tokenAmount != null ? `About ${tokenAmount} PALLADIUM tokens` : undefined}>
+            {tokenAmount != null && (
+              <span className="inline-flex items-center gap-1.5 rounded-sm bg-gold-soft px-2 py-0.5 text-[12px] font-bold tabular-nums tracking-wide text-ink">
+                <span className="h-2 w-2 rounded-full bg-gold ring-1 ring-ink/30" aria-hidden="true" />
+                {formatPalladium(tokenAmount)}
+              </span>
+            )}
           </p>
         </div>
 
@@ -131,10 +136,10 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
         </div>
         {(soldOut ? <div className="mt-2 h-[2.375rem]" aria-hidden="true" /> : (
           <button type="button" onClick={cryptoEnabled ? payWithCrypto : openSoon}
-            className="group/crypto mt-2 flex h-[2.375rem] w-full items-center justify-center gap-2 border border-gold/50 bg-white px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-deep transition hover:border-gold hover:bg-gold-soft">
+            className="group/crypto mt-2 flex h-[2.375rem] w-full items-center justify-center gap-2 border border-gold bg-gold px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-ink shadow-sm transition hover:brightness-95">
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 8h4.5a2 2 0 0 1 0 4H9m0 0h5a2 2 0 0 1 0 4H9M9 8v8M11 6v2m0 8v2" /></svg>
             Pay with crypto
-            <span className="border border-gold/60 px-1 text-[8px] leading-[14px] tracking-[0.14em] text-gold-deep">{cryptoEnabled ? 'Demo' : 'In progress'}</span>
+            <span className="border border-ink/50 bg-white/60 px-1 text-[8px] font-bold leading-[14px] tracking-[0.14em] text-ink">{cryptoEnabled ? 'Demo' : 'In progress'}</span>
           </button>
         ))}
       </div>
