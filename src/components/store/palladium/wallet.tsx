@@ -18,6 +18,8 @@ interface Ctx {
   session: WalletSession;
   history: PalladiumTx[];
   openConnect: () => void;
+  /** Teaser mode (demo off): shows the "in progress" modal instead of a wallet. */
+  openSoon: () => void;
   openAccount: () => void;
   openTx: (tx: PalladiumTx) => void;
   disconnect: () => void;
@@ -46,6 +48,7 @@ export function PalladiumWalletProvider({ enabled, children }: { enabled: boolea
   const [connectOpen, setConnectOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [txOpen, setTxOpen] = useState<PalladiumTx | null>(null);
+  const [soonOpen, setSoonOpen] = useState(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -57,6 +60,7 @@ export function PalladiumWalletProvider({ enabled, children }: { enabled: boolea
   const value: Ctx = useMemo(() => ({
     enabled, ready, service, session, history,
     openConnect: () => setConnectOpen(true),
+    openSoon: () => setSoonOpen(true),
     openAccount: () => setAccountOpen(true),
     openTx: (tx) => setTxOpen(tx),
     disconnect: () => { service.disconnect(); setAccountOpen(false); },
@@ -65,12 +69,27 @@ export function PalladiumWalletProvider({ enabled, children }: { enabled: boolea
   return (
     <WalletCtx.Provider value={value}>
       {children}
+      {!enabled && <SoonModal open={soonOpen} onClose={() => setSoonOpen(false)} />}
       {enabled && <>
         <ConnectModal open={connectOpen} onClose={() => setConnectOpen(false)} />
         <AccountModal open={accountOpen} onClose={() => setAccountOpen(false)} />
         <TxModal tx={txOpen} onClose={() => setTxOpen(null)} />
       </>}
     </WalletCtx.Provider>
+  );
+}
+
+/** Teaser shown while $PALLADIUM payments are not live. No wallet is opened and nothing is connected. */
+function SoonModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  return (
+    <Modal open={open} onClose={onClose} title="Pay with crypto">
+      <div className="py-4 text-center">
+        <span className="inline-block border border-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-gold-deep">In progress</span>
+        <h3 className="mt-4 text-xl font-semibold tracking-tight">$PALLADIUM payments are coming soon</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-mute">We are building wallet checkout so you can pay with $PALLADIUM. Stay tuned. In the meantime, you can pay with QR Ph.</p>
+        <button type="button" onClick={onClose} className="btn-primary btn-sm mt-6">Got it</button>
+      </div>
+    </Modal>
   );
 }
 
@@ -171,9 +190,17 @@ export function TxModal({ tx, onClose }: { tx: PalladiumTx | null; onClose: () =
 
 /** Header control: "Connect wallet" or the connected address with balances. */
 export function WalletButton() {
-  const { enabled, ready, session, openConnect, openAccount } = usePalladiumWallet();
-  if (!enabled) return null;
+  const { enabled, ready, session, openConnect, openAccount, openSoon } = usePalladiumWallet();
   const icon = <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h12v4" /><path d="M4 7v10a2 2 0 0 0 2 2h14V9H6a2 2 0 0 1-2-2z" /><circle cx="16" cy="14" r="1" /></svg>;
+  if (!enabled) {
+    return (
+      <button type="button" onClick={openSoon} aria-label="Connect wallet (in progress)" className="relative mr-1 flex h-10 items-center gap-2 px-2 text-ink transition hover:text-gold-deep">
+        {icon}
+        <span className="hidden text-xs font-semibold uppercase tracking-[0.14em] xl:inline">Connect wallet</span>
+        <span className="hidden border border-gold px-1.5 py-px text-[9px] font-bold uppercase leading-4 tracking-[0.16em] text-gold-deep sm:inline-block">Soon</span>
+      </button>
+    );
+  }
   if (!ready || !session.connected) {
     return (
       <button type="button" onClick={openConnect} aria-label="Connect wallet (demo)" className="relative mr-1 flex h-10 items-center gap-2 px-2 text-ink transition hover:text-gold-deep">

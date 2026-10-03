@@ -16,7 +16,7 @@ import type { CardProduct } from './types';
 export function ProductCard({ p, priority = false, refreshOnWishChange = false, palladiumPricePhp = getPalladiumPricePhp() }: { p: CardProduct; priority?: boolean; refreshOnWishChange?: boolean; palladiumPricePhp?: number }) {
   const { lines, add, openDrawer } = useCart();
   const router = useRouter();
-  const { enabled: cryptoEnabled } = usePalladiumWallet();
+  const { enabled: cryptoEnabled, openSoon } = usePalladiumWallet();
   const { toast } = useToast();
   const variants = p.variants ?? [];
   const firstAvail = Math.max(variants.findIndex((v) => v.available > 0), 0);
@@ -129,12 +129,12 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
             </>
           )}
         </div>
-        {cryptoEnabled && (soldOut ? <div className="mt-2 h-[2.375rem]" aria-hidden="true" /> : (
-          <button type="button" onClick={payWithCrypto}
+        {(soldOut ? <div className="mt-2 h-[2.375rem]" aria-hidden="true" /> : (
+          <button type="button" onClick={cryptoEnabled ? payWithCrypto : openSoon}
             className="group/crypto mt-2 flex h-[2.375rem] w-full items-center justify-center gap-2 border border-gold/50 bg-white px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gold-deep transition hover:border-gold hover:bg-gold-soft">
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 8h4.5a2 2 0 0 1 0 4H9m0 0h5a2 2 0 0 1 0 4H9M9 8v8M11 6v2m0 8v2" /></svg>
             Pay with crypto
-            <span className="border border-gold/60 px-1 text-[8px] leading-[14px] tracking-[0.14em] text-gold-deep">Demo</span>
+            <span className="border border-gold/60 px-1 text-[8px] leading-[14px] tracking-[0.14em] text-gold-deep">{cryptoEnabled ? 'Demo' : 'In progress'}</span>
           </button>
         ))}
       </div>
