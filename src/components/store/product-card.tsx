@@ -61,7 +61,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
 
   return (
     <article className="group relative flex flex-col">
-      <div className="pc-media relative aspect-[4/5] overflow-hidden border border-line bg-gradient-to-b from-white to-bone transition duration-300 group-hover:-translate-y-0.5 group-hover:border-ink group-hover:shadow-[0_14px_30px_-14px_rgba(0,0,0,0.35)]">
+      <div className="plate pc-media relative aspect-[4/5] overflow-hidden border border-line bg-gradient-to-b from-white to-bone transition duration-300 group-hover:-translate-y-0.5 group-hover:border-ink group-hover:shadow-[0_14px_30px_-14px_rgba(0,0,0,0.35)]">
         <Link href={`/products/${p.slug}`} aria-label={p.name} className="absolute inset-0 block">
           <div className="absolute inset-5 sm:inset-6">
             <Img src={main} alt={p.name} sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" priority={priority}

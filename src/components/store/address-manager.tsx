@@ -100,7 +100,7 @@ export function AddressManager({ addresses, defaultName, defaultPhone }: { addre
             </F>
             <F fe={fe} id="a-brgy" label="Barangay" k="barangay"><input id="a-brgy" className={inp('barangay')} value={form.barangay} onChange={(e) => up('barangay', e.target.value)} /></F>
             <F fe={fe} id="a-postal" label="Postal code" k="postalCode"><input id="a-postal" inputMode="numeric" maxLength={4} className={inp('postalCode')} autoComplete="postal-code" value={form.postalCode} onChange={(e) => up('postalCode', e.target.value.replace(/\D/g, ''))} /></F>
-            <label className="flex cursor-pointer items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" className="accent-black" checked={form.isDefault} onChange={(e) => up('isDefault', e.target.checked)} /> Use as my default address</label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" className="accent-ink" checked={form.isDefault} onChange={(e) => up('isDefault', e.target.checked)} /> Use as my default address</label>
             <div className="flex justify-end gap-2 sm:col-span-2">
               <button type="button" className="btn-ghost" onClick={() => setForm(null)} disabled={busy}>Cancel</button>
               <button type="submit" className="btn-primary" aria-busy={busy} disabled={busy}>{busy ? 'Working...' : 'Save address'}</button>

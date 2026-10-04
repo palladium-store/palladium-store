@@ -10,16 +10,16 @@ import { demoEnabled } from '@/lib/palladium/demo-server';
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
   const [user, store, content, categories] = await Promise.all([getUser(), getSetting('store'), getSetting('content'), listCategories()]);
   return (
-    <StoreProviders signedIn={!!user} palladiumDemo={demoEnabled()}>
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[100] focus:bg-gold focus:px-4 focus:py-2 focus:text-ink">Skip to content</a>
-      <StoreShell>
+    <StoreShell>
+      <StoreProviders signedIn={!!user} palladiumDemo={demoEnabled()}>
+        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[100] focus:bg-gold focus:px-4 focus:py-2 focus:text-ink">Skip to content</a>
         {content.announcement && (
           <div className="announce bg-night px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep">{content.announcement}</div>
         )}
         <Header userName={user?.name ?? null} />
         <main id="main" className="min-h-[60vh]">{children}</main>
         <Footer store={store} content={content} categories={categories} />
-      </StoreShell>
-    </StoreProviders>
+      </StoreProviders>
+    </StoreShell>
   );
 }

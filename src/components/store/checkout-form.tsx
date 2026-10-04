@@ -188,7 +188,7 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
   const phoneErr = err('phone') ?? (!f.diff ? err('ship.phone') : undefined);
   const byId = new Map((quote?.lines ?? []).map((l) => [l.variantId, l]));
   const canPlace = !pending && !!quote && quote.ok && !loading && !!f.method && (!quote.shippingError);
-  const section = 'border border-line bg-white p-5 sm:p-7';
+  const section = 'card p-5 sm:p-7';
   const h2 = 'font-display text-xl tracking-tightest';
 
   return (
@@ -242,7 +242,7 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
             <Field id="c-barangay" label="Barangay" error={err('ship.barangay')}><input id="c-barangay" className={inp('ship.barangay')} value={f.barangay} onChange={(e) => { up('barangay', e.target.value); setPicked(null); }} aria-invalid={!!err('ship.barangay')} /></Field>
             <Field id="c-postal" label="Postal code" error={err('ship.postalCode')}><input id="c-postal" inputMode="numeric" maxLength={4} autoComplete="postal-code" className={inp('ship.postalCode')} value={f.postalCode} onChange={(e) => { up('postalCode', e.target.value.replace(/\D/g, '')); setPicked(null); }} aria-invalid={!!err('ship.postalCode')} /></Field>
           </div>
-          <label className="mt-5 flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" className="accent-black" checked={f.diff} onChange={(e) => up('diff', e.target.checked)} /> Deliver to someone else</label>
+          <label className="mt-5 flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" className="accent-ink" checked={f.diff} onChange={(e) => up('diff', e.target.checked)} /> Deliver to someone else</label>
           {f.diff && (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field id="c-rname" label="Recipient name" error={err('ship.name')}><input id="c-rname" className={inp('ship.name')} value={f.rName} onChange={(e) => up('rName', e.target.value)} /></Field>
@@ -266,7 +266,7 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
                 ].map((o) => (
                   <label key={o.id} className={`block border p-4 transition ${o.off ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${o.on ? 'border-ink bg-bone' : 'border-line hover:border-ink'}`}>
                     <span className="flex items-center gap-3">
-                      <input type="radio" name="payMode" checked={o.on} disabled={o.off} onChange={o.pick} className="accent-black" />
+                      <input type="radio" name="payMode" checked={o.on} disabled={o.off} onChange={o.pick} className="accent-ink" />
                       <span className="font-semibold">{o.label}</span>
                       {o.id === 'pal' && <span className="border border-gold px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.16em] text-gold-deep">Demo</span>}
                     </span>
@@ -281,7 +281,7 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
               {phpMethods.map((m) => (
                 <label key={m.id} className={`block cursor-pointer border p-4 transition ${f.method === m.id ? 'border-ink bg-bone' : 'border-line hover:border-ink'}`}>
                   <span className="flex items-center gap-3">
-                    <input type="radio" name="method" value={m.id} checked={f.method === m.id} onChange={() => up('method', m.id)} className="accent-black" />
+                    <input type="radio" name="method" value={m.id} checked={f.method === m.id} onChange={() => up('method', m.id)} className="accent-ink" />
                     <span className="font-semibold">{METHOD_LABEL[m.id] ?? m.id}</span>
                     <span className="ml-auto text-xs text-mute">{METHOD_SHORT[m.id]}</span>
                   </span>
@@ -298,7 +298,7 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
           <h2 id="c-extra" className="sr-only">Account and preferences</h2>
           {!user && (
             <div>
-              <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold"><input type="checkbox" className="accent-black" checked={f.createAccount} onChange={(e) => up('createAccount', e.target.checked)} /> Create an account to track orders and check out faster</label>
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold"><input type="checkbox" className="accent-ink" checked={f.createAccount} onChange={(e) => up('createAccount', e.target.checked)} /> Create an account to track orders and check out faster</label>
               {f.createAccount && (
                 <div className="mt-4 max-w-sm">
                   <Field id="c-pass" label="Password" error={err('password')} hint="At least 8 characters with a letter and a number."><input id="c-pass" type="password" autoComplete="new-password" className={inp('password')} value={f.password} onChange={(e) => up('password', e.target.value)} aria-invalid={!!err('password')} /></Field>
@@ -306,8 +306,8 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
               )}
             </div>
           )}
-          {(user || f.createAccount) && <label className={`flex cursor-pointer items-center gap-2 text-sm ${!user ? 'mt-4' : ''}`}><input type="checkbox" className="accent-black" checked={f.saveAddress} onChange={(e) => up('saveAddress', e.target.checked)} /> Save this address for next time</label>}
-          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" className="accent-black" checked={f.marketing} onChange={(e) => up('marketing', e.target.checked)} /> Email me about new drops and offers</label>
+          {(user || f.createAccount) && <label className={`flex cursor-pointer items-center gap-2 text-sm ${!user ? 'mt-4' : ''}`}><input type="checkbox" className="accent-ink" checked={f.saveAddress} onChange={(e) => up('saveAddress', e.target.checked)} /> Save this address for next time</label>}
+          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm"><input type="checkbox" className="accent-ink" checked={f.marketing} onChange={(e) => up('marketing', e.target.checked)} /> Email me about new drops and offers</label>
         </section>
       </div>
 

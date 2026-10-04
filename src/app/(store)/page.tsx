@@ -125,7 +125,6 @@ export default async function HomePage() {
               <div className="k-lede rv mt-7 space-y-4" style={i(2)}>
                 {paragraphs(brandStory.body).map((p, n) => <p key={n}>{p}</p>)}
               </div>
-              <div className="rv mt-9" style={i(3)}><Link href="/pages/about" className="btn-outline">Read our story</Link></div>
             </div>
             <div className="k-koru rv mx-auto w-[min(64%,300px)] lg:w-[min(100%,400px)]" style={i(3)}><KoruLine /></div>
           </div>

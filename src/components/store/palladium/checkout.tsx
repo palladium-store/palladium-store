@@ -28,7 +28,7 @@ export function PalladiumPayPanel({ totalCentavos }: { totalCentavos: number | n
       </dl>
 
       {ready && session.connected ? (
-        <button type="button" onClick={openAccount} className="mt-2 flex w-full items-center justify-between border border-line bg-white px-3 py-2 text-left text-xs hover:border-ink">
+        <button type="button" onClick={openAccount} className="mt-2 flex w-full items-center justify-between border border-line bg-paper px-3 py-2 text-left text-xs hover:border-ink">
           <span><span className="font-mono font-semibold">{session.address}</span> <span className="text-mute">connected</span></span>
           <span className="tabular-nums text-mute">Balance <b className="text-ink">{formatPalladiumMinor(session.palladiumMinor)}</b> PALLADIUM</span>
         </button>

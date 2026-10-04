@@ -29,7 +29,7 @@ export default async function PalladiumTokenPage() {
   const wallet = getWalletConfig();
   return (
     <>
-      <section className="bg-ink text-white">
+      <section className="bg-night text-white">
         <Container className="py-16 sm:py-24">
           <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Palladium ecosystem</p>
           <h1 className="h-display max-w-3xl text-5xl sm:text-7xl">Introducing $PALLADIUM</h1>
@@ -37,7 +37,7 @@ export default async function PalladiumTokenPage() {
           <p className="mt-4 max-w-2xl text-white/70">Discover a new way to shop, participate, and engage with Palladium through digital payments and community rewards.</p>
           <div className="mt-8 grid max-w-xl gap-4">
             <WalletPanel config={wallet} dark compact />
-            <div><Link href="/shop" className="btn border border-white text-white hover:bg-white hover:text-ink">Explore Palladium products</Link></div>
+            <div><Link href="/shop" className="btn border border-white text-white hover:bg-white hover:text-night">Explore Palladium products</Link></div>
           </div>
           <p className="mt-3 text-xs text-white/60">Connecting only shares your public address. You never need a wallet to browse or to pay in pesos.</p>
         </Container>
@@ -60,7 +60,7 @@ export default async function PalladiumTokenPage() {
           <p className="mt-3 max-w-2xl text-sm text-mute">These are the intended utilities. None of them is live yet. Today every order on the store is paid in pesos.</p>
           <ul className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
             {UTILITIES.map((u) => (
-              <li key={u.title} className="bg-white p-6">
+              <li key={u.title} className="bg-paper p-6">
                 <StatusPill tone="planned">Planned</StatusPill>
                 <h3 className="mt-3 font-display text-xl tracking-tightest">{u.title}</h3>
                 <p className="mt-2 text-sm text-mute">{u.body}</p>

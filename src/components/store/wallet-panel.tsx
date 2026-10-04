@@ -104,7 +104,7 @@ export function WalletPanel({ config, dark = false, compact = false }: { config:
   const muted = dark ? 'text-white/60' : 'text-mute';
   const box = compact ? '' : `border p-5 ${dark ? 'border-white/15' : 'border-line'}`;
   const btn = dark ? 'btn-gold' : 'btn-primary';
-  const ghost = dark ? 'btn border border-white/40 text-white hover:bg-white hover:text-ink' : 'btn-outline';
+  const ghost = dark ? 'btn border border-white/40 text-white hover:bg-white hover:text-night' : 'btn-outline';
 
   if (!ready) return <div className={box}><button type="button" className={btn} disabled>Connect wallet</button></div>;
 

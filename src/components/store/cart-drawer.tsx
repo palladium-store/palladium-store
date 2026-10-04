@@ -29,7 +29,7 @@ export function CartDrawer() {
   return (
     <div className="no-print fixed inset-0 z-[80]">
       <div className={`absolute inset-0 bg-black/60 transition-opacity duration-300 ${shown ? 'opacity-100' : 'opacity-0'}`} onClick={closeDrawer} aria-hidden="true" />
-      <aside role="dialog" aria-modal="true" aria-label="Shopping cart" className={`absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${shown ? 'translate-x-0' : 'translate-x-full'}`}>
+      <aside role="dialog" aria-modal="true" aria-label="Shopping cart" className={`absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-paper shadow-2xl transition-transform duration-300 ease-out ${shown ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <h2 className="font-display text-xl tracking-tightest">Your cart</h2>
           <button ref={closeRef} onClick={closeDrawer} aria-label="Close cart" className="-mr-2 px-2 text-3xl leading-none text-mute hover:text-ink">&times;</button>

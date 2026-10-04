@@ -37,10 +37,10 @@ export function BundleBox({ items }: { items: BundleItem[] }) {
           return (
             <li key={i.variantId} className="relative">
               {idx > 0 && (
-                <span className="pointer-events-none absolute -left-[0.95rem] top-[38%] z-10 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-white text-sm font-bold text-ink shadow-sm sm:flex" aria-hidden="true">+</span>
+                <span className="pointer-events-none absolute -left-[0.95rem] top-[38%] z-10 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-paper text-sm font-bold text-ink shadow-sm sm:flex" aria-hidden="true">+</span>
               )}
-              <label className={`group flex h-full cursor-pointer flex-col border bg-white transition duration-200 ${isOn ? 'border-ink shadow-[0_10px_24px_-14px_rgba(0,0,0,0.45)]' : 'border-line opacity-60 hover:opacity-100'} ${out ? 'cursor-not-allowed' : ''}`}>
-                <span className="relative block aspect-square overflow-hidden bg-gradient-to-b from-white to-bone">
+              <label className={`bundle-card group flex h-full cursor-pointer flex-col border bg-paper transition duration-200${isOn ? 'border-ink shadow-[0_10px_24px_-14px_rgba(0,0,0,0.45)]' : 'border-line opacity-60 hover:opacity-100'} ${out ? 'cursor-not-allowed' : ''}`}>
+                <span className="plate relative block aspect-square overflow-hidden bg-gradient-to-b from-white to-bone">
                   <input type="checkbox" checked={isOn} disabled={out} onChange={() => flip(i.variantId)} className="peer sr-only" aria-label={`Include ${i.name}`} />
                   <span className="pointer-events-none absolute inset-0 ring-2 ring-inset ring-transparent peer-focus-visible:ring-ink" aria-hidden="true" />
                   <span className="absolute inset-3 sm:inset-4"><Img src={i.image} alt="" sizes="(min-width:1024px) 14vw, 40vw" className={`object-contain mix-blend-multiply transition duration-300 ${out ? 'opacity-40' : 'group-hover:scale-[1.04]'}`} /></span>
@@ -61,13 +61,13 @@ export function BundleBox({ items }: { items: BundleItem[] }) {
         })}
       </ul>
 
-      <div className="flex flex-col justify-between bg-ink p-5 text-white sm:p-6 lg:sticky lg:top-24 lg:self-start">
+      <div className="flex flex-col justify-between bg-night p-5 text-white sm:p-6 lg:sticky lg:top-24 lg:self-start">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold">Complete the set</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-gold-deep">Complete the set</p>
           <p className="mt-3 text-xs uppercase tracking-wider text-white/60">{chosen.length} {chosen.length === 1 ? 'item' : 'items'} selected</p>
           <p className="mt-1 font-display text-3xl tracking-tightest tabular-nums">{peso(total)}</p>
         </div>
-        <button type="button" className="btn mt-5 w-full bg-gold py-3.5 text-ink hover:bg-white" disabled={!chosen.length || busy} onClick={addAll}>{busy ? 'Working...' : chosen.length ? `Add ${chosen.length} to cart` : 'Select items'}</button>
+        <button type="button" className="btn-gold mt-5 w-full py-3.5 hover:bg-white hover:text-night" disabled={!chosen.length || busy} onClick={addAll}>{busy ? 'Working...' : chosen.length ? `Add ${chosen.length} to cart` : 'Select items'}</button>
       </div>
     </div>
   );

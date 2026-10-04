@@ -68,7 +68,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
     <div className="grid gap-8 lg:grid-cols-2 lg:gap-14">
       {/* Gallery */}
       <div className="lg:sticky lg:top-24 lg:self-start">
-        <div className="relative aspect-[4/5] overflow-hidden border border-line bg-white">
+        <div className="plate relative aspect-[4/5] overflow-hidden border border-line bg-white">
           <Img key={active ?? 'none'} src={active} alt={activeAlt} priority sizes="(min-width:1024px) 50vw, 100vw" className="object-contain" />
           <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-1">
             {onSale && <span className="bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink">Sale</span>}
@@ -79,7 +79,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
           <ul className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6" aria-label="Product images">
             {thumbs.map((t) => (
               <li key={t.url}>
-                <button type="button" onClick={() => setActive(t.url)} aria-label={`Show image: ${t.alt}`} aria-current={t.url === active} className={`relative block aspect-square w-full overflow-hidden bg-white outline-offset-2 transition ${t.url === active ? 'ring-2 ring-gold' : 'opacity-70 hover:opacity-100'}`}>
+                <button type="button" onClick={() => setActive(t.url)} aria-label={`Show image: ${t.alt}`} aria-current={t.url === active} className={`plate relative block aspect-square w-full overflow-hidden bg-white outline-offset-2 transition ${t.url === active ? 'ring-2 ring-gold' : 'opacity-70 hover:opacity-100'}`}>
                   <Img src={t.url} alt="" sizes="100px" className="object-contain" />
                 </button>
               </li>
@@ -129,7 +129,7 @@ export function ProductView({ productId, name, category, categorySlug, isLimited
                   }
                   return (
                     <button key={x.id} type="button" disabled={out} aria-pressed={sel} onClick={() => pick(x.id)}
-                      className={`min-w-[4.5rem] border px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:text-mute disabled:line-through disabled:opacity-50 ${sel ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}>
+                      className={`min-w-[4.5rem] border px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:text-mute disabled:line-through disabled:opacity-50 ${sel ? 'border-ink bg-ink text-paper' : 'border-line hover:border-ink'}`}>
                       {x.name}{out ? ' (sold out)' : ''}
                     </button>
                   );

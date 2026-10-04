@@ -6,12 +6,10 @@ import { Container } from './container';
 import { SearchPanel } from './search-panel';
 import { WalletButton } from './palladium/wallet';
 import { useCart } from './cart-context';
-import { useKoruRoute } from './store-shell';
 
 const NAV = [
   { label: 'Shop', href: '/shop' },
   { label: '$PALLADIUM', href: '/pages/palladium-token' },
-  { label: 'About', href: '/pages/about' },
 ];
 const icon = 'h-5 w-5';
 const iconBtn = 'relative flex h-10 w-10 items-center justify-center text-ink transition hover:text-gold-deep';
@@ -20,7 +18,6 @@ export function Header({ userName }: { userName: string | null }) {
   const [menu, setMenu] = useState(false);
   const [search, setSearch] = useState(false);
   const { count, openDrawer } = useCart();
-  const koru = useKoruRoute();
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
@@ -29,7 +26,7 @@ export function Header({ userName }: { userName: string | null }) {
           <button type="button" className={`${iconBtn} -ml-2 lg:hidden`} aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} aria-controls="mobile-nav" onClick={() => { setMenu((m) => !m); setSearch(false); }}>
             <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">{menu ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
           </button>
-          <Link href="/" aria-label="Palladium home" onClick={() => setMenu(false)}><Logo light={koru} className="h-8 sm:h-9" /></Link>
+          <Link href="/" aria-label="Palladium home" onClick={() => setMenu(false)}><Logo light className="h-8 sm:h-9" /></Link>
         </div>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Main">

@@ -136,12 +136,45 @@ body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211
 .theme-koru .k-pill:hover { border-color: rgb(var(--c-gold-deep)); }
 
 /* Product cards: the photo sits on a light plate so every product reads, whatever its own colour or backdrop. */
-.theme-koru .pc-media {
-  --c-ink: 17 17 17; --c-paper: 255 255 255; --c-bone: 246 246 246; --c-line: 232 232 232; --c-mute: 107 107 112; --c-gold-deep: 196 26 21;
+.theme-koru .plate {
+  --c-ink: 17 17 17; --c-paper: 255 255 255; --c-bone: 246 246 246; --c-line: 232 232 232; --c-mute: 107 107 112; --c-gold: 255 90 78; --c-gold-deep: 196 26 21;
   color: rgb(17 17 17); color-scheme: light;
-  border-radius: 18px; border-color: transparent; background-image: linear-gradient(#f6f3ef, #e2ddd7);
-  transition: transform 0.5s var(--k-ease), box-shadow 0.5s var(--k-ease), border-color 0.5s var(--k-ease);
+  border-radius: 18px; border-color: transparent; background-color: #f1ede8; background-image: linear-gradient(#f6f3ef, #e2ddd7);
 }
+.theme-koru button.plate, .theme-koru li > .plate { border-radius: 10px; }
+.theme-koru .pc-media { transition: transform 0.5s var(--k-ease), box-shadow 0.5s var(--k-ease), border-color 0.5s var(--k-ease); }
+
+/* Small photo tiles (cart lines, order lines, search hits) use the same light plate. */
+.theme-koru :is(aside, main, header) .bg-ink:has(> img) { border-radius: 8px; overflow: hidden; }
+
+/* Status colours written for a white page, retuned for the dark canvas. Plates keep the originals. */
+.theme-koru :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100) { background-color: rgba(220, 38, 38, 0.14); }
+.theme-koru :is(.text-red-600, .text-red-700, .text-red-800, .text-rose-700, .text-rose-800) { color: #ff8f86; }
+.theme-koru :is(.border-red-200, .border-red-300) { border-color: rgba(255, 120, 110, 0.4); }
+.theme-koru :is(.bg-emerald-50, .bg-emerald-100) { background-color: rgba(16, 185, 129, 0.14); }
+.theme-koru :is(.text-emerald-700, .text-emerald-800) { color: #6ee7b7; }
+.theme-koru .border-emerald-200 { border-color: rgba(110, 231, 183, 0.35); }
+.theme-koru .bg-amber-100 { background-color: rgba(245, 158, 11, 0.16); }
+.theme-koru :is(.text-amber-700, .text-amber-800) { color: #fcd34d; }
+.theme-koru .bg-sky-100 { background-color: rgba(56, 189, 248, 0.16); }
+.theme-koru .text-sky-800 { color: #7dd3fc; }
+.theme-koru .bg-indigo-100 { background-color: rgba(129, 140, 248, 0.18); }
+.theme-koru .text-indigo-800 { color: #a5b4fc; }
+.theme-koru .bg-violet-100 { background-color: rgba(167, 139, 250, 0.18); }
+.theme-koru .text-violet-800 { color: #c4b5fd; }
+.theme-koru :is(.bg-neutral-100, .bg-neutral-200, .bg-neutral-300) { background-color: rgb(var(--c-ink) / 0.1); }
+.theme-koru :is(.text-neutral-600, .text-neutral-700) { color: rgb(var(--c-mute)); }
+
+/* "Frequently bought together" cards */
+.theme-koru .bundle-card { border-radius: 16px; overflow: hidden; border-color: rgb(var(--c-ink) / 0.14); }
+.theme-koru .bundle-card.border-ink { border-color: rgb(var(--c-gold-deep)); }
+.theme-koru .bundle-card .plate { border-radius: 0; }
+.theme-koru main .bg-night { border-radius: 16px; border: 1px solid rgb(var(--c-ink) / 0.1); }
+.theme-koru main section.bg-night { border-radius: 0; border: 0; }
+
+/* Overlays: cart drawer and dialogs */
+.theme-koru [role='dialog'] { border: 1px solid rgb(var(--c-ink) / 0.1); background-color: #151215; }
+.theme-koru [role='dialog'][aria-modal='true']:not(aside) { border-radius: 20px; }
 .theme-koru .group:hover .pc-media { border-color: rgba(255, 90, 78, 0.9); box-shadow: 0 24px 46px -18px rgba(220, 33, 27, 0.55); transform: translateY(-4px); }
 .theme-koru .pc-cat { font-family: var(--k-mono); font-weight: 400; letter-spacing: 0.16em; }
 .theme-koru .pc-price { font-family: var(--k-display); font-stretch: 112%; font-weight: 800; letter-spacing: -0.02em; }

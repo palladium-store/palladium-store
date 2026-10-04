@@ -7,6 +7,10 @@ const nextConfig = {
   async rewrites() {
     return [{ source: '/koru', destination: '/koru/index.html' }];
   },
+  // The About page was removed; old links land on the homepage instead of a 404.
+  async redirects() {
+    return [{ source: '/pages/about', destination: '/', permanent: false }];
+  },
   async headers() {
     return [{ source: '/(.*)', headers: [
       { key: 'X-Frame-Options', value: 'SAMEORIGIN' },

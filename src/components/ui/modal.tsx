@@ -14,7 +14,7 @@ export function Modal({ open, onClose, title, children, wide }: { open: boolean;
   if (!open) return null;
   return (
     <div className="no-print fixed inset-0 z-[90] flex items-end justify-center bg-black/60 sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className={`max-h-[92vh] w-full overflow-y-auto bg-white p-6 shadow-2xl outline-none ${wide ? 'sm:max-w-2xl' : 'sm:max-w-md'}`}>
+      <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className={`max-h-[92vh] w-full overflow-y-auto bg-paper p-6 shadow-2xl outline-none ${wide ? 'sm:max-w-2xl' : 'sm:max-w-md'}`}>
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 className="font-display text-xl tracking-tightest">{title}</h2>
           <button onClick={onClose} aria-label="Close" className="-mr-2 -mt-1 px-2 text-2xl leading-none text-mute hover:text-ink">&times;</button>

@@ -61,7 +61,7 @@ export function SearchPanel({ open, onClose }: { open: boolean; onClose: () => v
               {hits.map((h) => (
                 <li key={h.id}>
                   <Link href={`/products/${h.slug}`} onClick={onClose} className="flex items-center gap-4 py-3 hover:bg-bone">
-                    <span className="relative h-14 w-12 shrink-0 bg-night"><Img src={h.image} alt="" sizes="48px" className="object-contain" /></span>
+                    <span className="relative h-14 w-12 shrink-0 bg-ink"><Img src={h.image} alt="" sizes="48px" className="object-contain" /></span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold">{h.name}</span>
                       <span className="block text-xs text-mute">{h.category}{h.inStock ? '' : ' · Sold out'}</span>
