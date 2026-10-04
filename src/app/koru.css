@@ -6,16 +6,27 @@
   --c-ink: 244 241 237; --c-paper: 15 13 14; --c-bone: 25 22 26; --c-line: 52 46 48; --c-mute: 168 161 158; --c-night: 10 8 9;
   --c-gold: 220 33 27; --c-gold-deep: 255 90 78; --c-gold-soft: 58 18 17;
   --gold: #ff5a4e; /* focus ring */
-  --font-body: var(--font-koru-body);
-  --k-display: var(--font-koru-display), 'Arial Black', system-ui, sans-serif;
-  --k-mono: var(--font-koru-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-body: 'Koru Peso', var(--font-koru-body);
+  --k-display: 'Koru Peso', var(--font-koru-display), 'Koru Display Fallback', 'Koru Display Fallback R', 'Arial Black', system-ui, sans-serif;
+  --k-mono: 'Koru Peso', var(--font-koru-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --k-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --k-ease-io: cubic-bezier(0.65, 0, 0.35, 1);
   position: relative; isolation: isolate; min-height: 100vh;
   background: rgb(var(--c-paper)); color: rgb(var(--c-ink));
-  font-family: var(--font-koru-body), system-ui, sans-serif;
+  font-family: 'Koru Peso', var(--font-koru-body), system-ui, sans-serif;
   color-scheme: dark;
 }
+/*
+ * The peso sign lives in each web font's "latin-ext" file, so one "₱" used to pull in about 120 KB of extra font files.
+ * This maps just that character to a font already on the device; if none is found, the web fonts take over as before.
+ */
+@font-face { font-family: 'Koru Peso'; src: local('Segoe UI'), local('Roboto'), local('Helvetica Neue'), local('Arial'), local('Noto Sans'); unicode-range: U+20B1; }
+/*
+ * Stand-ins shown for the moment before the display font arrives, scaled to its width so headlines wrap the same way
+ * and the page does not jump. The Arial Black figure is measured; the Roboto one is an estimate for Android.
+ */
+@font-face { font-family: 'Koru Display Fallback'; src: local('Arial Black'); size-adjust: 105.5%; }
+@font-face { font-family: 'Koru Display Fallback R'; src: local('Roboto Black'), local('Roboto-Black'), local('Roboto Bold'), local('Roboto-Bold'); size-adjust: 116%; }
 body:has(.theme-koru) { background: #0f0d0e; }
 body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211b; }
 .theme-koru ::selection { background: #dc211b; color: #fff; }
@@ -71,7 +82,9 @@ body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211
 .theme-koru [class*='border-dashed'] { border-radius: 18px; }
 .theme-koru [class*='ring-offset-'] { --tw-ring-offset-color: rgb(var(--c-paper)); }
 .theme-koru > footer { border-top: 1px solid rgb(var(--c-line)); }
-.theme-koru .announce { letter-spacing: 0.2em; border-bottom: 1px solid rgb(var(--c-line)); }
+/* One line, always: if the bar re-wrapped when its font arrived, the whole page below it would jump. */
+.theme-koru .announce { letter-spacing: 0.2em; border-bottom: 1px solid rgb(var(--c-line)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 480px) { .theme-koru .announce { letter-spacing: 0.1em; font-size: 10.5px; } }
 .theme-koru .nav-label { letter-spacing: 0.1em; }
 
 /* Entrances: a block's `.rv` children ease in, in order, the first time it scrolls into view (see koru/reveal.tsx). */
@@ -111,13 +124,14 @@ body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211
 
 /* KORU band: the film's resting frame, linking to /koru. */
 .theme-koru .k-band { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; min-height: min(86vh, 780px); }
-.theme-koru .k-band-bg { position: absolute; inset: 0; z-index: -2; background: url('/koru/assets/hero-ending.jpg') center / cover; }
+.theme-koru .k-band-bg { display: block; position: absolute; inset: 0; z-index: -2; }
+.theme-koru .k-band-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .theme-koru .k-band-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgb(var(--c-paper)), rgb(var(--c-paper) / 0) 22%, rgb(var(--c-paper) / 0) 78%, rgb(var(--c-paper))), linear-gradient(90deg, rgba(10, 9, 11, 0.6), rgba(10, 9, 11, 0) 62%); }
 .theme-koru .k-band-halo { position: absolute; z-index: -1; right: 14%; top: 18%; width: 40%; height: 64%; border-radius: 50%; background: radial-gradient(ellipse, rgba(220, 33, 27, 0.26), rgba(220, 33, 27, 0) 70%); opacity: 0.4; animation: k-glow 6.5s var(--k-ease-io) -3s infinite alternate; }
 .theme-koru .k-band .k-mega { text-shadow: 0 1px 2px rgba(5, 5, 10, 0.95), 0 3px 12px rgba(5, 5, 10, 0.78), 0 10px 44px rgba(5, 5, 10, 0.8); }
 @media (max-width: 720px) {
   .theme-koru .k-band { align-items: flex-end; min-height: 88svh; }
-  .theme-koru .k-band-bg { background-image: url('/koru/assets/hero-ending-mobile.jpg'); background-position: center 20%; }
+  .theme-koru .k-band-bg img { object-position: center 20%; }
   .theme-koru .k-band-bg::after { background: linear-gradient(rgb(var(--c-paper)), rgb(var(--c-paper) / 0) 16%, rgb(var(--c-paper) / 0.2) 52%, rgb(var(--c-paper)) 96%); }
   .theme-koru .k-band-halo { display: none; }
 }

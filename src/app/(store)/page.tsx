@@ -104,7 +104,12 @@ export default async function HomePage() {
 
       {/* The KORU film's resting frame. /koru is a static page (public/koru), so this is a plain link, not a router link. */}
       <Reveal as="section" className="k-band mt-24 sm:mt-32" aria-label="KORU limited edition">
-        <div className="k-band-bg" aria-hidden="true" />
+        {/* Below the fold, so the photo loads only when the visitor gets near it. */}
+        <picture className="k-band-bg" aria-hidden="true">
+          <source media="(max-width: 720px)" srcSet="/koru/assets/hero-ending-mobile.webp" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/koru/assets/hero-ending.webp" alt="" loading="lazy" decoding="async" />
+        </picture>
         <div className="k-band-halo" aria-hidden="true" />
         <Container className="py-20">
           <p className="rv" style={i(0)}><span className="k-chip">Limited edition</span></p>

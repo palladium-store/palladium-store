@@ -6,7 +6,8 @@ import { Suspense } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
 import { NavProgress } from '@/components/store/nav-progress';
 
-const body = Manrope({ subsets: ['latin'], variable: '--font-body', display: 'swap' });
+// Only the admin uses Manrope now (the storefront has its own type, see koru/fonts.ts), so it is not preloaded on every page.
+const body = Manrope({ subsets: ['latin'], variable: '--font-body', display: 'swap', preload: false });
 const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
 export const metadata: Metadata = {
