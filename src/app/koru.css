@@ -1,0 +1,160 @@
+/*
+ * The KORU look: the palette, type and motion of the /koru landing page, worn by the storefront routes listed in
+ * components/store/store-shell.tsx. Everything here is scoped to `.theme-koru`, so other pages and the admin are untouched.
+ */
+.theme-koru {
+  --c-ink: 244 241 237; --c-paper: 15 13 14; --c-bone: 25 22 26; --c-line: 52 46 48; --c-mute: 168 161 158; --c-night: 10 8 9;
+  --c-gold: 220 33 27; --c-gold-deep: 255 90 78; --c-gold-soft: 58 18 17;
+  --gold: #ff5a4e; /* focus ring */
+  --font-body: var(--font-koru-body);
+  --k-display: var(--font-koru-display), 'Arial Black', system-ui, sans-serif;
+  --k-mono: var(--font-koru-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --k-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --k-ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  position: relative; isolation: isolate; min-height: 100vh;
+  background: rgb(var(--c-paper)); color: rgb(var(--c-ink));
+  font-family: var(--font-koru-body), system-ui, sans-serif;
+  color-scheme: dark;
+}
+body:has(.theme-koru) { background: #0f0d0e; }
+body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211b; }
+.theme-koru ::selection { background: #dc211b; color: #fff; }
+
+/* One fixed environment behind the whole page: a slow red drift, like the studio in the film. */
+.theme-koru::before {
+  content: ''; position: fixed; inset: -12%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 46% 40% at 78% 64%, rgba(122, 28, 25, 0.3), rgba(122, 28, 25, 0) 70%),
+    radial-gradient(ellipse 40% 36% at 12% 16%, rgba(60, 44, 48, 0.32), rgba(60, 44, 48, 0) 70%);
+  animation: k-drift 84s var(--k-ease-io) -20s infinite alternate;
+}
+@keyframes k-drift { from { transform: translate3d(-3%, -2%, 0) scale(1); } to { transform: translate3d(4%, 3%, 0) scale(1.12); } }
+@keyframes k-glow { from { opacity: 0.3; } to { opacity: 0.85; } }
+@keyframes k-float { from { transform: translateY(-6px); } to { transform: translateY(8px); } }
+@keyframes k-dust { from { transform: translate3d(0, 2%, 0); } to { transform: translate3d(-3%, -4%, 0); } }
+
+/* Type */
+.theme-koru .h-display, .theme-koru .font-display { font-family: var(--k-display); font-stretch: 112%; font-weight: 900; letter-spacing: -0.022em; }
+.theme-koru .k-mono, .theme-koru .nav-label, .theme-koru .label, .theme-koru .announce { font-family: var(--k-mono); font-weight: 400; }
+.theme-koru .k-mega { font-family: var(--k-display); font-stretch: 112%; font-weight: 900; font-size: clamp(3.1rem, 8.2vw, 8.4rem); line-height: 0.9; letter-spacing: -0.035em; text-wrap: balance; }
+.theme-koru .k-h2 { font-family: var(--k-display); font-stretch: 112%; font-weight: 900; font-size: clamp(2.1rem, 5vw, 4.6rem); line-height: 0.98; letter-spacing: -0.025em; text-wrap: balance; }
+.theme-koru .k-h3 { font-family: var(--k-display); font-stretch: 112%; font-weight: 800; letter-spacing: -0.012em; line-height: 1.1; }
+.theme-koru .k-lede { color: rgb(var(--c-mute)); font-size: clamp(1.02rem, 1.3vw, 1.2rem); line-height: 1.6; max-width: 46ch; }
+.theme-koru .k-kicker { display: flex; align-items: baseline; gap: 12px; font-family: var(--k-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(var(--c-mute)); }
+.theme-koru .k-kicker::before { content: ''; width: 22px; height: 1px; flex: none; background: #b3261f; transform: translateY(-4px); }
+.theme-koru .k-chip { display: inline-block; font-family: var(--k-mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; padding: 7px 12px; border-radius: 10px; background: rgba(8, 8, 15, 0.55); border: 1px solid rgba(160, 150, 150, 0.34); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+
+/* Buttons become pills; the accent is the paddle's red. */
+.theme-koru :is(.btn, .btn-primary, .btn-gold, .btn-outline, .btn-ghost, .btn-danger) {
+  border-radius: 999px; font-family: var(--k-display); font-stretch: 112%; font-weight: 800; font-size: 13px; letter-spacing: 0.02em; text-transform: none;
+  transition: background-color 0.35s var(--k-ease), color 0.35s var(--k-ease), border-color 0.35s var(--k-ease), transform 0.35s var(--k-ease);
+}
+.theme-koru :is(.btn-primary, .btn-gold, .btn-outline):hover:not(:disabled) { transform: translateY(-2px); }
+.theme-koru .btn-sm { font-size: 12px; }
+.theme-koru .btn-gold { background: #dc211b; color: #fff; }
+.theme-koru .btn-gold:hover { background: #c41a15; color: #fff; }
+.theme-koru .btn-primary:hover { background: #dc211b; color: #fff; }
+.theme-koru .btn-outline { border-color: rgb(var(--c-ink) / 0.34); }
+.theme-koru .btn-outline:hover { border-color: rgb(var(--c-ink)); }
+.theme-koru .k-btn-lg { padding: 18px 30px; font-size: 15px; }
+.theme-koru .k-link { display: inline-flex; align-items: center; gap: 10px; font-family: var(--k-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgb(var(--c-mute)); transition: color 0.3s var(--k-ease); }
+.theme-koru .k-link svg { transition: transform 0.4s var(--k-ease); }
+.theme-koru .k-link:hover { color: rgb(var(--c-ink)); }
+.theme-koru .k-link:hover svg { transform: translateX(4px); }
+
+/* Fields and surfaces */
+.theme-koru .input, .theme-koru .nl-field { border-radius: 12px; border-color: rgb(var(--c-ink) / 0.2); background: rgb(var(--c-bone)); color: rgb(var(--c-ink)); }
+.theme-koru .input:focus, .theme-koru .nl-field:focus { border-color: rgb(var(--c-gold-deep)); }
+.theme-koru .nl-row { gap: 10px; }
+.theme-koru .nl-field { border-radius: 999px; padding-left: 20px; }
+.theme-koru .card, .theme-koru .k-panel { border: 1px solid rgb(var(--c-ink) / 0.1); border-radius: 18px; background: rgb(var(--c-bone) / 0.72); }
+.theme-koru [class*='border-dashed'] { border-radius: 18px; }
+.theme-koru [class*='ring-offset-'] { --tw-ring-offset-color: rgb(var(--c-paper)); }
+.theme-koru > footer { border-top: 1px solid rgb(var(--c-line)); }
+.theme-koru .announce { letter-spacing: 0.2em; border-bottom: 1px solid rgb(var(--c-line)); }
+.theme-koru .nav-label { letter-spacing: 0.1em; }
+
+/* Entrances: a block's `.rv` children ease in, in order, the first time it scrolls into view (see koru/reveal.tsx). */
+.theme-koru .k-reveal .rv { transition: opacity 0.9s var(--k-ease), transform 0.9s var(--k-ease); transition-delay: calc(var(--i, 0) * 90ms); }
+.theme-koru .k-reveal.armed .rv { opacity: 0; transform: translateY(22px); }
+.theme-koru .k-reveal.in .rv { opacity: 1; transform: none; }
+.theme-koru .k-rule { display: block; width: 100%; height: 26px; overflow: visible; color: #b3261f; }
+.theme-koru .k-rule path { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 1.8s var(--k-ease-io); }
+.theme-koru .k-reveal.armed .k-rule path { stroke-dashoffset: 1; }
+.theme-koru .k-reveal.in .k-rule path { stroke-dashoffset: 0; }
+
+/* Home hero: the paddle in a dark studio, red light behind it. */
+.theme-koru .k-hero { position: relative; isolation: isolate; overflow: hidden; }
+.theme-koru .k-hero::before {
+  content: ''; position: absolute; inset: 0; z-index: -2;
+  background:
+    radial-gradient(ellipse 48% 62% at 74% 56%, rgba(190, 32, 26, 0.34), rgba(120, 24, 20, 0.12) 46%, rgba(120, 24, 20, 0) 72%),
+    radial-gradient(ellipse 60% 50% at 18% 18%, rgba(70, 60, 66, 0.26), rgba(70, 60, 66, 0) 70%);
+}
+.theme-koru .k-dust {
+  position: absolute; inset: -6%; z-index: -1; pointer-events: none; opacity: 0.55;
+  background-image:
+    radial-gradient(1.5px 1.5px at 58% 24%, rgba(255, 140, 120, 0.55) 50%, transparent 52%), radial-gradient(1px 1px at 71% 63%, rgba(255, 140, 120, 0.45) 50%, transparent 52%),
+    radial-gradient(1.5px 1.5px at 84% 41%, rgba(255, 150, 130, 0.4) 50%, transparent 52%), radial-gradient(1px 1px at 92% 77%, rgba(255, 140, 120, 0.45) 50%, transparent 52%),
+    radial-gradient(1px 1px at 49% 82%, rgba(255, 140, 120, 0.3) 50%, transparent 52%), radial-gradient(1.5px 1.5px at 77% 12%, rgba(255, 140, 120, 0.35) 50%, transparent 52%),
+    radial-gradient(1px 1px at 64% 47%, rgba(255, 150, 130, 0.3) 50%, transparent 52%), radial-gradient(1px 1px at 22% 68%, rgba(255, 140, 120, 0.25) 50%, transparent 52%);
+  animation: k-dust 70s linear -18s infinite alternate;
+}
+.theme-koru .k-stage { position: relative; }
+.theme-koru .k-stage::before { content: ''; position: absolute; inset: 8% 2%; border-radius: 50%; background: radial-gradient(closest-side, rgba(220, 33, 27, 0.36), rgba(220, 33, 27, 0) 100%); opacity: 0.5; animation: k-glow 6.5s var(--k-ease-io) -2s infinite alternate; }
+.theme-koru .k-stage-img { filter: drop-shadow(0 30px 44px rgba(0, 0, 0, 0.65)) drop-shadow(12px 0 28px rgba(220, 33, 27, 0.3)); animation: k-float 9s var(--k-ease-io) -3s infinite alternate; }
+
+/* Numbers strip */
+.theme-koru .k-stat { display: flex; align-items: baseline; gap: 14px; }
+.theme-koru .k-stat b { font-family: var(--k-display); font-stretch: 112%; font-weight: 900; font-size: clamp(1.9rem, 3.2vw, 2.9rem); letter-spacing: -0.03em; line-height: 1; }
+.theme-koru .k-stat span { font-family: var(--k-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.5; color: rgb(var(--c-mute)); }
+
+/* KORU band: the film's resting frame, linking to /koru. */
+.theme-koru .k-band { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; min-height: min(86vh, 780px); }
+.theme-koru .k-band-bg { position: absolute; inset: 0; z-index: -2; background: url('/koru/assets/hero-ending.jpg') center / cover; }
+.theme-koru .k-band-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgb(var(--c-paper)), rgb(var(--c-paper) / 0) 22%, rgb(var(--c-paper) / 0) 78%, rgb(var(--c-paper))), linear-gradient(90deg, rgba(10, 9, 11, 0.6), rgba(10, 9, 11, 0) 62%); }
+.theme-koru .k-band-halo { position: absolute; z-index: -1; right: 14%; top: 18%; width: 40%; height: 64%; border-radius: 50%; background: radial-gradient(ellipse, rgba(220, 33, 27, 0.26), rgba(220, 33, 27, 0) 70%); opacity: 0.4; animation: k-glow 6.5s var(--k-ease-io) -3s infinite alternate; }
+.theme-koru .k-band .k-mega { text-shadow: 0 1px 2px rgba(5, 5, 10, 0.95), 0 3px 12px rgba(5, 5, 10, 0.78), 0 10px 44px rgba(5, 5, 10, 0.8); }
+@media (max-width: 720px) {
+  .theme-koru .k-band { align-items: flex-end; min-height: 88svh; }
+  .theme-koru .k-band-bg { background-image: url('/koru/assets/hero-ending-mobile.jpg'); background-position: center 20%; }
+  .theme-koru .k-band-bg::after { background: linear-gradient(rgb(var(--c-paper)), rgb(var(--c-paper) / 0) 16%, rgb(var(--c-paper) / 0.2) 52%, rgb(var(--c-paper)) 96%); }
+  .theme-koru .k-band-halo { display: none; }
+}
+
+/* Brand story: the koru line beside the words. */
+.theme-koru .k-koru { position: relative; color: #e2352c; }
+.theme-koru .k-koru::before { content: ''; position: absolute; inset: 6%; border-radius: 50%; background: radial-gradient(circle, rgba(220, 33, 27, 0.3), rgba(220, 33, 27, 0) 68%); opacity: 0.5; animation: k-glow 5.5s var(--k-ease-io) -1.6s infinite alternate; }
+.theme-koru .k-koru svg { position: relative; display: block; width: 100%; height: auto; }
+
+/* Shop: category pills, filter popover */
+.theme-koru .k-tab { display: inline-flex; align-items: center; white-space: nowrap; padding: 9px 16px; border-radius: 999px; border: 1px solid rgb(var(--c-ink) / 0.18); font-family: var(--k-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: rgb(var(--c-mute)); transition: color 0.3s var(--k-ease), border-color 0.3s var(--k-ease), background-color 0.3s var(--k-ease); }
+.theme-koru .k-tab:hover { color: rgb(var(--c-ink)); border-color: rgb(var(--c-ink) / 0.5); }
+.theme-koru .k-tab[aria-current='true'] { background: rgb(var(--c-ink)); border-color: rgb(var(--c-ink)); color: rgb(var(--c-paper)); }
+.theme-koru .k-pop { border: 1px solid rgb(var(--c-ink) / 0.16); border-radius: 18px; background: #171417; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.75); }
+.theme-koru .k-pill { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; border: 1px solid rgb(var(--c-ink) / 0.2); font-size: 12px; font-weight: 500; transition: border-color 0.3s var(--k-ease); }
+.theme-koru .k-pill:hover { border-color: rgb(var(--c-gold-deep)); }
+
+/* Product cards: the photo sits on a light plate so every product reads, whatever its own colour or backdrop. */
+.theme-koru .pc-media {
+  --c-ink: 17 17 17; --c-paper: 255 255 255; --c-bone: 246 246 246; --c-line: 232 232 232; --c-mute: 107 107 112; --c-gold-deep: 196 26 21;
+  color: rgb(17 17 17); color-scheme: light;
+  border-radius: 18px; border-color: transparent; background-image: linear-gradient(#f6f3ef, #e2ddd7);
+  transition: transform 0.5s var(--k-ease), box-shadow 0.5s var(--k-ease), border-color 0.5s var(--k-ease);
+}
+.theme-koru .group:hover .pc-media { border-color: rgba(255, 90, 78, 0.9); box-shadow: 0 24px 46px -18px rgba(220, 33, 27, 0.55); transform: translateY(-4px); }
+.theme-koru .pc-cat { font-family: var(--k-mono); font-weight: 400; letter-spacing: 0.16em; }
+.theme-koru .pc-price { font-family: var(--k-display); font-stretch: 112%; font-weight: 800; letter-spacing: -0.02em; }
+.theme-koru .pc-variant { border-radius: 999px; }
+.theme-koru .pc-token { border: 1px solid rgb(var(--c-ink) / 0.14); box-shadow: none; font-family: var(--k-mono); font-weight: 400; letter-spacing: 0.04em; }
+.theme-koru .pc-crypto { border-radius: 999px; border-color: rgb(var(--c-ink) / 0.16); background: transparent; box-shadow: none; color: rgb(var(--c-mute)); font-family: var(--k-mono); font-weight: 400; letter-spacing: 0.1em; transition: color 0.3s var(--k-ease), border-color 0.3s var(--k-ease); }
+.theme-koru .pc-crypto::before { display: none; }
+@media (max-width: 639px) { .theme-koru .pc-crypto { gap: 6px; padding-inline: 8px; font-size: 9.5px; letter-spacing: 0.04em; white-space: nowrap; } .theme-koru .pc-crypto svg { display: none; } }
+.theme-koru .pc-crypto:hover { transform: none; box-shadow: none; color: rgb(var(--c-ink)); border-color: rgb(var(--c-gold-deep)); }
+.theme-koru .pc-crypto-tag { background: rgb(var(--c-ink) / 0.1); color: rgb(var(--c-ink)); font-weight: 400; }
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-koru, .theme-koru *, .theme-koru::before, .theme-koru *::before, .theme-koru *::after { animation: none !important; transition: none !important; }
+  .theme-koru .k-reveal.armed .rv { opacity: 1; transform: none; }
+  .theme-koru .k-reveal.armed .k-rule path { stroke-dashoffset: 0; }
+}

@@ -6,6 +6,7 @@ import { Container } from './container';
 import { SearchPanel } from './search-panel';
 import { WalletButton } from './palladium/wallet';
 import { useCart } from './cart-context';
+import { useKoruRoute } from './store-shell';
 
 const NAV = [
   { label: 'Shop', href: '/shop' },
@@ -19,20 +20,21 @@ export function Header({ userName }: { userName: string | null }) {
   const [menu, setMenu] = useState(false);
   const [search, setSearch] = useState(false);
   const { count, openDrawer } = useCart();
+  const koru = useKoruRoute();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
       <Container className="flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <button type="button" className={`${iconBtn} -ml-2 lg:hidden`} aria-label={menu ? 'Close menu' : 'Open menu'} aria-expanded={menu} aria-controls="mobile-nav" onClick={() => { setMenu((m) => !m); setSearch(false); }}>
             <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">{menu ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
           </button>
-          <Link href="/" aria-label="Palladium home" onClick={() => setMenu(false)}><Logo className="h-8 sm:h-9" /></Link>
+          <Link href="/" aria-label="Palladium home" onClick={() => setMenu(false)}><Logo light={koru} className="h-8 sm:h-9" /></Link>
         </div>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Main">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="group relative py-2 text-xs font-semibold uppercase tracking-[0.16em]">
+            <Link key={n.href} href={n.href} className="nav-label group relative py-2 text-xs font-semibold uppercase tracking-[0.16em]">
               {n.label}
               <span className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-gold transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
@@ -46,7 +48,7 @@ export function Header({ userName }: { userName: string | null }) {
           </button>
           <Link href={userName ? '/account' : '/login'} className={`${iconBtn} lg:w-auto lg:gap-2 lg:px-2`} aria-label={userName ? 'My account' : 'Sign in'}>
             <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4.5 4.5-6 8-6s7 1.5 8 6" /></svg>
-            <span className="hidden text-xs font-semibold uppercase tracking-[0.14em] lg:inline">{userName ? userName.split(' ')[0] : 'Sign in'}</span>
+            <span className="nav-label hidden text-xs font-semibold uppercase tracking-[0.14em] lg:inline">{userName ? userName.split(' ')[0] : 'Sign in'}</span>
           </Link>
           <button type="button" className={iconBtn} aria-label={`Open cart, ${count} item${count === 1 ? '' : 's'}`} onClick={() => { setMenu(false); setSearch(false); openDrawer(); }}>
             <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
@@ -56,7 +58,7 @@ export function Header({ userName }: { userName: string | null }) {
       </Container>
 
       {menu && (
-        <nav id="mobile-nav" aria-label="Mobile" className="border-t border-line bg-white lg:hidden">
+        <nav id="mobile-nav" aria-label="Mobile" className="border-t border-line bg-paper lg:hidden">
           <Container className="flex flex-col py-2">
             {NAV.map((n) => (
               <Link key={n.href} href={n.href} onClick={() => setMenu(false)} className="border-b border-line py-4 font-display text-2xl tracking-tightest last:border-0">{n.label}</Link>

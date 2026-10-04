@@ -196,7 +196,7 @@ export function WalletButton() {
     return (
       <button type="button" onClick={openSoon} aria-label="Connect wallet (in progress)" className="relative mr-1 flex h-10 items-center gap-2 px-2 text-ink transition hover:text-gold-deep">
         {icon}
-        <span className="hidden text-xs font-semibold uppercase tracking-[0.14em] xl:inline">Connect wallet</span>
+        <span className="nav-label hidden text-xs font-semibold uppercase tracking-[0.14em] xl:inline">Connect wallet</span>
         <span className="hidden border border-gold px-1.5 py-px text-[9px] font-bold uppercase leading-4 tracking-[0.16em] text-gold-deep sm:inline-block">Soon</span>
       </button>
     );

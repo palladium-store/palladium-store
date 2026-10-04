@@ -30,7 +30,7 @@ export function Pagination({ page, pages, total, base, params }: { page: number;
 
 export function EmptyState({ title, text, action }: { title: string; text?: string; action?: React.ReactNode }) {
   return (
-    <div className="border border-dashed border-line bg-white px-6 py-14 text-center">
+    <div className="border border-dashed border-line bg-paper px-6 py-14 text-center">
       <p className="font-display text-lg tracking-tightest">{title}</p>
       {text && <p className="mx-auto mt-2 max-w-md text-sm text-mute">{text}</p>}
       {action && <div className="mt-5">{action}</div>}

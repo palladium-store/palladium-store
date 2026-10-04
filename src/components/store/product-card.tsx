@@ -61,7 +61,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
 
   return (
     <article className="group relative flex flex-col">
-      <div className="relative aspect-[4/5] overflow-hidden border border-line bg-gradient-to-b from-white to-bone transition duration-300 group-hover:-translate-y-0.5 group-hover:border-ink group-hover:shadow-[0_14px_30px_-14px_rgba(0,0,0,0.35)]">
+      <div className="pc-media relative aspect-[4/5] overflow-hidden border border-line bg-gradient-to-b from-white to-bone transition duration-300 group-hover:-translate-y-0.5 group-hover:border-ink group-hover:shadow-[0_14px_30px_-14px_rgba(0,0,0,0.35)]">
         <Link href={`/products/${p.slug}`} aria-label={p.name} className="absolute inset-0 block">
           <div className="absolute inset-5 sm:inset-6">
             <Img src={main} alt={p.name} sizes="(min-width:1024px) 25vw, (min-width:768px) 33vw, 50vw" priority={priority}
@@ -82,7 +82,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
       </div>
 
       <div className="mt-4 flex flex-1 flex-col">
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-mute">{p.category}</p>
+        <p className="pc-cat mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-mute">{p.category}</p>
         <h3 className="min-h-[2.75rem] text-[15px] font-semibold leading-snug tracking-tight"><Link href={`/products/${p.slug}`} className="hover:underline hover:decoration-gold hover:decoration-2 hover:underline-offset-4">{p.name}</Link></h3>
         <p className="mt-1 line-clamp-1 min-h-[1.25rem] text-[13px] leading-snug text-mute">{p.shortDescription ?? ''}</p>
         <div className="mt-2 flex min-h-[1rem] items-center gap-2 text-xs text-mute">{p.rating != null && p.reviewCount > 0 && <><Stars value={p.rating} /><span>({p.reviewCount})</span></>}</div>
@@ -100,7 +100,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
                 </button>
               ) : (
                 <button key={x.id} type="button" role="radio" aria-checked={on} onClick={() => { setSel(i); setPicked(true); }}
-                  className={`border px-2.5 py-1 text-[11px] font-semibold transition ${on ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'} ${out ? 'text-mute line-through opacity-60' : ''}`}>{x.name}</button>
+                  className={`pc-variant border px-2.5 py-1 text-[11px] font-semibold transition ${on ? 'border-ink bg-ink text-paper' : 'border-line hover:border-ink'} ${out ? 'text-mute line-through opacity-60' : ''}`}>{x.name}</button>
               );
             })}
           </>)}
@@ -109,12 +109,12 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
         <div className="mt-auto pt-3">
           <p className="flex flex-wrap items-baseline gap-x-2">
             {priceVaries && !picked && <span className="text-xs font-medium text-mute">From</span>}
-            <span className="text-xl font-extrabold tracking-tight sm:text-[22px]">{peso(shownPrice)}</span>
+            <span className="pc-price text-xl font-extrabold tracking-tight sm:text-[22px]">{peso(shownPrice)}</span>
             {onSale && !(priceVaries && !picked) && <span className="text-sm text-mute line-through">{peso(compareAt as number)}</span>}
           </p>
           <p className="mt-2 min-h-[1.75rem] whitespace-nowrap" aria-label={tokenAmount != null ? `About ${tokenAmount} PALLADIUM tokens` : undefined}>
             {tokenAmount != null && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-ink py-1 pl-1.5 pr-3 text-[12px] font-bold tabular-nums tracking-wide text-gold shadow-sm">
+              <span className="pc-token inline-flex items-center gap-1.5 rounded-full bg-night py-1 pl-1.5 pr-3 text-[12px] font-bold tabular-nums tracking-wide text-gold-deep shadow-sm">
                 <span className="flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[9px] font-black leading-none text-ink" aria-hidden="true">P</span>
                 {formatPalladium(tokenAmount)}
               </span>
@@ -137,10 +137,10 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
         </div>
         {(soldOut ? <div className="mt-2 h-[2.5rem]" aria-hidden="true" /> : (
           <button type="button" onClick={cryptoEnabled ? payWithCrypto : openSoon}
-            className="group/crypto relative mt-2 flex h-[2.5rem] w-full items-center justify-center gap-2 overflow-hidden border border-ink/80 bg-gold px-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)] transition duration-300 before:absolute before:inset-y-0 before:-left-full before:w-1/2 before:skew-x-[-20deg] before:bg-white/50 before:transition-transform before:duration-700 hover:-translate-y-px hover:shadow-[0_10px_20px_-8px_rgba(0,0,0,0.55)] hover:before:translate-x-[320%]">
+            className="pc-crypto group/crypto relative mt-2 flex h-[2.5rem] w-full items-center justify-center gap-2 overflow-hidden border border-ink/80 bg-gold px-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)] transition duration-300 before:absolute before:inset-y-0 before:-left-full before:w-1/2 before:skew-x-[-20deg] before:bg-white/50 before:transition-transform before:duration-700 hover:-translate-y-px hover:shadow-[0_10px_20px_-8px_rgba(0,0,0,0.55)] hover:before:translate-x-[320%]">
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 8h4.5a2 2 0 0 1 0 4H9m0 0h5a2 2 0 0 1 0 4H9M9 8v8M11 6v2m0 8v2" /></svg>
             Pay with crypto
-            <span className="rounded-full bg-ink px-2 text-[10px] font-bold leading-4 tracking-[0.1em] text-gold">{cryptoEnabled ? 'Demo' : <><span className="sm:hidden">Soon</span><span className="hidden sm:inline">In progress</span></>}</span>
+            <span className="pc-crypto-tag rounded-full bg-night px-2 text-[10px] font-bold leading-4 tracking-[0.1em] text-gold-deep">{cryptoEnabled ? 'Demo' : <><span className="sm:hidden">Soon</span><span className="hidden sm:inline">In progress</span></>}</span>
           </button>
         ))}
       </div>

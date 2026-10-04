@@ -4,12 +4,12 @@ import { Logo } from './logo';
 import { NewsletterForm } from './newsletter-form';
 import type { ContentSettings, StoreSettings } from '@/lib/settings';
 
-const h = 'mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold';
+const h = 'mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep';
 const a = 'text-sm text-white/70 transition hover:text-white';
 
 export function Footer({ store, content, categories }: { store: StoreSettings; content: ContentSettings; categories: { name: string; slug: string; count: number }[] }) {
   return (
-    <footer className="mt-24 bg-ink text-white">
+    <footer className="mt-24 bg-night text-white">
       <Container className="grid gap-12 py-16 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <Logo light className="h-10 sm:h-12" />

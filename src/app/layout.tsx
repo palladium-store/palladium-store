@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import './globals.css';
+import './koru.css';
 import { Suspense } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
 import { NavProgress } from '@/components/store/nav-progress';

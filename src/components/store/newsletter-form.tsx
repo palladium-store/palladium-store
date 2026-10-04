@@ -28,9 +28,9 @@ export function NewsletterForm({ dark = false, buttonLabel = 'Subscribe' }: { da
   return (
     <form onSubmit={submit} noValidate>
       <label htmlFor={id} className="sr-only">Email address</label>
-      <div className="flex">
+      <div className="nl-row flex">
         <input id={id} type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email"
-          className={`min-w-0 flex-1 border px-4 py-3 text-sm outline-none transition ${dark ? 'border-white/30 bg-transparent text-white placeholder:text-white/50 focus:border-gold' : 'border-ink bg-white focus:border-gold'}`} aria-invalid={!!error} />
+          className={`nl-field min-w-0 flex-1 border px-4 py-3 text-sm outline-none transition ${dark ? 'border-white/30 bg-transparent text-white placeholder:text-white/50 focus:border-gold' : 'border-ink bg-paper focus:border-gold'}`} aria-invalid={!!error} />
         <button type="submit" aria-busy={busy} disabled={busy} className={dark ? 'btn-gold' : 'btn-primary'}>{busy ? 'Working...' : buttonLabel}</button>
       </div>
       {error && <p className="field-error" role="alert">{error}</p>}
