@@ -14,7 +14,7 @@ export function Toggle({ checked, onChange, label, hint, disabled }: { checked: 
   return (
     <label className={`flex items-start gap-3 ${disabled ? 'opacity-50' : 'cursor-pointer'}`}>
       <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
-        className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition ${checked ? 'bg-ink' : 'bg-neutral-300'}`}>
+        className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition ${checked ? 'bg-gold' : 'bg-neutral-300'}`}>
         <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${checked ? 'left-[18px]' : 'left-0.5'}`} />
       </button>
       <span className="text-sm"><span className="font-semibold">{label}</span>{hint && <span className="block text-xs text-mute">{hint}</span>}</span>

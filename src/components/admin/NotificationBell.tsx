@@ -18,11 +18,11 @@ export function NotificationBell() {
   async function markAll() { await api('/api/admin/notifications', { method: 'POST', body: {} }); load(); }
   return (
     <div ref={box} className="relative">
-      <button className="relative border border-line px-3 py-2 text-xs font-semibold uppercase tracking-wider" onClick={() => setOpen(!open)} aria-label={`Notifications, ${unread} unread`} aria-expanded={open}>
-        Alerts{unread > 0 && <span className="ml-2 bg-gold px-1.5 py-0.5 text-[10px] text-ink">{unread > 99 ? '99+' : unread}</span>}
+      <button className="relative whitespace-nowrap rounded-full border border-line px-3.5 py-2 text-xs font-semibold" onClick={() => setOpen(!open)} aria-label={`Notifications, ${unread} unread`} aria-expanded={open}>
+        Alerts{unread > 0 && <span className="ml-2 rounded-full bg-gold px-1.5 py-0.5 text-[10px] text-white">{unread > 99 ? '99+' : unread}</span>}
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-[min(92vw,380px)] border border-line bg-white shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-1 w-[min(92vw,380px)] border border-line bg-paper shadow-xl">
           <div className="flex items-center justify-between border-b border-line px-4 py-2"><span className="text-sm font-semibold">Notifications</span>{unread > 0 && <button className="text-xs text-mute underline" onClick={markAll}>Mark all read</button>}</div>
           <div className="max-h-96 overflow-y-auto">
             {!items.length && <p className="p-6 text-center text-sm text-mute">Nothing yet.</p>}

@@ -161,23 +161,31 @@ body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211
 /* Small photo tiles (cart lines, order lines, search hits) use the same light plate. */
 .theme-koru :is(aside, main, header) .bg-ink:has(> img) { border-radius: 8px; overflow: hidden; }
 
-/* Status colours written for a white page, retuned for the dark canvas. Plates keep the originals. */
-.theme-koru :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100) { background-color: rgba(220, 38, 38, 0.14); }
-.theme-koru :is(.text-red-600, .text-red-700, .text-red-800, .text-rose-700, .text-rose-800) { color: #ff8f86; }
-.theme-koru :is(.border-red-200, .border-red-300) { border-color: rgba(255, 120, 110, 0.4); }
-.theme-koru :is(.bg-emerald-50, .bg-emerald-100) { background-color: rgba(16, 185, 129, 0.14); }
-.theme-koru :is(.text-emerald-700, .text-emerald-800) { color: #6ee7b7; }
-.theme-koru .border-emerald-200 { border-color: rgba(110, 231, 183, 0.35); }
-.theme-koru .bg-amber-100 { background-color: rgba(245, 158, 11, 0.16); }
-.theme-koru :is(.text-amber-700, .text-amber-800) { color: #fcd34d; }
-.theme-koru .bg-sky-100 { background-color: rgba(56, 189, 248, 0.16); }
-.theme-koru .text-sky-800 { color: #7dd3fc; }
-.theme-koru .bg-indigo-100 { background-color: rgba(129, 140, 248, 0.18); }
-.theme-koru .text-indigo-800 { color: #a5b4fc; }
-.theme-koru .bg-violet-100 { background-color: rgba(167, 139, 250, 0.18); }
-.theme-koru .text-violet-800 { color: #c4b5fd; }
-.theme-koru :is(.bg-neutral-100, .bg-neutral-200, .bg-neutral-300) { background-color: rgb(var(--c-ink) / 0.1); }
-.theme-koru :is(.text-neutral-600, .text-neutral-700) { color: rgb(var(--c-mute)); }
+/* Status colours written for a white page, retuned for the dark canvas (screen only: print keeps the originals). */
+@media screen {
+  .theme-koru :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100) { background-color: rgba(220, 38, 38, 0.14); }
+  .theme-koru :is(.text-red-600, .text-red-700, .text-red-800, .text-rose-700, .text-rose-800) { color: #ff8f86; }
+  .theme-koru :is(.border-red-200, .border-red-300) { border-color: rgba(255, 120, 110, 0.4); }
+  .theme-koru :is(.bg-emerald-50, .bg-emerald-100) { background-color: rgba(16, 185, 129, 0.14); }
+  .theme-koru :is(.text-emerald-700, .text-emerald-800) { color: #6ee7b7; }
+  .theme-koru .border-emerald-200 { border-color: rgba(110, 231, 183, 0.35); }
+  .theme-koru .bg-amber-100 { background-color: rgba(245, 158, 11, 0.16); }
+  .theme-koru :is(.text-amber-700, .text-amber-800) { color: #fcd34d; }
+  .theme-koru .bg-sky-100 { background-color: rgba(56, 189, 248, 0.16); }
+  .theme-koru .text-sky-800 { color: #7dd3fc; }
+  .theme-koru .bg-indigo-100 { background-color: rgba(129, 140, 248, 0.18); }
+  .theme-koru .text-indigo-800 { color: #a5b4fc; }
+  .theme-koru .bg-violet-100 { background-color: rgba(167, 139, 250, 0.18); }
+  .theme-koru .text-violet-800 { color: #c4b5fd; }
+  .theme-koru :is(.bg-neutral-100, .bg-neutral-200, .bg-neutral-300) { background-color: rgb(var(--c-ink) / 0.1); }
+  .theme-koru :is(.text-neutral-600, .text-neutral-700) { color: rgb(var(--c-mute)); }
+  .theme-koru .bg-amber-50 { background-color: rgba(245, 158, 11, 0.12); }
+  .theme-koru .text-amber-900 { color: #fcd34d; }
+  .theme-koru :is(.border-amber-200, .border-amber-300) { border-color: rgba(252, 211, 77, 0.35); }
+  .theme-koru .text-blue-700 { color: #93c5fd; }
+  .theme-koru .text-neutral-300 { color: rgb(var(--c-ink) / 0.25); }
+  .theme-koru .border-neutral-300 { border-color: rgb(var(--c-ink) / 0.2); }
+}
 
 /* "Frequently bought together" cards */
 .theme-koru .bundle-card { border-radius: 16px; overflow: hidden; border-color: rgb(var(--c-ink) / 0.14); }
@@ -199,6 +207,35 @@ body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211
 @media (max-width: 639px) { .theme-koru .pc-crypto { gap: 6px; padding-inline: 8px; font-size: 9.5px; letter-spacing: 0.04em; white-space: nowrap; } .theme-koru .pc-crypto svg { display: none; } }
 .theme-koru .pc-crypto:hover { transform: none; box-shadow: none; color: rgb(var(--c-ink)); border-color: rgb(var(--c-gold-deep)); }
 .theme-koru .pc-crypto-tag { background: rgb(var(--c-ink) / 0.1); color: rgb(var(--c-ink)); font-weight: 400; }
+
+/* Admin: denser than the storefront, so corners are a little tighter and tables read as panels. */
+.theme-admin .card { border-radius: 14px; }
+.theme-admin .table-wrap { border-radius: 14px; border-color: rgb(var(--c-ink) / 0.1); background: rgb(var(--c-bone) / 0.55); }
+.theme-admin .tbl th { background: rgb(var(--c-night) / 0.55); font-family: var(--k-mono); font-weight: 400; letter-spacing: 0.12em; }
+.theme-admin .tbl tbody tr:hover { background: rgb(var(--c-ink) / 0.04); }
+.theme-admin .h-display { letter-spacing: -0.02em; }
+/* Big numbers in stat cards: normal width so a full peso amount fits the card, and it scales down on narrow screens. */
+.theme-admin .card .font-display { font-stretch: 100%; letter-spacing: -0.03em; font-size: clamp(1.15rem, 1.75vw, 1.65rem); overflow-wrap: anywhere; }
+@media (max-width: 1023px) { .theme-admin .card .font-display { font-size: clamp(1.1rem, 4.4vw, 1.5rem); } }
+.theme-koru :is(input[type='checkbox'], input[type='radio']) { accent-color: #dc211b; }
+.theme-koru .plate.plate-sm { border-radius: 8px; }
+
+/* A light sheet inside the dark area: the printable invoice and packing slip. */
+.theme-koru .theme-light {
+  --c-ink: 17 17 17; --c-paper: 255 255 255; --c-bone: 246 246 246; --c-line: 232 232 232; --c-mute: 107 107 112;
+  --c-gold: 242 207 70; --c-gold-deep: 242 207 70; --c-gold-soft: 253 246 220;
+  color-scheme: light; border-radius: 14px;
+}
+
+/* Anything printed from the dark area comes out black on white. */
+@media print {
+  body:has(.theme-koru) { background: #fff !important; }
+  .theme-koru {
+    --c-ink: 17 17 17; --c-paper: 255 255 255; --c-bone: 246 246 246; --c-line: 232 232 232; --c-mute: 107 107 112; --c-night: 255 255 255;
+    background: #fff !important; color: #111 !important; color-scheme: light; min-height: 0;
+  }
+  .theme-koru::before { display: none !important; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .theme-koru, .theme-koru *, .theme-koru::before, .theme-koru *::before, .theme-koru *::after { animation: none !important; transition: none !important; }

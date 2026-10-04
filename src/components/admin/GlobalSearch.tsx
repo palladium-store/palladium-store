@@ -25,7 +25,7 @@ export function GlobalSearch() {
     <div ref={box} className="relative w-full max-w-md">
       <input className="input" placeholder="Search orders, products, SKU, customers" value={q} onFocus={() => setOpen(true)} onChange={(e) => { setQ(e.target.value); setOpen(true); }} aria-label="Search admin" />
       {open && q.trim().length >= 2 && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[70vh] overflow-y-auto border border-line bg-white shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[70vh] overflow-y-auto border border-line bg-paper shadow-xl">
           {busy && !res && <div className="p-4 text-sm text-mute">Searching...</div>}
           {none && <div className="p-4 text-sm text-mute">No results for &ldquo;{q}&rdquo;.</div>}
           {groups.filter(([, h]) => h.length).map(([label, hits]) => (

@@ -319,13 +319,13 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
               <li key={m.key} draggable onDragStart={() => setDragKey(m.key)} onDragEnd={() => { setDragKey(null); setOverKey(null); }}
                 onDragOver={(e) => { if (dragKey) { e.preventDefault(); setOverKey(m.key); } }} onDrop={(e) => { if (dragKey) { e.preventDefault(); e.stopPropagation(); dropMedia(m.key); } }}
                 className={`cursor-grab border bg-bone p-3 active:cursor-grabbing ${dragKey === m.key ? 'opacity-40' : ''} ${overKey === m.key && dragKey !== m.key ? 'border-gold ring-2 ring-gold' : 'border-line'}`}>
-                <div className="relative mb-2 aspect-square overflow-hidden bg-white">
+                <div className="plate plate-sm relative mb-2 aspect-square overflow-hidden bg-white">
                   {m.kind === 'video'
                     ? <video src={m.url} muted playsInline controls className="h-full w-full object-cover" />
                     // eslint-disable-next-line @next/next/no-img-element
                     : <img src={m.url} alt={m.alt} className="h-full w-full object-cover" />}
                   {i === 0 && <span className="absolute left-2 top-2 bg-gold px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Primary</span>}
-                  {m.kind === 'video' && <span className="absolute right-2 top-2 bg-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">Video</span>}
+                  {m.kind === 'video' && <span className="absolute right-2 top-2 bg-night px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">Video</span>}
                 </div>
                 <input className={inputCls(err(`images.${i}.alt`))} value={m.alt} onChange={(e) => patchMedia(m.key, { alt: e.target.value })} placeholder="Alt text (describe the image)" aria-label="Alt text" maxLength={220} />
                 {err(`images.${i}.alt`) && <p className="field-error">{err(`images.${i}.alt`)}</p>}
@@ -468,7 +468,7 @@ export function ProductForm({ mode, categories, initial }: { mode: 'create' | 'e
         </div>
       </section>
 
-      <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 py-3 backdrop-blur lg:left-64">
+      <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/90 px-4 py-3 backdrop-blur-md lg:left-64">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3">
           <Link href="/admin/products" className="btn-ghost btn-sm">Back to products</Link>
           <button type="submit" className="btn-primary" aria-busy={saving} disabled={saving || uploading}>{saving ? 'Saving...' : edit ? 'Save changes' : 'Create product'}</button>

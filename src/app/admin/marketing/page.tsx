@@ -80,8 +80,8 @@ export default async function MarketingPage({ searchParams }: { searchParams: Re
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-display text-lg tracking-tightest">Review moderation</h2>
           <div className="flex gap-1 text-sm">
-            <Link href="/admin/marketing" className={`px-3 py-1.5 font-semibold ${!hiddenOnly ? 'bg-ink text-white' : 'border border-line'}`}>Recent</Link>
-            <Link href="/admin/marketing?reviews=hidden" className={`px-3 py-1.5 font-semibold ${hiddenOnly ? 'bg-ink text-white' : 'border border-line'}`}>Hidden ({hiddenCount})</Link>
+            <Link href="/admin/marketing" className={`rounded-full px-3 py-1.5 font-semibold ${!hiddenOnly ? 'bg-ink text-paper' : 'border border-line'}`}>Recent</Link>
+            <Link href="/admin/marketing?reviews=hidden" className={`rounded-full px-3 py-1.5 font-semibold ${hiddenOnly ? 'bg-ink text-paper' : 'border border-line'}`}>Hidden ({hiddenCount})</Link>
           </div>
         </div>
         {reviewItems.length === 0 ? <EmptyState title={hiddenOnly ? 'No hidden reviews' : 'No reviews yet'} text="Customer reviews appear here so you can hide or approve them." />

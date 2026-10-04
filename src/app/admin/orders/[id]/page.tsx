@@ -76,7 +76,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
                     <tr key={i.id}>
                       <td>
                         <div className="flex items-center gap-3">
-                          {i.imageUrl ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={i.imageUrl} alt="" className="h-12 w-12 shrink-0 border border-line bg-bone object-cover" /> : <div className="h-12 w-12 shrink-0 border border-line bg-bone" aria-hidden />}
+                          {i.imageUrl ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={i.imageUrl} alt="" className="plate plate-sm h-12 w-12 shrink-0 border border-line bg-bone object-cover" /> : <div className="h-12 w-12 shrink-0 border border-line bg-bone" aria-hidden />}
                           <div className="min-w-0"><div className="font-medium">{i.productName}</div><div className="text-xs text-mute">{i.variantName}</div></div>
                         </div>
                       </td>

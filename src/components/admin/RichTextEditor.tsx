@@ -52,7 +52,7 @@ export function RichTextEditor({ value, onChange, invalid, id }: { value: string
     { label: 'Link', title: 'Add link to selected text', run: openLink },
     { label: 'Unlink', title: 'Remove link', run: () => exec('unlink') },
   ];
-  const btnCls = 'border border-line bg-white px-2.5 py-1 text-xs font-semibold hover:bg-ink hover:text-white';
+  const btnCls = 'rounded-md border border-line bg-paper px-2.5 py-1 text-xs font-semibold hover:bg-ink hover:text-paper';
 
   return (
     <div className={`border ${invalid ? 'border-red-500' : 'border-line'}`}>
@@ -71,7 +71,7 @@ export function RichTextEditor({ value, onChange, invalid, id }: { value: string
         </form>
       )}
       <div ref={ref} id={id} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label="Description"
-        className="rte min-h-[180px] max-h-[480px] overflow-y-auto bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-gold"
+        className="rte min-h-[180px] max-h-[480px] overflow-y-auto bg-paper p-3 text-sm outline-none focus:ring-2 focus:ring-gold"
         onInput={emit} onBlur={emit}
         onPaste={(e) => { e.preventDefault(); const t = e.clipboardData.getData('text/plain'); document.execCommand('insertText', false, t); }} />
     </div>

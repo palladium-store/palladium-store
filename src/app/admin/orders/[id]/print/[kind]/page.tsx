@@ -41,7 +41,7 @@ export default async function PrintPage({ params }: { params: { id: string; kind
         <PrintButton label={invoice ? 'Print invoice' : 'Print packing slip'} />
       </div>
 
-      <article className="print-sheet mx-auto max-w-[210mm] border border-line bg-white p-6 text-[13px] leading-snug text-black shadow-sm sm:p-10">
+      <article className="theme-light print-sheet mx-auto max-w-[210mm] border border-line bg-white p-6 text-[13px] leading-snug text-black shadow-sm sm:p-10">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-black pb-4">
           <div>
             <div className="font-display text-2xl tracking-tightest">{store.name}</div>

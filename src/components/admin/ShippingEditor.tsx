@@ -115,7 +115,7 @@ export function ShippingEditor({ initial }: { initial: ZoneData[] }) {
         </div>
       )}
       {unassigned.length > 0 && zones.length > 0 && (
-        <div className="border border-line bg-white p-4 text-sm text-mute"><strong className="text-ink">{unassigned.length} province{unassigned.length === 1 ? '' : 's'} not in any zone.</strong> Customers there cannot check out: {unassigned.slice(0, 12).join(', ')}{unassigned.length > 12 ? `, and ${unassigned.length - 12} more` : ''}.</div>
+        <div className="border border-line bg-paper p-4 text-sm text-mute"><strong className="text-ink">{unassigned.length} province{unassigned.length === 1 ? '' : 's'} not in any zone.</strong> Customers there cannot check out: {unassigned.slice(0, 12).join(', ')}{unassigned.length > 12 ? `, and ${unassigned.length - 12} more` : ''}.</div>
       )}
 
       {zones.map((z, zi) => (
@@ -185,7 +185,7 @@ export function ShippingEditor({ initial }: { initial: ZoneData[] }) {
 
       <button type="button" className="btn-outline btn-sm" onClick={() => setZones((zs) => [...zs, { key: ++seq, name: '', provinces: [], rates: [blankRate()] }])}>Add zone</button>
 
-      <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 py-3 backdrop-blur lg:left-64">
+      <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/90 px-4 py-3 backdrop-blur-md lg:left-64">
         <div className="mx-auto flex max-w-[1400px] items-center justify-end gap-3">
           {conflicts.length > 0 && <span className="text-xs text-amber-700">Provinces assigned twice</span>}
           <button type="button" className="btn-primary" onClick={save} aria-busy={saving} disabled={saving}>{saving ? 'Saving...' : 'Save shipping'}</button>

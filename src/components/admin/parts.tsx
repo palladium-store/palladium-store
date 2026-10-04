@@ -66,7 +66,7 @@ export function RangePicker({ base, active, from, to, keys = ['today', 'yesterda
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Date range">
         {keys.map((k) => (
           <Link key={k} href={`${base}?range=${k}`} role="tab" aria-selected={active === k}
-            className={`border px-3 py-2 text-xs font-semibold transition ${active === k ? 'border-ink bg-ink text-white' : 'border-line bg-white text-ink hover:border-ink'}`}>{RANGE_LABELS[k]}</Link>
+            className={`rounded-full border px-3.5 py-2 text-xs font-semibold transition ${active === k ? 'border-ink bg-ink text-paper' : 'border-line bg-paper text-ink hover:border-ink'}`}>{RANGE_LABELS[k]}</Link>
         ))}
       </div>
       <form action={base} method="get" className="flex flex-wrap items-end gap-2">
@@ -89,7 +89,7 @@ export function ExportLinks({ type, range, from, to }: { type: 'summary' | 'dail
     <div className="no-print flex items-center gap-1.5 text-xs">
       <span className="text-mute">Export</span>
       {(['csv', 'xlsx', 'pdf'] as const).map((f) => (
-        <a key={f} href={href(f)} className="border border-line bg-white px-2.5 py-1 font-semibold uppercase tracking-wider hover:border-ink" download>{f === 'xlsx' ? 'Excel' : f.toUpperCase()}</a>
+        <a key={f} href={href(f)} className="rounded-full border border-line bg-paper px-2.5 py-1 font-semibold uppercase tracking-wider hover:border-ink" download>{f === 'xlsx' ? 'Excel' : f.toUpperCase()}</a>
       ))}
     </div>
   );

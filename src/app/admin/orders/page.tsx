@@ -41,7 +41,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: SP })
       <nav className="mb-3 flex gap-1.5 overflow-x-auto pb-1" aria-label="Order status">
         {TABS.map(([k, label]) => {
           const on = (status ?? '') === k;
-          return <Link key={k || 'all'} href={tabHref(k)} aria-current={on ? 'page' : undefined} className={`whitespace-nowrap border px-3 py-2 text-xs font-semibold ${on ? 'border-ink bg-ink text-white' : 'border-line bg-white hover:border-ink'}`}>{label}</Link>;
+          return <Link key={k || 'all'} href={tabHref(k)} aria-current={on ? 'page' : undefined} className={`whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-semibold ${on ? 'border-ink bg-ink text-paper' : 'border-line bg-paper hover:border-ink'}`}>{label}</Link>;
         })}
       </nav>
 

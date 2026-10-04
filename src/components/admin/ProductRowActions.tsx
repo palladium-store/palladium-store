@@ -40,7 +40,7 @@ export function ProductRowActions({ id, name, status }: { id: string; name: stri
     } catch (e) { setDeleteError(e instanceof ApiError ? e.message : 'Could not delete the product.'); }
     setBusy(null);
   }
-  const btn = 'border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-white disabled:opacity-40';
+  const btn = 'rounded-md border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-paper disabled:opacity-40';
   return (
     <>
       <div className="flex flex-wrap justify-end gap-1">

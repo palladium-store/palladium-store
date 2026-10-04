@@ -91,7 +91,7 @@ export function StaffManager({ staff, activeSuperAdmins }: { staff: StaffRow[]; 
                   <td>{ROLE_LABELS[s.role as RoleKey] ?? s.role}</td>
                   <td><Badge status={s.isActive ? 'ACTIVE' : 'DRAFT'} label={s.isActive ? 'Active' : 'Inactive'} /></td>
                   <td className="whitespace-nowrap text-xs text-mute">{s.lastLoginLabel}</td>
-                  <td className="text-right"><button className="border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-white" onClick={() => openEdit(s)}>Edit</button></td>
+                  <td className="text-right"><button className="rounded-md border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-paper" onClick={() => openEdit(s)}>Edit</button></td>
                 </tr>
               ))}
             </tbody>

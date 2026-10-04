@@ -60,7 +60,7 @@ export function CategoryManager({ rows }: { rows: CategoryRow[] }) {
 
   const selfId = editing && editing !== 'new' ? editing.id : null;
   const parentOptions = rows.filter((r) => !r.parentId && r.id !== selfId);
-  const btn = 'border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-white';
+  const btn = 'rounded-md border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-paper';
   const ordered = [...rows.filter((r) => !r.parentId).flatMap((p) => [p, ...rows.filter((c) => c.parentId === p.id)]), ...rows.filter((r) => r.parentId && !rows.some((p) => p.id === r.parentId))];
 
   return (

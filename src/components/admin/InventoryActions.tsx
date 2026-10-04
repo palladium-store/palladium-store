@@ -73,7 +73,7 @@ export function InventoryActions({ row, locations }: { row: InvRowProps; locatio
     setBusy(false);
   }
 
-  const btn = 'border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-white';
+  const btn = 'rounded-md border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-paper';
   return (
     <>
       <div className="flex min-w-[210px] flex-wrap justify-end gap-1">

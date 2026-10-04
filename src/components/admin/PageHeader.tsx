@@ -14,7 +14,7 @@ export function StatCard({ label, value, hint, tone }: { label: string; value: R
   return (
     <div className="card p-4">
       <div className="text-[11px] font-semibold uppercase tracking-wider text-mute">{label}</div>
-      <div className={`mt-1 font-display text-2xl tracking-tightest ${tone === 'bad' ? 'text-red-600' : tone === 'warn' ? 'text-gold-deep' : ''}`}>{value}</div>
+      <div className={`mt-1 font-display text-2xl tracking-tightest ${tone === 'bad' ? 'text-red-600' : tone === 'warn' ? 'text-amber-700' : ''}`}>{value}</div>
       {hint && <div className="mt-0.5 text-xs text-mute">{hint}</div>}
     </div>
   );

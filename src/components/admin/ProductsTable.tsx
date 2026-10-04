@@ -16,9 +16,9 @@ export interface ProductRow {
 type Bulk = { kind: 'status'; status: 'ACTIVE' | 'DRAFT' | 'ARCHIVED' } | { kind: 'category'; categoryId: string } | { kind: 'delete' };
 
 function StockPill({ stock, low }: { stock: number; low: boolean }) {
-  if (stock <= 0) return <span className="inline-block bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700">Out of stock</span>;
-  if (low) return <span className="inline-block bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">Low stock</span>;
-  return <span className="inline-block bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">In stock</span>;
+  if (stock <= 0) return <span className="inline-block whitespace-nowrap rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700">Out of stock</span>;
+  if (low) return <span className="inline-block whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">Low stock</span>;
+  return <span className="inline-block whitespace-nowrap rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">In stock</span>;
 }
 
 export function ProductsTable({ rows, categories, canReorder = false }: { rows: ProductRow[]; categories: { id: string; name: string }[]; canReorder?: boolean }) {
@@ -59,14 +59,14 @@ export function ProductsTable({ rows, categories, canReorder = false }: { rows: 
     } catch (e) { toast(e instanceof ApiError ? e.message : 'The bulk action failed. Please try again.', 'error'); }
     setBusy(false); setConfirm(null);
   }
-  const sbtn = 'border border-line bg-white px-3 py-1.5 text-xs font-semibold hover:bg-ink hover:text-white disabled:opacity-40';
+  const sbtn = 'rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-semibold hover:bg-ink hover:text-paper disabled:opacity-40';
   const confirmText = confirm?.kind === 'delete' ? `Permanently delete ${count} product${count === 1 ? '' : 's'}? This cannot be undone. Products with orders or stock history are skipped; archive those instead.`
     : confirm?.kind === 'status' ? `Set ${count} product${count === 1 ? '' : 's'} to ${confirm.status.toLowerCase()}?` : '';
 
   return (
     <>
       {count > 0 && (
-        <div className="sticky top-16 z-10 mb-3 flex flex-wrap items-center gap-2 border border-ink bg-white p-3 shadow-sm" role="region" aria-label="Bulk actions">
+        <div className="sticky top-16 z-10 mb-3 flex flex-wrap items-center gap-2 rounded-2xl border border-ink bg-paper p-3 shadow-sm" role="region" aria-label="Bulk actions">
           <span className="mr-2 text-sm font-semibold">{count} selected</span>
           <button className={sbtn} aria-busy={busy} disabled={busy} onClick={() => setConfirm({ kind: 'status', status: 'ACTIVE' })}>Set active</button>
           <button className={sbtn} aria-busy={busy} disabled={busy} onClick={() => setConfirm({ kind: 'status', status: 'DRAFT' })}>Set draft</button>
@@ -87,7 +87,7 @@ export function ProductsTable({ rows, categories, canReorder = false }: { rows: 
         {rows.map((p, i) => (
           <li key={p.id} className={`card flex gap-3 p-3 ${sel.has(p.id) ? 'ring-2 ring-gold' : ''}`}>
             <input type="checkbox" className="mt-1 h-5 w-5 shrink-0" checked={sel.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Select ${p.name}`} />
-            {p.image ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.image} alt="" className="h-16 w-16 shrink-0 border border-line bg-bone object-cover" /> : <div className="h-16 w-16 shrink-0 border border-line bg-bone" />}
+            {p.image ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.image} alt="" className="plate plate-sm h-16 w-16 shrink-0 border border-line bg-bone object-cover" /> : <div className="h-16 w-16 shrink-0 border border-line bg-bone" />}
             <div className="min-w-0 flex-1">
               <Link href={`/admin/products/${p.id}`} className="block truncate font-semibold">{p.name}</Link>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-mute"><Badge status={p.status} /><StockPill stock={p.stock} low={p.low} /><span>{p.stock} avail.</span></div>
@@ -111,7 +111,7 @@ export function ProductsTable({ rows, categories, canReorder = false }: { rows: 
               <tr key={p.id} className={sel.has(p.id) ? 'bg-gold-soft/40' : ''}>
                 <td><input type="checkbox" checked={sel.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Select ${p.name}`} /></td>
                 {canReorder && <td><Mover id={p.id} i={i} name={p.name} /></td>}
-                <td>{p.image ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.image} alt="" className="h-12 w-12 border border-line bg-bone object-cover" /> : <div className="h-12 w-12 border border-line bg-bone" />}</td>
+                <td>{p.image ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={p.image} alt="" className="plate plate-sm h-12 w-12 border border-line bg-bone object-cover" /> : <div className="h-12 w-12 border border-line bg-bone" />}</td>
                 <td className="max-w-[260px]">
                   <Link href={`/admin/products/${p.id}`} className="font-semibold hover:text-gold-deep">{p.name}</Link>
                   {p.isDemo && <span className="ml-2 inline-block bg-gold-soft px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold-deep">Demo</span>}

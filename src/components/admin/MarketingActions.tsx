@@ -43,7 +43,7 @@ export function ReviewModeration({ reviews }: { reviews: ReviewItem[] }) {
     setBusy(null);
   }
   return (
-    <ul className="divide-y divide-line border border-line bg-white">
+    <ul className="divide-y divide-line border border-line bg-paper">
       {reviews.map((r) => (
         <li key={r.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">

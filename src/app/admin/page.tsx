@@ -57,7 +57,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: SP
                 ['Shipping revenue', peso(rangeSummary.shippingCentavos)], ['Total orders', num(rangeSummary.orders)],
                 ['Average order value', peso(rangeSummary.avgOrderCentavos)], ['Total sales', peso(rangeSummary.totalSalesCentavos)],
               ].map(([k, v]) => (
-                <div key={k} className="bg-white p-3"><dt className="text-[11px] font-semibold uppercase tracking-wider text-mute">{k}</dt><dd className="mt-1 font-display text-lg tracking-tightest">{v}</dd></div>
+                <div key={k} className="bg-paper p-3"><dt className="text-[11px] font-semibold uppercase tracking-wider text-mute">{k}</dt><dd className="mt-1 font-display text-lg tracking-tightest">{v}</dd></div>
               ))}
             </dl>
           </div>

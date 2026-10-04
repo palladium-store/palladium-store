@@ -140,7 +140,7 @@ export function DiscountManager({ rows, products, categories }: { rows: Discount
     const parts = [r.productIds.length ? `${r.productIds.length} product${r.productIds.length === 1 ? '' : 's'}` : '', r.categoryIds.length ? `${r.categoryIds.length} categor${r.categoryIds.length === 1 ? 'y' : 'ies'}` : ''].filter(Boolean);
     return parts.length ? parts.join(' + ') : 'All products';
   };
-  const btn = 'border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-white disabled:opacity-40';
+  const btn = 'rounded-md border border-line px-2 py-1 text-[11px] font-semibold hover:bg-ink hover:text-paper disabled:opacity-40';
 
   return (
     <>

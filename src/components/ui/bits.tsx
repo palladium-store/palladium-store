@@ -9,7 +9,7 @@ const TONE: Record<string, string> = {
 };
 export const statusLabel = (s: string) => s.toLowerCase().replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 export function Badge({ status, label }: { status: string; label?: string }) {
-  return <span className={`inline-block whitespace-nowrap px-2 py-0.5 text-[11px] font-semibold ${TONE[status] ?? 'bg-neutral-100 text-neutral-700'}`}>{label ?? statusLabel(status)}</span>;
+  return <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${TONE[status] ?? 'bg-neutral-100 text-neutral-700'}`}>{label ?? statusLabel(status)}</span>;
 }
 
 export function Pagination({ page, pages, total, base, params }: { page: number; pages: number; total: number; base: string; params?: Record<string, string | undefined> }) {
