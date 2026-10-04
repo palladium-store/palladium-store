@@ -13,7 +13,7 @@ export function fail(e: unknown) {
 }
 
 /** CSRF defence in depth (on top of SameSite=Lax cookies): a browser request that changes data must come from our own site. */
-function assertSameOrigin(req: Request) {
+export function assertSameOrigin(req: Request) {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return;
   const origin = req.headers.get('origin');
   if (!origin) return; // not a browser cross-site request (server-to-server, cron, curl)

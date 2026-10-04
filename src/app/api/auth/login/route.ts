@@ -17,7 +17,6 @@ export const POST = route(async (req) => {
   // Same message for unknown email and wrong password.
   const passwordOk = await verifyPassword(b.password, u?.passwordHash ?? DUMMY_HASH);
   if (!u || !u.isActive || !passwordOk) throw new AppError(401, 'BAD_CREDENTIALS', 'Incorrect email or password.');
-  await clearStrict(key);
   if (u.role === 'CUSTOMER' && !(await prisma.customer.findUnique({ where: { userId: u.id }, select: { id: true } }))) {
     const guest = await prisma.customer.findFirst({ where: { email: { equals: u.email, mode: 'insensitive' } } });
     if (guest) {
@@ -30,6 +29,8 @@ export const POST = route(async (req) => {
     }
     await prisma.customer.create({ data: { email: u.email.toLowerCase(), name: u.name, userId: u.id } });
   }
+  // Only a completed sign-in resets the attempt counter (the unconfirmed-email path above keeps counting).
+  await clearStrict(key);
   await prisma.user.update({ where: { id: u.id }, data: { lastLoginAt: new Date() } });
   await startSession({ id: u.id, email: u.email, name: u.name, role: u.role });
   return ok({ ok: true, redirect: isStaff(u.role) ? '/admin' : '/' });

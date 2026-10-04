@@ -4,12 +4,13 @@ import { ResetForm } from '@/components/store/auth-forms';
 
 export const metadata: Metadata = { title: 'Reset password', robots: { index: false, follow: false } };
 
-export default function ResetPasswordPage({ searchParams }: { searchParams: { token?: string } }) {
+export default function ResetPasswordPage({ searchParams }: { searchParams: { token?: string; confirmed?: string } }) {
+  const confirmed = searchParams.confirmed === '1';
   return (
     <Container className="py-12 sm:py-20">
       <div className="mx-auto max-w-md">
-        <h1 className="h-display text-4xl sm:text-5xl">New password</h1>
-        <p className="mt-3 mb-8 text-sm text-mute">Choose a new password for your account.</p>
+        <h1 className="h-display text-4xl sm:text-5xl">{confirmed ? 'Email confirmed' : 'New password'}</h1>
+        <p className="mt-3 mb-8 text-sm text-mute">{confirmed ? 'Choose a password to finish setting up your account. Then sign in to see your orders.' : 'Choose a new password for your account.'}</p>
         <ResetForm token={searchParams.token ?? ''} />
       </div>
     </Container>

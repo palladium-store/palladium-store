@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { checkoutSchema } from './validators';
 
 type Checkout = z.infer<typeof checkoutSchema>;
+const MAX_UNPAID_PER_EMAIL = 3;
 
 /** Signed token so guests can open their own confirmation page without an account. */
 export function orderToken(orderId: string) {
@@ -41,10 +42,12 @@ export async function placeOrder(input: Checkout) {
       if (existingUser) throw new AppError(409, 'ACCOUNT_EXISTS', 'An account with this email already exists. Please sign in first.', { email: 'Account already exists. Sign in to continue.' });
       if (!input.password) throw new AppError(422, 'VALIDATION', 'Choose a password to create your account.', { password: 'Choose a password.' });
       assertStrongPassword(input.password);
-    } else if (existingUser) {
-      // Guest checkout with an e-mail that belongs to an account: allowed, but never attach the order to that account.
     }
     customer = await prisma.customer.findFirst({ where: { email: { equals: emailLower, mode: 'insensitive' } } });
+    // This email belongs to an account and the buyer is not signed in to it. Placing the order would file it, with its address, under
+    // whoever holds that account, and anyone can sign up with someone else's email. So the buyer signs in first; a real owner who has
+    // lost access gets back in with "Forgot password", which goes to their inbox.
+    if (customer?.userId) throw new AppError(409, 'SIGN_IN_REQUIRED', 'This email already has an account. Please sign in to check out, or use a different email.', { email: 'This email has an account. Sign in first, or use "Forgot password".' });
     const hadRecord = !!customer; // an existing guest record holds someone's past orders
     if (!customer) {
       customer = await prisma.customer.create({ data: { email: emailLower, name: input.ship.name, phone: normalizePhone(input.phone), marketingOptIn: !!input.marketingOptIn, source: acquisitionSource ?? null } });
@@ -59,6 +62,13 @@ export async function placeOrder(input: Checkout) {
         newUser = { id: u.id, email: u.email, name: u.name, role: u.role };
       }
     }
+  }
+
+  // Unpaid orders hold stock until they expire, so one email cannot keep piling them up. A retried request (same idempotency key) is let through.
+  const retry = await prisma.order.findUnique({ where: { idempotencyKey: input.idempotencyKey }, select: { id: true } });
+  if (!retry) {
+    const unpaid = await prisma.order.count({ where: { email: emailLower, status: 'PAYMENT_PENDING', paymentStatus: 'PENDING' } });
+    if (unpaid >= MAX_UNPAID_PER_EMAIL) throw new AppError(429, 'TOO_MANY_UNPAID', 'You already have unpaid orders waiting. Please pay for one of them, or wait a few hours for them to be cancelled, before ordering again.');
   }
 
   // Server-side price check (stock, discount, shipping) before touching inventory.

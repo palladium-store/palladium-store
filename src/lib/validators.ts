@@ -28,7 +28,14 @@ export const resetSchema = z.object({ token: z.string().min(20), password });
 export const changePasswordSchema = z.object({ current: z.string().min(1), next: password });
 export const profileSchema = z.object({ name, phone: phMobile.optional().or(z.literal('').transform(() => undefined)) });
 
-export const cartItems = z.array(z.object({ variantId: z.string().min(1), qty: z.number().int().min(1).max(99) })).min(1, 'Your cart is empty.').max(50);
+/** The same item can appear on several lines, so the 99-per-line limit alone let one request hold thousands of units. This caps the merged total. */
+export const withinPerItemLimit = (items: { variantId: string; qty: number }[]) => {
+  const totals = new Map<string, number>();
+  for (const i of items) totals.set(i.variantId, (totals.get(i.variantId) ?? 0) + i.qty);
+  return [...totals.values()].every((q) => q <= 99);
+};
+export const cartItems = z.array(z.object({ variantId: z.string().min(1), qty: z.number().int().min(1).max(99) })).min(1, 'Your cart is empty.').max(50)
+  .refine(withinPerItemLimit, 'You can order at most 99 of one item.');
 export const priceCartSchema = z.object({ items: cartItems.or(z.array(z.never()).length(0)), discountCode: z.string().max(40).optional(), province: z.string().optional() });
 export const checkoutSchema = z.object({
   idempotencyKey: z.string().min(8).max(80),

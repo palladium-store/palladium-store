@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { prisma } from './db';
 import { peso } from './money';
 import { getSetting } from './settings';
+import { throttleStrict } from './auth';
 
 /** Escapes text that came from a customer before it goes into email HTML (stops HTML/link injection in our emails). */
 const esc = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -62,6 +63,8 @@ export async function sendPasswordResetEmail(to: string, name: string, link: str
 
 /** Sends the "confirm your email" link. With no SMTP configured it logs the link (dev / first launch). */
 export async function sendVerifyEmail(to: string, name: string, link: string) {
+  // At most 3 per address per hour, so sign-up and sign-in attempts cannot be used to flood someone's inbox.
+  try { await throttleStrict(`verify-mail:${to.toLowerCase()}`, 3, 60 * 60 * 1000); } catch { return; }
   const store = (await getSetting('store')).name;
   const html = wrap('Confirm your email', `<p>Hi ${esc(name)},</p><p>Please confirm your email address to finish setting up your account and see your past orders. This link expires in 24 hours.</p><p><a href="${link}" style="display:inline-block;background:#0b0b0c;color:#fff;padding:12px 20px;text-decoration:none;font-weight:700">Confirm email</a></p><p style="font-size:12px;color:#666">If you did not create an account, you can ignore this email.</p>`, store);
   const t = getTransport();
