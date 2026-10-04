@@ -3,6 +3,10 @@ const nextConfig = {
   poweredByHeader: false,
   images: { formats: ['image/webp'], minimumCacheTTL: 31536000, remotePatterns: [{ protocol: 'https', hostname: '**.supabase.co', pathname: '/storage/v1/object/public/**' }] },
   experimental: { serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs', 'exceljs', 'nodemailer'] },
+  // The KORU landing page is a self-contained static page in public/koru; this gives it the clean /koru address.
+  async rewrites() {
+    return [{ source: '/koru', destination: '/koru/index.html' }];
+  },
   async headers() {
     return [{ source: '/(.*)', headers: [
       { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
