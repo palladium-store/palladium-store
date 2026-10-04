@@ -18,5 +18,5 @@ export async function GET(req: Request) {
     else await prisma.customer.create({ data: { email: u.email.toLowerCase(), name: u.name, userId: u.id } }).catch(() => {});
   }
   await startSession({ id: u.id, email: u.email, name: u.name, role: u.role });
-  return NextResponse.redirect(`${site()}/account`);
+  return NextResponse.redirect(`${site()}/`);
 }

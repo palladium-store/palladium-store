@@ -32,5 +32,5 @@ export const POST = route(async (req) => {
   }
   await prisma.user.update({ where: { id: u.id }, data: { lastLoginAt: new Date() } });
   await startSession({ id: u.id, email: u.email, name: u.name, role: u.role });
-  return ok({ ok: true, redirect: isStaff(u.role) ? '/admin' : '/account' });
+  return ok({ ok: true, redirect: isStaff(u.role) ? '/admin' : '/' });
 });

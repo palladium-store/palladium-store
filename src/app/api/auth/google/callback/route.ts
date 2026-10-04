@@ -56,7 +56,7 @@ export async function GET(req: Request) {
     await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
     await startSession({ id: user.id, email: user.email, name: user.name, role: user.role });
 
-    const r = NextResponse.redirect(new URL(safeNext(saved.next) ?? '/account', url.origin));
+    const r = NextResponse.redirect(new URL(safeNext(saved.next) ?? (isStaff(user.role) ? '/admin' : '/'), url.origin));
     r.cookies.set(GOOGLE_COOKIE, '', { path: '/api/auth/google', maxAge: 0 });
     return r;
   } catch (e) {

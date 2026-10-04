@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Sign in', robots: { index: false, fo
 export default async function LoginPage({ searchParams }: { searchParams: { next?: string; google?: string; verify?: string } }) {
   const next = safeNext(searchParams.next);
   const [user, store] = await Promise.all([getUser(), getSetting('store')]);
-  if (user) redirect(next ?? (isStaff(user.role) ? '/admin' : '/account'));
+  if (user) redirect(next ?? (isStaff(user.role) ? '/admin' : '/'));
   return (
     <Container className="py-12 sm:py-20">
       <div className="mx-auto max-w-md">
