@@ -63,7 +63,6 @@ export default async function ProductPage({ params }: Params) {
 
   const specs = product.specs && typeof product.specs === 'object' && !Array.isArray(product.specs) ? Object.entries(product.specs as Record<string, unknown>).filter(([, v]) => v != null && String(v) !== '') : [];
   const shippingPolicy = content.policies.find((p) => p.slug === 'shipping');
-  const returnsPolicy = content.policies.find((p) => p.slug === 'returns');
 
   const dist = [5, 4, 3, 2, 1].map((n) => ({ n, c: product.reviews.filter((r) => r.rating === n).length }));
 
@@ -124,8 +123,8 @@ export default async function ProductPage({ params }: Params) {
           )}
         </section>
 
-        {/* Shipping and returns */}
-        <section className="mt-12 border-t border-line" aria-label="Shipping and returns">
+        {/* Shipping */}
+        <section className="mt-12 border-t border-line" aria-label="Shipping">
           <details className="group border-b border-line py-5" open>
             <summary className="flex cursor-pointer items-center justify-between font-display text-xl tracking-tightest">Shipping information<span className="text-2xl transition group-open:rotate-45" aria-hidden="true">+</span></summary>
             <div className="mt-4 max-w-3xl space-y-3 text-sm text-mute">
@@ -134,15 +133,6 @@ export default async function ProductPage({ params }: Params) {
               {!product.shippingInfo && !shippingPolicy && <p>Shipping is calculated at checkout based on your province.</p>}
             </div>
           </details>
-          {returnsPolicy && (
-            <details className="group border-b border-line py-5">
-              <summary className="flex cursor-pointer items-center justify-between font-display text-xl tracking-tightest">Returns<span className="text-2xl transition group-open:rotate-45" aria-hidden="true">+</span></summary>
-              <div className="mt-4 max-w-3xl space-y-3 text-sm text-mute">
-                {paragraphs(returnsPolicy.body).map((t, i) => <p key={i}>{t}</p>)}
-                <p><Link href="/pages/returns" className="underline underline-offset-4">Read the full returns policy</Link></p>
-              </div>
-            </details>
-          )}
         </section>
 
         {/* Frequently bought together */}

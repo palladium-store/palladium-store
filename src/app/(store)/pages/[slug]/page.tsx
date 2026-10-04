@@ -4,13 +4,13 @@ import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { getSetting } from '@/lib/settings';
 import { Container } from '@/components/store/container';
-import { paragraphs } from '@/components/store/labels';
+import { paragraphs, storePolicies } from '@/components/store/labels';
 
 export const dynamic = 'force-dynamic';
 
 const load = cache(async (slug: string) => {
   const [content, store] = await Promise.all([getSetting('content'), getSetting('store')]);
-  const policy = content.policies.find((p) => p.slug === slug);
+  const policy = storePolicies(content.policies).find((p) => p.slug === slug);
   if (policy) return { title: policy.title, body: policy.body, content, store };
   return null;
 });
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function InfoPage({ params }: { params: { slug: string } }) {
   const page = await load(params.slug);
   if (!page) notFound();
-  const links = page.content.policies.map((p) => ({ slug: p.slug, title: p.title }));
+  const links = storePolicies(page.content.policies).map((p) => ({ slug: p.slug, title: p.title }));
   return (
     <Container className="pb-8 pt-8 sm:pt-12">
       <div className="grid gap-10 lg:grid-cols-[14rem_1fr] lg:gap-16">

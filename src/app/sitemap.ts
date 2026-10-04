@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { prisma } from '@/lib/db';
 import { getSetting } from '@/lib/settings';
 import { listCategories } from '@/lib/queries/catalog';
+import { storePolicies } from '@/components/store/labels';
 
 export const dynamic = 'force-dynamic';
 const site = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
@@ -21,6 +22,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${site}/pages/palladium-token`, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${site}/pages/tokenomics`, changeFrequency: 'monthly', priority: 0.3 },
     { url: `${site}/pages/token-terms`, changeFrequency: 'monthly', priority: 0.2 },
-    ...content.policies.map((p) => ({ url: `${site}/pages/${p.slug}`, changeFrequency: 'monthly' as const, priority: 0.3 })),
+    ...storePolicies(content.policies).map((p) =>({ url: `${site}/pages/${p.slug}`, changeFrequency: 'monthly' as const, priority: 0.3 })),
   ];
 }

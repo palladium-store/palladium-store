@@ -127,7 +127,7 @@ export function NextSteps({ order }: { order: Order }) {
       <ol className="mt-4 space-y-3">
         {steps.map((s, i) => <li key={i} className="flex gap-3 text-sm"><span className="flex h-6 w-6 shrink-0 items-center justify-center bg-ink text-xs font-bold text-gold">{i + 1}</span><span className="pt-0.5">{s}</span></li>)}
       </ol>
-      <p className="mt-5 text-sm text-mute">Questions? <Link href="/pages/shipping" className="underline">Shipping policy</Link> &middot; <Link href="/pages/returns" className="underline">Returns</Link></p>
+      <p className="mt-5 text-sm text-mute">Questions? <Link href="/pages/shipping" className="underline">Shipping policy</Link></p>
     </section>
   );
 }

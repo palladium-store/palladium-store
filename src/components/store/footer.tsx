@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Container } from './container';
 import { Logo } from './logo';
 import { NewsletterForm } from './newsletter-form';
+import { storePolicies } from './labels';
 import type { ContentSettings, StoreSettings } from '@/lib/settings';
 
 const h = 'mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep';
@@ -30,7 +31,7 @@ export function Footer({ store, content, categories }: { store: StoreSettings; c
           <div>
             <p className={h}>Help</p>
             <ul className="space-y-3">
-              {content.policies.map((p) => <li key={p.slug}><Link href={`/pages/${p.slug}`} className={a}>{p.title}</Link></li>)}
+              {storePolicies(content.policies).map((p) =><li key={p.slug}><Link href={`/pages/${p.slug}`} className={a}>{p.title}</Link></li>)}
               <li><Link href="/pages/palladium-token" className={a}>$PALLADIUM</Link></li>
               <li><Link href="/pages/token-terms" className={a}>Token terms</Link></li>
               <li><Link href="/account" className={a}>My account</Link></li>
