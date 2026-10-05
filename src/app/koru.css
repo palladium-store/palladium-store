@@ -161,30 +161,30 @@ body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211
 /* Small photo tiles (cart lines, order lines, search hits) use the same light plate. */
 .theme-koru :is(aside, main, header) .bg-ink:has(> img) { border-radius: 8px; overflow: hidden; }
 
-/* Status colours written for a white page, retuned for the dark canvas (screen only: print keeps the originals). */
+/* Status colours written for a white page, retuned for the dark canvas (screen only: print and the light admin keep the originals). */
 @media screen {
-  .theme-koru :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100) { background-color: rgba(220, 38, 38, 0.14); }
-  .theme-koru :is(.text-red-600, .text-red-700, .text-red-800, .text-rose-700, .text-rose-800) { color: #ff8f86; }
-  .theme-koru :is(.border-red-200, .border-red-300) { border-color: rgba(255, 120, 110, 0.4); }
-  .theme-koru :is(.bg-emerald-50, .bg-emerald-100) { background-color: rgba(16, 185, 129, 0.14); }
-  .theme-koru :is(.text-emerald-700, .text-emerald-800) { color: #6ee7b7; }
-  .theme-koru .border-emerald-200 { border-color: rgba(110, 231, 183, 0.35); }
-  .theme-koru .bg-amber-100 { background-color: rgba(245, 158, 11, 0.16); }
-  .theme-koru :is(.text-amber-700, .text-amber-800) { color: #fcd34d; }
-  .theme-koru .bg-sky-100 { background-color: rgba(56, 189, 248, 0.16); }
-  .theme-koru .text-sky-800 { color: #7dd3fc; }
-  .theme-koru .bg-indigo-100 { background-color: rgba(129, 140, 248, 0.18); }
-  .theme-koru .text-indigo-800 { color: #a5b4fc; }
-  .theme-koru .bg-violet-100 { background-color: rgba(167, 139, 250, 0.18); }
-  .theme-koru .text-violet-800 { color: #c4b5fd; }
-  .theme-koru :is(.bg-neutral-100, .bg-neutral-200, .bg-neutral-300) { background-color: rgb(var(--c-ink) / 0.1); }
-  .theme-koru :is(.text-neutral-600, .text-neutral-700) { color: rgb(var(--c-mute)); }
-  .theme-koru .bg-amber-50 { background-color: rgba(245, 158, 11, 0.12); }
-  .theme-koru .text-amber-900 { color: #fcd34d; }
-  .theme-koru :is(.border-amber-200, .border-amber-300) { border-color: rgba(252, 211, 77, 0.35); }
-  .theme-koru .text-blue-700 { color: #93c5fd; }
-  .theme-koru .text-neutral-300 { color: rgb(var(--c-ink) / 0.25); }
-  .theme-koru .border-neutral-300 { border-color: rgb(var(--c-ink) / 0.2); }
+  .theme-koru:not(.admin-light) :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100) { background-color: rgba(220, 38, 38, 0.14); }
+  .theme-koru:not(.admin-light) :is(.text-red-600, .text-red-700, .text-red-800, .text-rose-700, .text-rose-800) { color: #ff8f86; }
+  .theme-koru:not(.admin-light) :is(.border-red-200, .border-red-300) { border-color: rgba(255, 120, 110, 0.4); }
+  .theme-koru:not(.admin-light) :is(.bg-emerald-50, .bg-emerald-100) { background-color: rgba(16, 185, 129, 0.14); }
+  .theme-koru:not(.admin-light) :is(.text-emerald-700, .text-emerald-800) { color: #6ee7b7; }
+  .theme-koru:not(.admin-light) .border-emerald-200 { border-color: rgba(110, 231, 183, 0.35); }
+  .theme-koru:not(.admin-light) .bg-amber-100 { background-color: rgba(245, 158, 11, 0.16); }
+  .theme-koru:not(.admin-light) :is(.text-amber-700, .text-amber-800) { color: #fcd34d; }
+  .theme-koru:not(.admin-light) .bg-sky-100 { background-color: rgba(56, 189, 248, 0.16); }
+  .theme-koru:not(.admin-light) .text-sky-800 { color: #7dd3fc; }
+  .theme-koru:not(.admin-light) .bg-indigo-100 { background-color: rgba(129, 140, 248, 0.18); }
+  .theme-koru:not(.admin-light) .text-indigo-800 { color: #a5b4fc; }
+  .theme-koru:not(.admin-light) .bg-violet-100 { background-color: rgba(167, 139, 250, 0.18); }
+  .theme-koru:not(.admin-light) .text-violet-800 { color: #c4b5fd; }
+  .theme-koru:not(.admin-light) :is(.bg-neutral-100, .bg-neutral-200, .bg-neutral-300) { background-color: rgb(var(--c-ink) / 0.1); }
+  .theme-koru:not(.admin-light) :is(.text-neutral-600, .text-neutral-700) { color: rgb(var(--c-mute)); }
+  .theme-koru:not(.admin-light) .bg-amber-50 { background-color: rgba(245, 158, 11, 0.12); }
+  .theme-koru:not(.admin-light) .text-amber-900 { color: #fcd34d; }
+  .theme-koru:not(.admin-light) :is(.border-amber-200, .border-amber-300) { border-color: rgba(252, 211, 77, 0.35); }
+  .theme-koru:not(.admin-light) .text-blue-700 { color: #93c5fd; }
+  .theme-koru:not(.admin-light) .text-neutral-300 { color: rgb(var(--c-ink) / 0.25); }
+  .theme-koru:not(.admin-light) .border-neutral-300 { border-color: rgb(var(--c-ink) / 0.2); }
 }
 
 /* "Frequently bought together" cards */
@@ -219,6 +219,29 @@ body:has(.theme-koru) .nav-bar { background: #dc211b; box-shadow: 0 0 8px #dc211
 @media (max-width: 1023px) { .theme-admin .card .font-display { font-size: clamp(1.1rem, 4.4vw, 1.5rem); } }
 .theme-koru :is(input[type='checkbox'], input[type='radio']) { accent-color: #dc211b; }
 .theme-koru .plate.plate-sm { border-radius: 8px; }
+
+/*
+ * Light admin (the sun/moon switch in the admin top bar). Same KORU type and red, on warm paper. The sidebar keeps --c-night,
+ * so it stays dark in both themes.
+ */
+.theme-koru.admin-light {
+  --c-ink: 23 19 20; --c-paper: 246 243 240; --c-bone: 255 255 255; --c-line: 226 220 217; --c-mute: 105 98 98;
+  --c-gold: 220 33 27; --c-gold-deep: 184 26 20; --c-gold-soft: 252 230 228;
+  --gold: #dc211b;
+  color-scheme: light;
+}
+body:has(.theme-koru.admin-light) { background: #f6f3f0; }
+.theme-koru.admin-light::before {
+  background:
+    radial-gradient(ellipse 46% 40% at 78% 64%, rgba(220, 33, 27, 0.06), rgba(220, 33, 27, 0) 70%),
+    radial-gradient(ellipse 40% 36% at 12% 16%, rgba(120, 100, 100, 0.07), rgba(120, 100, 100, 0) 70%);
+}
+.theme-koru.admin-light .tbl th { background: rgb(var(--c-ink) / 0.035); }
+.theme-koru.admin-light .table-wrap { background: rgb(var(--c-bone)); }
+.theme-koru.admin-light .card { background: rgb(var(--c-bone)); box-shadow: 0 1px 2px rgb(var(--c-ink) / 0.04); }
+.theme-koru.admin-light .k-pop { background: #fff; box-shadow: 0 24px 48px -20px rgba(40, 20, 20, 0.28); }
+.theme-koru.admin-light [role='dialog'] { background-color: #fff; }
+.theme-koru.admin-light .k-chip { background: rgba(255, 255, 255, 0.7); }
 
 /* A light sheet inside the dark area: the printable invoice and packing slip. */
 .theme-koru .theme-light {
