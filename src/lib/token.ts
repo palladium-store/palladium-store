@@ -9,17 +9,7 @@ import { CHAINS, isAddress, type WalletConfig } from './chain-config';
 export const TOKEN_NAME = 'Palladium';
 export const TOKEN_SYMBOL = '$PALLADIUM';
 /** Proposed fixed supply (whole tokens). Treated as proposed until the contract is deployed and verified. */
-export const PROPOSED_MAX_SUPPLY = 100_000_000;
-
-/** Proposed allocation, in whole percent. Must add up to 100. Not final until approved. */
-export const PROPOSED_ALLOCATION = [
-  { key: 'community', label: 'Community and customer rewards', pct: 30, note: 'Funds rewards from a fixed pool. No new tokens are ever minted.' },
-  { key: 'ecosystem', label: 'Ecosystem and merchant adoption', pct: 20, note: 'Retail partners, clubs and future Palladium Touchpoints.' },
-  { key: 'treasury', label: 'Treasury reserve', pct: 20, note: 'Held under multisignature control with spending limits.' },
-  { key: 'operations', label: 'Development and operations', pct: 15, note: 'Building and running the platform.' },
-  { key: 'team', label: 'Founders and team', pct: 10, note: 'Subject to a vesting schedule.' },
-  { key: 'liquidity', label: 'Liquidity', pct: 5, note: 'Subject to legal review before any use.' },
-] as const;
+export const PROPOSED_MAX_SUPPLY = 1_000_000_000;
 
 export interface TokenInfo {
   deployed: boolean;
