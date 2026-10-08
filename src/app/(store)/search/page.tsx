@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { displayTokenPricePhp } from '@/lib/pricing';
 import type { Metadata } from 'next';
 import { listProducts, type Sort } from '@/lib/queries/catalog';
 import { Pagination, EmptyState } from '@/components/ui/bits';
@@ -39,7 +40,7 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
             </div>
             {res.items.length === 0
               ? <EmptyState title="No products found" text={`Nothing matched "${q}". Check the spelling or browse the shop.`} action={<Link href="/shop" className="btn-primary">Browse the shop</Link>} />
-              : <ProductGrid items={res.items} />}
+              : <ProductGrid items={res.items} palladiumPricePhp={await displayTokenPricePhp()} />}
             <Pagination page={res.page} pages={res.pages} total={res.total} base="/search" params={{ q, sort: sort !== 'featured' ? sort : undefined }} />
           </>
         )}

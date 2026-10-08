@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { displayTokenPricePhp } from '@/lib/pricing';
 import type { Metadata } from 'next';
 import { listProducts, listCategories, priceBounds, type Sort } from '@/lib/queries/catalog';
 import { peso } from '@/lib/money';
@@ -132,7 +133,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
           {res.items.length === 0 ? (
             <EmptyState title="No products match" text="Try removing a filter or searching for something else." action={<Link href="/shop" className="btn-primary">Clear filters</Link>} />
           ) : (
-            <ProductGrid items={res.items} className="grid-cols-2 md:grid-cols-3 lg:grid-cols-4" priorityCount={4} />
+            <ProductGrid items={res.items} className="grid-cols-2 md:grid-cols-3 lg:grid-cols-4" priorityCount={4} palladiumPricePhp={await displayTokenPricePhp()} />
           )}
           <Pagination page={res.page} pages={res.pages} total={res.total} base="/shop" params={sp} />
         </div>

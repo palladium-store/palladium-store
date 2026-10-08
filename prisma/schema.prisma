@@ -298,7 +298,9 @@ model Order {
   status        OrderStatus @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
   paymentMethod PaymentMethod
-  // $PALLADIUM DEMO payment details (null for every other method). Plain integers: tokenAmountMinor is hundredths of a token.
+  // $PALLADIUM payment details (null for every other method). paymentMode is DEMO or LIVE. tokenAmountMinor is hundredths of a token
+  // (the exact smallest-unit amount of a LIVE payment lives in payments.rawPayload); txId is the demo id or the real transaction hash,
+  // unique across orders by a partial index (migration 0010).
   paymentMode   String?
   tokenAmountMinor   Int?
   tokenPriceCentavos Int?

@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePalladiumWallet } from './palladium/wallet';
+import { useLiveWallet } from './palladium/live-wallet';
 import { peso } from '@/lib/money';
-import { getPalladiumPricePhp, phpToPalladium, formatPalladium } from '@/lib/palladium-price';
+import { phpToPalladium, formatPalladium } from '@/lib/palladium-price';
 import { Img } from './img';
 import { Stars } from './stars';
 import { WishButton } from './wish-button';
@@ -13,10 +14,15 @@ import { useCart } from './cart-context';
 import { useToast } from '@/components/ui/toast';
 import type { CardProduct } from './types';
 
-export function ProductCard({ p, priority = false, refreshOnWishChange = false, palladiumPricePhp = getPalladiumPricePhp() }: { p: CardProduct; priority?: boolean; refreshOnWishChange?: boolean; palladiumPricePhp?: number }) {
+/** palladiumPricePhp: the reviewed PHP-per-token rate from the server (lib/pricing.ts), or null/undefined to show no token amount. */
+export function ProductCard({ p, priority = false, refreshOnWishChange = false, palladiumPricePhp = null }: { p: CardProduct; priority?: boolean; refreshOnWishChange?: boolean; palladiumPricePhp?: number | null }) {
   const { lines, add, openDrawer } = useCart();
   const router = useRouter();
-  const { enabled: cryptoEnabled, openSoon } = usePalladiumWallet();
+  const demo = usePalladiumWallet();
+  const live = useLiveWallet();
+  const isLive = live.config.mode === 'live';
+  // Live: the real checkout, once token payments are switched on. Demo: the simulated one. Otherwise the button explains what a wallet does today.
+  const cryptoEnabled = isLive ? live.config.checkoutEnabled : demo.enabled;
   const { toast } = useToast();
   const variants = p.variants ?? [];
   const firstAvail = Math.max(variants.findIndex((v) => v.available > 0), 0);
@@ -34,7 +40,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
   const onSale = compareAt != null && compareAt > price;
   const priceVaries = multi && new Set(variants.map((x) => x.price)).size > 1;
   const shownPrice = priceVaries && !picked ? p.price : price; // the PHP price on screen is the single source of truth
-  const tokenAmount = phpToPalladium(shownPrice, palladiumPricePhp);
+  const tokenAmount = palladiumPricePhp != null ? phpToPalladium(shownPrice, palladiumPricePhp) : null;
   const main = picked && v?.image ? v.image : p.image;
   const soldOut = v ? v.available <= 0 : !p.inStock;
   const inCart = v ? lines.find((l) => l.variantId === v.id)?.qty ?? 0 : 0;
@@ -51,7 +57,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
     }, 350);
   }
 
-  /** DEMO crypto checkout: add this variant, then go straight to checkout with PALLADIUM preselected. */
+  /** Crypto checkout: add this variant, then go straight to checkout with PALLADIUM preselected. */
   function payWithCrypto() {
     if (!v || soldOut) return;
     if (inCart >= Math.min(v.available, 99)) { toast(`All ${v.available} available are already in your cart.`, 'error'); return; }
@@ -136,11 +142,11 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
           )}
         </div>
         {(soldOut ? <div className="mt-2 h-[2.5rem]" aria-hidden="true" /> : (
-          <button type="button" onClick={cryptoEnabled ? payWithCrypto : openSoon}
+          <button type="button" onClick={cryptoEnabled ? payWithCrypto : live.openConnect}
             className="pc-crypto group/crypto relative mt-2 flex h-[2.5rem] w-full items-center justify-center gap-2 overflow-hidden border border-ink/80 bg-gold px-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-ink shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)] transition duration-300 before:absolute before:inset-y-0 before:-left-full before:w-1/2 before:skew-x-[-20deg] before:bg-white/50 before:transition-transform before:duration-700 hover:-translate-y-px hover:shadow-[0_10px_20px_-8px_rgba(0,0,0,0.55)] hover:before:translate-x-[320%]">
             <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 8h4.5a2 2 0 0 1 0 4H9m0 0h5a2 2 0 0 1 0 4H9M9 8v8M11 6v2m0 8v2" /></svg>
             Pay with crypto
-            <span className="pc-crypto-tag rounded-full bg-night px-2 text-[10px] font-bold leading-4 tracking-[0.1em] text-gold-deep">{cryptoEnabled ? 'Demo' : <><span className="sm:hidden">Soon</span><span className="hidden sm:inline">In progress</span></>}</span>
+            <span className="pc-crypto-tag rounded-full bg-night px-2 text-[10px] font-bold leading-4 tracking-[0.1em] text-gold-deep">{cryptoEnabled ? (isLive ? live.config.wallet.symbol : 'Demo') : <><span className="sm:hidden">Soon</span><span className="hidden sm:inline">In progress</span></>}</span>
           </button>
         ))}
       </div>
@@ -148,7 +154,7 @@ export function ProductCard({ p, priority = false, refreshOnWishChange = false, 
   );
 }
 
-export function ProductGrid({ items, className = 'grid-cols-2 lg:grid-cols-4', priorityCount = 0, refreshOnWishChange = false, palladiumPricePhp }: { items: CardProduct[]; className?: string; priorityCount?: number; palladiumPricePhp?: number; refreshOnWishChange?: boolean }) {
+export function ProductGrid({ items, className = 'grid-cols-2 lg:grid-cols-4', priorityCount = 0, refreshOnWishChange = false, palladiumPricePhp = null }: { items: CardProduct[]; className?: string; priorityCount?: number; palladiumPricePhp?: number | null; refreshOnWishChange?: boolean }) {
   return (
     <div className={`grid gap-x-4 gap-y-10 sm:gap-x-6 ${className}`}>
       {items.map((p, i) => <ProductCard key={p.id} p={p} priority={i < priorityCount} refreshOnWishChange={refreshOnWishChange} palladiumPricePhp={palladiumPricePhp} />)}

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { displayTokenPricePhp } from '@/lib/pricing';
 import { customerGuard } from '@/lib/guard';
 import { prisma } from '@/lib/db';
 import { listProducts } from '@/lib/queries/catalog';
@@ -14,6 +15,7 @@ export default async function WishlistPage() {
   const ids = rows.map((r) => r.productId);
   const { items } = ids.length ? await listProducts({ ids, pageSize: 48 }) : { items: [] };
   const ordered = ids.map((id) => items.find((p) => p.id === id)).filter((p): p is (typeof items)[number] => !!p);
+  const tokenPrice = await displayTokenPricePhp();
   return (
     <div>
       <h2 className="h-display mb-6 text-2xl sm:text-3xl">Wishlist</h2>
@@ -22,7 +24,7 @@ export default async function WishlistPage() {
       ) : (
         <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 xl:grid-cols-3">
           {ordered.map((p) => (
-            <div key={p.id}><ProductCard p={p} refreshOnWishChange /><RemoveWishlistButton productId={p.id} name={p.name} /></div>
+            <div key={p.id}><ProductCard p={p} refreshOnWishChange palladiumPricePhp={tokenPrice} /><RemoveWishlistButton productId={p.id} name={p.name} /></div>
           ))}
         </div>
       )}

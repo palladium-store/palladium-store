@@ -11,6 +11,8 @@ import { Badge, statusLabel } from '@/components/ui/bits';
 import { OrderActions } from '@/components/admin/OrderActions';
 import { OrderNotes } from '@/components/admin/NotesEditor';
 import { PageHeader, orderLabel } from '@/components/admin/parts';
+import { CHAINS, explorerAddressUrl, explorerTxUrl, formatUnits } from '@/lib/chain-config';
+import type { TokenPaymentRecord } from '@/lib/palladium/live-server';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Order' };
@@ -38,6 +40,10 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
   const next = canEdit ? nextStatuses(order.status) : [];
   const canCustomer = can(user.role, 'VIEW_CUSTOMERS');
   const base = `/admin/orders/${order.id}/print`;
+  // Real $PALLADIUM payment: the exact amounts and the blockchain transaction live on the payment row (see lib/palladium/live-server.ts).
+  const tokenRaw = order.paymentMode === 'LIVE' ? (order.payments[0]?.rawPayload as unknown as Partial<TokenPaymentRecord> | null) : null;
+  const token = tokenRaw && tokenRaw.mode === 'LIVE' && tokenRaw.tokenAmount && tokenRaw.decimals != null ? (tokenRaw as TokenPaymentRecord) : null;
+  const tokenChain = token ? Object.values(CHAINS).find((c) => c.chainId === token.chainId) ?? CHAINS.testnet : null;
 
   return (
     <div>
@@ -157,6 +163,14 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
             <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-mute">Payment and fulfillment</h2>
             <dl className="space-y-1.5">
               <div className="flex justify-between gap-3"><dt className="text-mute">Method</dt><dd>{PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod}</dd></div>
+              {token && tokenChain && <>
+                <div className="flex justify-between gap-3"><dt className="text-mute">Token amount</dt><dd className="text-right">{formatUnits(BigInt(token.tokenAmount), token.decimals, 6)} {token.symbol} @ ₱{token.rate}</dd></div>
+                {token.received && <div className="flex justify-between gap-3"><dt className="text-mute">Received</dt><dd className="text-right">{formatUnits(BigInt(token.received), token.decimals, 6)} {token.symbol}</dd></div>}
+                <div className="flex justify-between gap-3"><dt className="text-mute">Chain status</dt><dd className="text-right">{token.state}{token.note ? ` · ${token.note}` : ''}</dd></div>
+                {token.txHash && <div className="flex justify-between gap-3"><dt className="text-mute">Transaction</dt><dd className="min-w-0 text-right font-mono text-xs"><a className="break-all hover:underline" href={explorerTxUrl(tokenChain, token.txHash)} target="_blank" rel="noopener noreferrer">{token.txHash}</a></dd></div>}
+                {token.from && <div className="flex justify-between gap-3"><dt className="text-mute">From wallet</dt><dd className="min-w-0 text-right font-mono text-xs"><a className="break-all hover:underline" href={explorerAddressUrl(tokenChain, token.from)} target="_blank" rel="noopener noreferrer">{token.from}</a></dd></div>}
+                <div className="flex justify-between gap-3"><dt className="text-mute">Network</dt><dd className="text-right">{tokenChain.name}</dd></div>
+              </>}
               {order.paymentMode === 'DEMO' && <>
                 <div className="flex justify-between gap-3"><dt className="text-mute">Payment mode</dt><dd className="font-semibold text-gold-deep">DEMO (simulated, not counted as sales)</dd></div>
                 {order.tokenAmountMinor != null && <div className="flex justify-between gap-3"><dt className="text-mute">Token amount</dt><dd>{(order.tokenAmountMinor / 100).toLocaleString('en-PH', { maximumFractionDigits: 2 })} PALLADIUM{order.tokenPriceCentavos != null ? ` @ ${peso(order.tokenPriceCentavos)}` : ''}</dd></div>}

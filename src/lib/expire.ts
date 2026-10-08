@@ -3,12 +3,13 @@ import { prisma } from './db';
 import { audit } from './audit';
 import { syncIntent, paymongoConfigured } from './paymongo';
 import { queueCustomerEmail, processOutbox } from './email';
+import { tokenPaymentInFlight } from './palladium/live-server';
 
 /**
  * Releases stock held by abandoned checkouts. A QR Ph / PALLADIUM order that was never paid keeps its items reserved, which would
  * slowly lock up limited stock. After `hours` unpaid (UNPAID_HOURS by default), the order is cancelled and the stock goes back on sale.
  * Safety: before cancelling a QR Ph order every QR it ever had is re-checked with PayMongo; if any shows paid, or PayMongo cannot be reached,
- * the order is left alone for a human.
+ * the order is left alone for a human. A PALLADIUM order whose transaction is still confirming on the chain, or needs review, is left alone too.
  */
 /** How long an unpaid QR Ph / PALLADIUM order holds stock. A QR code is only valid for 30 minutes, so 3 hours is generous. */
 export const UNPAID_HOURS = 3;
@@ -17,7 +18,7 @@ export async function expireStaleOrders(hours = UNPAID_HOURS, limit = 50) {
   const cutoff = new Date(Date.now() - hours * 3600 * 1000);
   const rows = await prisma.order.findMany({
     where: { status: 'PAYMENT_PENDING', paymentStatus: 'PENDING', paymentMethod: { in: ['QRPH', 'PALLADIUM'] }, createdAt: { lt: cutoff } },
-    select: { id: true, orderNumber: true, email: true, paymentMethod: true }, orderBy: { createdAt: 'asc' }, take: limit,
+    select: { id: true, orderNumber: true, email: true, paymentMethod: true, totalCentavos: true, status: true, paymentStatus: true }, orderBy: { createdAt: 'asc' }, take: limit,
   });
   let cancelled = 0, skipped = 0;
   for (const o of rows) {
@@ -30,6 +31,7 @@ export async function expireStaleOrders(hours = UNPAID_HOURS, limit = 50) {
         for (const id of Array.isArray(ids) ? ids : []) if (typeof id === 'string' && (await syncIntent(id)) === 'paid') paid = true;
         if (paid) { skipped++; continue; }
       }
+      if (o.paymentMethod === 'PALLADIUM' && (await tokenPaymentInFlight(o))) { skipped++; continue; }
       await prisma.$executeRaw`SELECT pal_cancel_order(${o.id}::text, ${`Not paid within ${hours} hours`}::text, ${null}::text)`;
       await audit(null, 'ORDER_AUTO_CANCELLED', 'Order', o.id, `Cancelled ${o.orderNumber}: not paid within ${hours} hours, stock released`);
       await queueCustomerEmail('ORDER_CANCELLED', `Order ${o.orderNumber} was cancelled because it was not paid`, o.email, o.id);

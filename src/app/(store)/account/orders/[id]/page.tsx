@@ -8,7 +8,8 @@ import { fmtDateTime } from '@/lib/time';
 import { Badge } from '@/components/ui/bits';
 import { METHOD_LABEL } from '@/components/store/labels';
 import { ReorderButton } from '@/components/store/reorder-button';
-import { AddressBlock, OrderItemsList, OrderTotalsBlock, PaymentInstructions, DemoPaymentReceipt, StatusTimeline, TrackingBlock, orderStatusNote } from '@/components/store/order-parts';
+import { AddressBlock, OrderItemsList, OrderTotalsBlock, PaymentInstructions, DemoPaymentReceipt, TokenPaymentReceipt, StatusTimeline, TrackingBlock, orderStatusNote } from '@/components/store/order-parts';
+import { loadTokenPayment, tokenPaymentView } from '@/lib/palladium/live-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,8 @@ export default async function OrderDetail({ params }: { params: { id: string } }
   if (!order) notFound();
   const payments = await getSetting('payments');
   const shipment = order.shipments.find((s) => s.trackingNumber) ?? order.shipments[0];
+  const tok = order.paymentMethod === 'PALLADIUM' && order.paymentMode === 'LIVE' ? await loadTokenPayment(order.id) : null;
+  const tokenPayment = tok ? await tokenPaymentView(order, tok.rec) : null;
 
   return (
     <div className="space-y-8">
@@ -36,8 +39,9 @@ export default async function OrderDetail({ params }: { params: { id: string } }
         </div>
       </div>
 
-      <PaymentInstructions order={order} instructions={(payments as unknown as Record<string, { instructions: string } | undefined>)[order.paymentMethod]?.instructions ?? ''} token={orderToken(order.id)} />
-          <DemoPaymentReceipt order={order} />
+      <PaymentInstructions order={order} instructions={(payments as unknown as Record<string, { instructions: string } | undefined>)[order.paymentMethod]?.instructions ?? ''} token={orderToken(order.id)} tokenPayment={tokenPayment} />
+      <TokenPaymentReceipt order={order} tokenPayment={tokenPayment} />
+      <DemoPaymentReceipt order={order} />
       <TrackingBlock shipment={shipment} />
 
       <section aria-labelledby="oi-h">

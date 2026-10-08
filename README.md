@@ -18,6 +18,7 @@ Demo customer after seeding: `customer@example.com` / `Customer!2026`. Admin = t
 - Money is integer centavos. Dates stored UTC, reported in Asia/Manila.
 - Auth: JWT cookie + bcrypt, RBAC (Super Admin, Admin, Inventory Manager, Order Manager, Staff), audit log.
 - Payments: manual provider (admin confirms GCash/Maya/card/bank payments); `src/lib/payments.ts` + `/api/payments/webhook` are the integration points for PayMongo/Xendit etc.
+- $PALLADIUM payments (Robinhood Chain): the browser wallet (`src/components/store/palladium/live-wallet.tsx`, MetaMask or any EVM wallet over EIP-1193) sends one ERC-20 transfer to Palladium's wallet; the server (`src/lib/palladium/live-server.ts`) locks the token amount when the order is placed, reads the transaction receipt from its own RPC, checks contract, recipient, amount and confirmations, and only then marks the order paid. One transaction hash can pay one order (migration 0010). Switched on by the TOKEN_* and PALLADIUM_PAYMENT_WALLET_ADDRESS variables in `.env.example`; until then the wallet connects but checkout stays in pesos. The old simulated demo (PALLADIUM_DEMO_MODE) never runs on production.
 - Storage: `src/lib/storage.ts` writes to `UPLOAD_DIR`; swap for S3/R2 by replacing the driver.
 - Email: queued in `notifications`, sent by `GET /api/cron/outbox` with header `Authorization: Bearer $CRON_SECRET` (schedule every minute). Without SMTP_* it logs instead.
 - Future-ready: `locations` + per-location `inventory`, `Shipment`, `source` fields allow consignment/POS/multi-warehouse without schema rewrites.

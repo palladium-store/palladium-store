@@ -7,6 +7,8 @@ import { CheckoutForm } from '@/components/store/checkout-form';
 
 import { enabledMethods } from '@/lib/payments';
 import { DEMO_INSTRUCTIONS } from '@/lib/palladium/demo-server';
+import { livePaymentEnabled } from '@/lib/palladium/live-config';
+import { LIVE_INSTRUCTIONS } from '@/lib/palladium/live-server';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Checkout', robots: { index: false, follow: false } };
@@ -14,7 +16,8 @@ export const metadata: Metadata = { title: 'Checkout', robots: { index: false, f
 export default async function CheckoutPage({ searchParams }: { searchParams: { pay?: string } }) {
   const [user, payments, store] = await Promise.all([getUser(), getSetting('payments'), getSetting('store')]);
   const customer = user ? await prisma.customer.findUnique({ where: { userId: user.id }, select: { phone: true } }) : null;
-  const methods = (await enabledMethods()).map((k) => ({ id: k as string, instructions: k === 'PALLADIUM' ? DEMO_INSTRUCTIONS : payments[k as keyof typeof payments].instructions }));
+  const live = await livePaymentEnabled();
+  const methods = (await enabledMethods()).map((k) => ({ id: k as string, instructions: k === 'PALLADIUM' ? (live ? LIVE_INSTRUCTIONS : DEMO_INSTRUCTIONS) : payments[k as keyof typeof payments].instructions }));
   return (
     <Container className="pb-8 pt-8 sm:pt-12">
       <h1 className="h-display mb-8 text-4xl sm:text-6xl">Checkout</h1>

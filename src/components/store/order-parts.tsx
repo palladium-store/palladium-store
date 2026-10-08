@@ -7,6 +7,9 @@ import { METHOD_HEADING, METHOD_LABEL } from './labels';
 import { QrPayment } from './qr-payment';
 import { formatPalladiumMinor } from '@/lib/palladium-price';
 import { DEMO_NETWORK_LABEL } from '@/lib/palladium/config';
+import type { TokenPaymentView } from '@/lib/palladium/live-server';
+import { TokenPaymentBlock } from './palladium/token-payment-block';
+import { CHAINS, explorerTxUrl, shortAddress } from '@/lib/chain-config';
 
 export function OrderItemsList({ items }: { items: OrderItem[] }) {
   return (
@@ -52,14 +55,22 @@ export function AddressBlock({ order }: { order: Order }) {
 }
 
 /** Shown while payment is outstanding. Wording depends on the payment method. */
-export function PaymentInstructions({ order, instructions, token }: { order: Order; instructions: string; token?: string }) {
+export function PaymentInstructions({ order, instructions, token, tokenPayment }: { order: Order; instructions: string; token?: string; tokenPayment?: TokenPaymentView | null }) {
   if (order.paymentStatus !== 'PENDING' && order.paymentStatus !== 'AUTHORIZED') return null;
   if (order.status === 'CANCELLED' || order.status === 'REFUNDED') return null;
   const cod = order.paymentMethod === 'COD';
+  if (order.paymentMethod === 'PALLADIUM' && tokenPayment && token) {
+    return (
+      <section className="border-2 border-gold bg-gold-soft p-5 sm:p-7" aria-labelledby="pay-h">
+        <h2 id="pay-h" className="font-display text-xl tracking-tightest">{METHOD_HEADING.PALLADIUM}</h2>
+        <TokenPaymentBlock initial={tokenPayment} token={token} />
+      </section>
+    );
+  }
   return (
     <section className="border-2 border-gold bg-gold-soft p-5 sm:p-7" aria-labelledby="pay-h">
       <h2 id="pay-h" className="font-display text-xl tracking-tightest">{METHOD_HEADING[order.paymentMethod] ?? 'Payment'}</h2>
-      <p className="mt-2 text-sm">{order.paymentMethod === 'PALLADIUM' ? 'DEMO order. Its simulated PALLADIUM payment has not been completed yet. Nothing real has been charged.' : instructions}</p>
+      <p className="mt-2 text-sm">{order.paymentMethod === 'PALLADIUM' ? (order.paymentMode === 'DEMO' ? 'DEMO order. Its simulated PALLADIUM payment has not been completed yet. Nothing real has been charged.' : 'Your $PALLADIUM payment has not been completed yet.') : instructions}</p>
       {order.paymentMethod === 'QRPH' && token && <QrPayment orderNumber={order.orderNumber} token={token} amount={peso(order.totalCentavos)} />}
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
         <div><dt className="text-xs uppercase tracking-wider text-mute">{cod ? 'Amount to prepare' : 'Amount to pay'}</dt><dd className="font-display text-2xl tracking-tightest">{peso(order.totalCentavos)}</dd></div>
@@ -128,6 +139,27 @@ export function NextSteps({ order }: { order: Order }) {
         {steps.map((s, i) => <li key={i} className="flex gap-3 text-sm"><span className="flex h-6 w-6 shrink-0 items-center justify-center bg-ink text-xs font-bold text-gold">{i + 1}</span><span className="pt-0.5">{s}</span></li>)}
       </ol>
       <p className="mt-5 text-sm text-mute">Questions? <Link href="/pages/shipping" className="underline">Shipping policy</Link></p>
+    </section>
+  );
+}
+
+/** Receipt for a real $PALLADIUM payment, with the blockchain transaction. */
+export function TokenPaymentReceipt({ order, tokenPayment }: { order: Order; tokenPayment: TokenPaymentView | null | undefined }) {
+  if (!tokenPayment || order.paymentMethod !== 'PALLADIUM' || order.paymentMode !== 'LIVE' || order.paymentStatus !== 'PAID') return null;
+  const chain = Object.values(CHAINS).find((c) => c.chainId === tokenPayment.chainId) ?? CHAINS.testnet;
+  const row = (k: string, v: React.ReactNode) => <div className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 text-sm last:border-0"><dt className="text-mute">{k}</dt><dd className="min-w-0 text-right font-semibold tabular-nums">{v}</dd></div>;
+  return (
+    <section className="border border-ink bg-bone p-5 sm:p-7" aria-labelledby="tok-pay-h">
+      <h2 id="tok-pay-h" className="font-display text-xl tracking-tightest">{tokenPayment.symbol} payment</h2>
+      <dl className="mt-3">
+        {row('Paid', `${tokenPayment.receivedDisplay ?? tokenPayment.tokenAmountDisplay} ${tokenPayment.symbol}`)}
+        {row('PHP total', peso(order.totalCentavos))}
+        {row('Rate', `₱${tokenPayment.rate} per token`)}
+        {row('Transaction', tokenPayment.txHash ? <a className="font-mono underline underline-offset-4" href={explorerTxUrl(chain, tokenPayment.txHash)} target="_blank" rel="noopener noreferrer">{tokenPayment.txHash.slice(0, 10)}...{tokenPayment.txHash.slice(-6)}</a> : '-')}
+        {row('From wallet', tokenPayment.from ? <span className="font-mono">{shortAddress(tokenPayment.from)}</span> : '-')}
+        {row('Network', chain.name)}
+        {row('Status', 'Confirmed')}
+      </dl>
     </section>
   );
 }

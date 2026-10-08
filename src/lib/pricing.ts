@@ -80,3 +80,14 @@ export async function issueQuote(phpCentavos: number, now = Date.now()): Promise
 }
 
 export const checkQuote = (token: string, now = Date.now()) => verifyQuote(token, secret(), now);
+
+/**
+ * PHP per token for the "about N $PALLADIUM" tag on product cards, or null when no reviewed price exists (then the tag is
+ * not shown). Display only, rounded to 6 decimals; checkout uses the exact bigint maths above.
+ */
+export async function displayTokenPricePhp(): Promise<number | null> {
+  const p = await getCurrentPrice();
+  if (!p.available) return null;
+  const n = Number(formatPrice(p.priceScaled, 6).replace(/,/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}

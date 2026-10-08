@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { displayTokenPricePhp } from '@/lib/pricing';
 import type { Metadata } from 'next';
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
@@ -188,7 +189,7 @@ export default async function ProductPage({ params }: Params) {
         {related.length > 0 && (
           <section className="mt-16" aria-labelledby="related-h">
             <h2 id="related-h" className="h-display mb-8 text-2xl sm:text-3xl">You might also like</h2>
-            <ProductGrid items={related} />
+            <ProductGrid items={related} palladiumPricePhp={await displayTokenPricePhp()} />
           </section>
         )}
       </Container>

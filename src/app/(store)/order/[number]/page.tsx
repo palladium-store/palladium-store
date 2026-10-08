@@ -9,7 +9,8 @@ import { fmtDateTime } from '@/lib/time';
 import { Badge } from '@/components/ui/bits';
 import { Container } from '@/components/store/container';
 import { METHOD_LABEL } from '@/components/store/labels';
-import { AddressBlock, NextSteps, OrderItemsList, OrderTotalsBlock, PaymentInstructions, DemoPaymentReceipt, TrackingBlock, orderStatusNote } from '@/components/store/order-parts';
+import { AddressBlock, NextSteps, OrderItemsList, OrderTotalsBlock, PaymentInstructions, DemoPaymentReceipt, TokenPaymentReceipt, TrackingBlock, orderStatusNote } from '@/components/store/order-parts';
+import { loadTokenPayment, tokenPaymentView } from '@/lib/palladium/live-server';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Order confirmation', robots: { index: false, follow: false, nocache: true } };
@@ -31,6 +32,8 @@ export default async function OrderPage({ params, searchParams }: { params: { nu
 
   const payments = await getSetting('payments');
   const shipment = order.shipments.find((s) => s.trackingNumber) ?? order.shipments[0];
+  const tok = order.paymentMethod === 'PALLADIUM' && order.paymentMode === 'LIVE' ? await loadTokenPayment(order.id) : null;
+  const tokenPayment = tok ? await tokenPaymentView(order, tok.rec) : null;
 
   return (
     <Container className="pb-8 pt-8 sm:pt-12">
@@ -44,7 +47,8 @@ export default async function OrderPage({ params, searchParams }: { params: { nu
         <p className="mt-3 text-sm text-mute">{orderStatusNote(order)} We will send updates to {order.email}.</p>
 
         <div className="mt-8 space-y-6">
-          <PaymentInstructions order={order} instructions={(payments as unknown as Record<string, { instructions: string } | undefined>)[order.paymentMethod]?.instructions ?? ''} token={orderToken(order.id)} />
+          <PaymentInstructions order={order} instructions={(payments as unknown as Record<string, { instructions: string } | undefined>)[order.paymentMethod]?.instructions ?? ''} token={orderToken(order.id)} tokenPayment={tokenPayment} />
+          <TokenPaymentReceipt order={order} tokenPayment={tokenPayment} />
           <DemoPaymentReceipt order={order} />
           <TrackingBlock shipment={shipment} />
           <section aria-labelledby="items-h">

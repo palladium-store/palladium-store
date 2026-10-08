@@ -14,6 +14,8 @@ import type { SavedAddress } from './types';
 import { PalladiumPayPanel, PalladiumPaymentModal, type PaymentJob } from './palladium/checkout';
 import { usePalladiumWallet } from './palladium/wallet';
 import { formatPalladiumMinor } from '@/lib/palladium-price';
+import { LivePayPanel, LivePaymentModal, useIndicativeAmount, type LivePaymentJob } from './palladium/live-checkout';
+import { useLiveWallet } from './palladium/live-wallet';
 
 interface Props {
   /** Arrived from a "Pay with crypto" button: start with PALLADIUM selected. */
@@ -40,10 +42,15 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
   const { toast } = useToast();
   const { lines, ready, clear } = useCart();
   const wallet = usePalladiumWallet();
-  // PALLADIUM is a separate (demo) choice from the PHP methods.
+  const live = useLiveWallet();
+  // Real wallet unless the server runs the demo (never on production).
+  const isLive = live.config.mode === 'live';
+  const symbol = live.config.wallet.symbol;
+  // PALLADIUM is a separate choice from the PHP methods.
   const phpMethods = methods.filter((m) => m.id !== 'PALLADIUM');
   const hasPalladium = methods.some((m) => m.id === 'PALLADIUM');
   const [job, setJob] = useState<PaymentJob | null>(null);
+  const [liveJob, setLiveJob] = useState<LivePaymentJob | null>(null);
   const [short, setShort] = useState<{ requiredMinor: number; availableMinor: number } | null>(null);
 
   const [f, setF] = useState({
@@ -66,6 +73,7 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
   const submitting = useRef(false);
 
   const { quote, loading, error: quoteError, refresh } = useQuote(lines, { discountCode: code, province: f.province });
+  const indicative = useIndicativeAmount(isLive && f.method === 'PALLADIUM' && quote ? quote.totalCentavos : null);
 
   // Remembered province and discount code from the cart page.
   useEffect(() => {
@@ -120,9 +128,15 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
     const payToken = f.method === 'PALLADIUM';
     if (payToken) {
       if (!quote) { setTopErr('Your total is still being calculated. Try again in a moment.'); return; }
-      if (!wallet.session.connected) { setTopErr('Connect your demo wallet to pay with PALLADIUM.'); wallet.openConnect(); return; }
-      const need = wallet.service.quote(quote.totalCentavos).amountMinor;
-      if (!wallet.service.canAfford(need)) { setShort({ requiredMinor: need, availableMinor: wallet.session.palladiumMinor }); return; }
+      if (isLive) {
+        if (!live.address) { setTopErr(`Connect your wallet to pay with ${symbol}.`); live.openConnect(); return; }
+        if (!live.onChain) { setTopErr(`Switch your wallet to ${live.config.wallet.chain.name} to pay with ${symbol}.`); return; }
+        if (indicative.amount != null && live.balance != null && live.balance < indicative.amount) { setTopErr(`Your wallet holds less ${symbol} than this order needs.`); return; }
+      } else {
+        if (!wallet.session.connected) { setTopErr('Connect your demo wallet to pay with PALLADIUM.'); wallet.openConnect(); return; }
+        const need = wallet.service.quote(quote.totalCentavos).amountMinor;
+        if (!wallet.service.canAfford(need)) { setShort({ requiredMinor: need, availableMinor: wallet.session.palladiumMinor }); return; }
+      }
     }
     submitting.current = true; setPending(true);
     if (!keyRef.current) keyRef.current = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `k-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -146,9 +160,13 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
         },
       });
       if (payToken && quote) {
-        // DEMO: the order exists (awaiting payment). Run the simulated payment; the cart is cleared once it succeeds.
-        const first = quote.lines[0]?.productName ?? 'Palladium order';
-        setJob({ orderNumber: res.orderNumber, token: res.token, phpCentavos: quote.totalCentavos, label: quote.lines.length > 1 ? `${first} +${quote.lines.length - 1} more` : first });
+        // The order exists and holds its stock (awaiting payment). Live: the server locked the token amount; the wallet pays it now.
+        // Demo: run the simulated payment. Either way the cart is cleared once the payment is done.
+        if (isLive) setLiveJob({ orderNumber: res.orderNumber, token: res.token });
+        else {
+          const first = quote.lines[0]?.productName ?? 'Palladium order';
+          setJob({ orderNumber: res.orderNumber, token: res.token, phpCentavos: quote.totalCentavos, label: quote.lines.length > 1 ? `${first} +${quote.lines.length - 1} more` : first });
+        }
         submitting.current = false; setPending(false);
         return;
       }
@@ -262,20 +280,20 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
                 <legend className="sr-only">Pay with</legend>
                 {[
                   { id: 'php', label: 'PHP', sub: phpMethods.length ? phpMethods.map((m) => METHOD_LABEL[m.id] ?? m.id).join(' / ') : 'Not available right now', on: f.method !== 'PALLADIUM', off: phpMethods.length === 0, pick: () => up('method', phpMethods[0]?.id ?? '') },
-                  { id: 'pal', label: 'Pay with crypto', sub: 'PALLADIUM · simulated wallet', on: f.method === 'PALLADIUM', off: false, pick: () => up('method', 'PALLADIUM') },
+                  { id: 'pal', label: 'Pay with crypto', sub: isLive ? `${symbol} on ${live.config.wallet.chain.name}` : 'PALLADIUM · simulated wallet', on: f.method === 'PALLADIUM', off: false, pick: () => up('method', 'PALLADIUM') },
                 ].map((o) => (
                   <label key={o.id} className={`block border p-4 transition ${o.off ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${o.on ? 'border-ink bg-bone' : 'border-line hover:border-ink'}`}>
                     <span className="flex items-center gap-3">
                       <input type="radio" name="payMode" checked={o.on} disabled={o.off} onChange={o.pick} className="accent-ink" />
                       <span className="font-semibold">{o.label}</span>
-                      {o.id === 'pal' && <span className="border border-gold px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.16em] text-gold-deep">Demo</span>}
+                      {o.id === 'pal' && !isLive && <span className="border border-gold px-1.5 py-px text-[9px] font-bold uppercase tracking-[0.16em] text-gold-deep">Demo</span>}
                     </span>
                     <span className="mt-1 block pl-7 text-xs text-mute">{o.sub}</span>
                   </label>
                 ))}
               </fieldset>
             )}
-            {f.method === 'PALLADIUM' ? <PalladiumPayPanel totalCentavos={quote?.totalCentavos ?? null} /> : (
+            {f.method === 'PALLADIUM' ? (isLive ? <LivePayPanel totalCentavos={quote?.totalCentavos ?? null} /> : <PalladiumPayPanel totalCentavos={quote?.totalCentavos ?? null} />) : (
             <fieldset className="mt-5 space-y-3">
               <legend className="sr-only">Payment method</legend>
               {phpMethods.map((m) => (
@@ -331,12 +349,17 @@ export function CheckoutForm({ methods, user, storeEmail, preferCrypto = false }
         <div className="mt-5 border-t border-line pt-4">
           {quote ? <QuoteTotals quote={quote} hasProvince={!!f.province} /> : <Spinner label="Pricing" />}
         </div>
-        <button type="submit" className="btn-gold mt-6 w-full py-4" disabled={!canPlace || pending} aria-busy={pending}>{pending ? 'Placing order...' : f.method === 'PALLADIUM' ? (quote ? `Pay ${formatPalladiumMinor(wallet.service.quote(quote.totalCentavos).amountMinor)} PALLADIUM` : 'Pay with PALLADIUM') : 'Place order'}</button>
+        <button type="submit" className="btn-gold mt-6 w-full py-4" disabled={!canPlace || pending} aria-busy={pending}>{pending ? 'Placing order...' : f.method === 'PALLADIUM' ? (isLive ? (indicative.display ? `Pay about ${indicative.display} ${symbol}` : `Pay with ${symbol}`) : quote ? `Pay ${formatPalladiumMinor(wallet.service.quote(quote.totalCentavos).amountMinor)} PALLADIUM` : 'Pay with PALLADIUM') : 'Place order'}</button>
         {!pending && quote && !quote.ok && <p className="mt-2 text-xs text-red-600">Some items need attention. <Link href="/cart" className="underline">Review your cart</Link>.</p>}
         {!pending && quote?.shippingError && <p className="mt-2 text-xs text-red-600">{quote.shippingError}</p>}
         <p className="mt-3 text-center text-xs text-mute">By placing your order you agree to our <Link href="/pages/terms" className="underline">terms</Link> and <Link href="/pages/privacy" className="underline">privacy policy</Link>.</p>
       </aside>
     </form>
+    <LivePaymentModal
+      job={liveJob}
+      onClose={() => { if (!liveJob) return; const j = liveJob; setLiveJob(null); setPlaced(true); clear(); try { localStorage.removeItem('pal-discount'); } catch { /* ignore */ } router.push(`/order/${encodeURIComponent(j.orderNumber)}?t=${encodeURIComponent(j.token)}`); }}
+      onDone={(num, token) => { setLiveJob(null); setPlaced(true); clear(); try { localStorage.removeItem('pal-discount'); } catch { /* ignore */ } toast('Payment confirmed.'); router.push(`/order/${encodeURIComponent(num)}?t=${encodeURIComponent(token)}`); }}
+    />
     <PalladiumPaymentModal
       job={job}
       precheck={short}

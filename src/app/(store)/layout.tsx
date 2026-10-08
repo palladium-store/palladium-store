@@ -5,13 +5,13 @@ import { StoreProviders } from '@/components/store/store-providers';
 import { StoreShell } from '@/components/store/store-shell';
 import { Header } from '@/components/store/header';
 import { Footer } from '@/components/store/footer';
-import { demoEnabled } from '@/lib/palladium/demo-server';
+import { getPalladiumClientConfig } from '@/lib/palladium/live-config';
 
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
-  const [user, store, content, categories] = await Promise.all([getUser(), getSetting('store'), getSetting('content'), listCategories()]);
+  const [user, store, content, categories, palladium] = await Promise.all([getUser(), getSetting('store'), getSetting('content'), listCategories(), getPalladiumClientConfig()]);
   return (
     <StoreShell>
-      <StoreProviders signedIn={!!user} palladiumDemo={demoEnabled()}>
+      <StoreProviders signedIn={!!user} palladium={palladium}>
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[100] focus:bg-gold focus:px-4 focus:py-2 focus:text-ink">Skip to content</a>
         {content.announcement && (
           <div className="announce bg-night px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-gold-deep">{content.announcement}</div>

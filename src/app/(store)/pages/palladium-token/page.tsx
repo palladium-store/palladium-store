@@ -2,10 +2,11 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Container } from '@/components/store/container';
 import { StatusPill, TokenFacts, TokenNav, TOKEN_NOTICE } from '@/components/store/token-parts';
-import { getTokenInfo, getWalletConfig } from '@/lib/token';
+import { getTokenInfo } from '@/lib/token';
 import { WalletPanel } from '@/components/store/wallet-panel';
 import { getCurrentPrice } from '@/lib/pricing';
 import { formatPrice } from '@/lib/token-math';
+import { livePaymentEnabled } from '@/lib/palladium/live-config';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
@@ -25,8 +26,8 @@ const UTILITIES = [
 export default async function PalladiumTokenPage() {
   const t = getTokenInfo();
   const p = await getCurrentPrice();
+  const payLive = await livePaymentEnabled();
   const price = p.available ? { text: `₱${formatPrice(p.priceScaled, 4)} per ${t.symbol}`, note: p.fixed ? '(fixed rate set by Palladium, indicative)' : '(indicative, not a guarantee)' } : null;
-  const wallet = getWalletConfig();
   return (
     <>
       <section className="bg-night text-white">
@@ -36,7 +37,7 @@ export default async function PalladiumTokenPage() {
           <p className="mt-5 max-w-2xl text-xl text-white/90">Powering the Palladium Pickleball Commerce Ecosystem.</p>
           <p className="mt-4 max-w-2xl text-white/70">Discover a new way to shop, participate, and engage with Palladium through digital payments and community rewards.</p>
           <div className="mt-8 grid max-w-xl gap-4">
-            <WalletPanel config={wallet} dark compact />
+            <WalletPanel dark compact />
             <div><Link href="/shop" className="btn border border-white text-white hover:bg-white hover:text-night">Explore Palladium products</Link></div>
           </div>
           <p className="mt-3 text-xs text-white/60">Connecting only shares your public address. You never need a wallet to browse or to pay in pesos.</p>
@@ -57,11 +58,11 @@ export default async function PalladiumTokenPage() {
 
         <section className="mt-16" aria-labelledby="utility">
           <h2 id="utility" className="h-display text-3xl sm:text-4xl">What it is for</h2>
-          <p className="mt-3 max-w-2xl text-sm text-mute">These are the intended utilities. None of them is live yet. Today every order on the store is paid in pesos.</p>
+          <p className="mt-3 max-w-2xl text-sm text-mute">{payLive ? 'Paying for products with $PALLADIUM is live at checkout. The other utilities are planned.' : 'These are the intended utilities. None of them is live yet. Today every order on the store is paid in pesos.'}</p>
           <ul className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
             {UTILITIES.map((u) => (
               <li key={u.title} className="bg-paper p-6">
-                <StatusPill tone="planned">Planned</StatusPill>
+                <StatusPill tone={payLive && u.title === 'Palladium product payments' ? 'live' : 'planned'}>{payLive && u.title === 'Palladium product payments' ? 'Live' : 'Planned'}</StatusPill>
                 <h3 className="mt-3 font-display text-xl tracking-tightest">{u.title}</h3>
                 <p className="mt-2 text-sm text-mute">{u.body}</p>
               </li>

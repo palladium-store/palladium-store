@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { displayTokenPricePhp } from '@/lib/pricing';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import { getSetting } from '@/lib/settings';
@@ -98,7 +99,7 @@ export default async function HomePage() {
       {/* Shop */}
       {shopItems.length > 0 && (
         <Section eyebrow="Palladium" title="Shop" href="/shop">
-          <ProductGrid items={shopItems} className="grid-cols-2 lg:grid-cols-4" />
+          <ProductGrid items={shopItems} className="grid-cols-2 lg:grid-cols-4" palladiumPricePhp={await displayTokenPricePhp()} />
         </Section>
       )}
 

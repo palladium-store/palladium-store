@@ -32,3 +32,37 @@ export function formatUnits(value: bigint, decimals: number, maxFraction = 4): s
 export function balanceOfData(owner: string): string {
   return `0x70a08231${owner.slice(2).toLowerCase().padStart(64, '0')}`;
 }
+
+// ---- ERC-20 transfer helpers (client and server safe) ----
+
+/** keccak256("Transfer(address,address,uint256)"): the topic every ERC-20 transfer log carries. */
+export const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+export const isTxHash = (s: string) => /^0x[a-fA-F0-9]{64}$/.test(s);
+export const sameAddress = (a: string | null | undefined, b: string | null | undefined) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
+
+/** ABI-encoded call data for ERC-20 transfer(address to, uint256 amount). */
+export function transferData(to: string, amount: bigint): string {
+  if (!isAddress(to)) throw new Error('Invalid recipient address');
+  if (amount <= 0n) throw new Error('Amount must be positive');
+  return `0xa9059cbb${to.slice(2).toLowerCase().padStart(64, '0')}${amount.toString(16).padStart(64, '0')}`;
+}
+
+/** The last 20 bytes of a 32-byte log topic, as a lowercase address. */
+export const topicToAddress = (topic: string) => `0x${topic.slice(-40).toLowerCase()}`;
+export const hexToBigInt = (hex: string) => (hex && hex !== '0x' ? BigInt(hex) : 0n);
+
+/** Explorer links for a transaction or address. */
+export const explorerTxUrl = (chain: ChainPreset, hash: string) => `${chain.explorerUrl}/tx/${hash}`;
+export const explorerAddressUrl = (chain: ChainPreset, address: string) => `${chain.explorerUrl}/address/${address}`;
+
+/** What the browser needs to connect a wallet and pay. No secrets, safe to send to the client. */
+export interface PalladiumClientConfig {
+  /** demo: the simulated wallet (PALLADIUM_DEMO_MODE, never on production). live: a real wallet on the configured chain. */
+  mode: 'demo' | 'live';
+  wallet: WalletConfig;
+  /** Palladium's receiving wallet; null until configured. */
+  paymentWallet: string | null;
+  /** Whether "Pay with $PALLADIUM" is offered at checkout (needs the contract, the receiving wallet and a reviewed price). */
+  checkoutEnabled: boolean;
+}

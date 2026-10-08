@@ -108,7 +108,7 @@ export async function placeOrder(input: Checkout) {
     }
     if (input.marketingOptIn) await prisma.newsletterSubscriber.upsert({ where: { email: emailLower }, create: { email: emailLower }, update: {} });
   }
-  const init = await providerFor(input.method).initiate({ id: res.orderId, orderNumber: res.orderNumber, totalCentavos: res.totalCentavos, method: input.method, email: emailLower });
+  const init = await (await providerFor(input.method)).initiate({ id: res.orderId, orderNumber: res.orderNumber, totalCentavos: res.totalCentavos, method: input.method, email: emailLower });
   await processOutbox(10).catch(() => {});
   return { orderId: res.orderId, orderNumber: res.orderNumber, totalCentavos: res.totalCentavos, token: orderToken(res.orderId), init, duplicate: res.duplicate };
 }
