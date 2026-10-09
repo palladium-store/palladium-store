@@ -10,3 +10,8 @@ uploads/*
 !uploads/.gitkeep
 
 product-images-8k/
+
+contracts/node_modules
+contracts/cache
+contracts/artifacts
+contracts/typechain-types

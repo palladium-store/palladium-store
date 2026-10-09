@@ -23,6 +23,7 @@ const PERMS: { key: Permission; label: string; help: string }[] = [
   { key: 'MANAGE_SETTINGS', label: 'Settings and content', help: 'Store settings, payments, shipping, content, overselling' },
   { key: 'MANAGE_STAFF', label: 'Manage staff', help: 'Create staff and change roles' },
   { key: 'VIEW_AUDIT', label: 'View activity log', help: 'Audit trail of admin actions' },
+  { key: 'MANAGE_TOKEN', label: 'Token sale and treasury', help: '$PALLADIUM sale price, spread, limits and contract actions' },
 ];
 const pwOk = (p: string) => p.length >= 8 && p.length <= 100 && /[A-Za-z]/.test(p) && /\d/.test(p);
 

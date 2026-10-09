@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/toast';
 import {
   ZERO_ADDRESS, explorerAddressUrl, explorerTxUrl, formatUnits, isAddress, parseUnits, sameAddress, shortAddress, transferData,
 } from '@/lib/chain-config';
+import { encodeFunctionData, type Hex } from 'viem';
 import { useLiveWallet, walletMessage } from './live-wallet';
 
 /**
@@ -14,7 +15,7 @@ import { useLiveWallet, walletMessage } from './live-wallet';
  */
 export interface DashboardPrice { phpPerToken: string; fixed: boolean }
 
-type Tab = 'send' | 'receive' | 'activity';
+type Tab = 'buy' | 'send' | 'receive' | 'activity';
 
 const php = (n: number) => `₱${n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 /** Display-only peso estimate. Never used for payments, which are priced on the server. */
@@ -67,6 +68,7 @@ export function WalletDashboard({ price }: { price: DashboardPrice | null }) {
 
   const est = w.balance != null ? phpEstimate(w.balance, decimals, price) : null;
   const tabs: { id: Tab; label: string; off?: boolean }[] = [
+    ...(w.config.sale && contract ? [{ id: 'buy' as Tab, label: 'Buy' }] : []),
     { id: 'send', label: 'Send', off: !contract },
     { id: 'receive', label: 'Receive' },
     { id: 'activity', label: 'Activity', off: !contract },
@@ -117,6 +119,7 @@ export function WalletDashboard({ price }: { price: DashboardPrice | null }) {
         <Link href="/shop" className="k-tab">Pay</Link>
       </div>
 
+      {tab === 'buy' && w.config.sale && contract && <BuyPanel onBought={() => setActivityKey((k) => k + 1)} />}
       {tab === 'send' && contract && <SendPanel onSent={() => setActivityKey((k) => k + 1)} />}
       {tab === 'receive' && <ReceivePanel />}
       {tab === 'activity' && contract && <ActivityPanel key={`${w.address}-${activityKey}`} price={price} />}
@@ -124,7 +127,7 @@ export function WalletDashboard({ price }: { price: DashboardPrice | null }) {
 
       <section className="grid gap-px border border-line bg-line sm:grid-cols-3" aria-label="Coming next">
         {[
-          ['Buy', `Buying ${symbol} on Palladium is not open yet. It needs a reviewed sale contract and regulatory clearance first.`],
+          ...(w.config.sale ? [] : [['Buy', `Buying ${symbol} on Palladium is not open yet.`]]),
           ['Rewards', `Earning ${symbol} on purchases is planned. Rewards will appear here once the program opens.`],
           ['Airdrops', 'Airdrop campaigns are planned. Any you are eligible for will appear here.'],
         ].map(([h, p]) => (
@@ -132,6 +135,115 @@ export function WalletDashboard({ price }: { price: DashboardPrice | null }) {
         ))}
       </section>
     </div>
+  );
+}
+
+// ---------------- Buy (sale contract; the server only signs a short-lived quote) ----------------
+
+interface QuoteResp {
+  contract: string; chainId: number; buyer: string; tokenAmount: string; weiAmount: string; deadline: number; quoteId: Hex; signature: Hex;
+  breakdown: { phpAmount: string; referencePricePhp: string; spreadPct: number; unitPricePhp: string; tokens: string; eth: string; ethPhp: string; rateSources: string[]; priceLabel: string; expiresAt: number };
+}
+const BUY_ABI = [{ type: 'function', name: 'buy', stateMutability: 'payable', outputs: [], inputs: [
+  { name: 'tokenAmount', type: 'uint256' }, { name: 'deadline', type: 'uint256' }, { name: 'quoteId', type: 'bytes32' }, { name: 'signature', type: 'bytes' },
+] }] as const;
+
+function BuyPanel({ onBought }: { onBought: () => void }) {
+  const w = useLiveWallet();
+  const { chain, symbol } = w.config.wallet;
+  const sale = w.config.sale!;
+  const [phpText, setPhpText] = useState('');
+  const [quote, setQuote] = useState<QuoteResp | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [working, setWorking] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const busyRef = useRef(false);
+
+  useEffect(() => { if (!quote) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [quote]);
+  const left = quote ? Math.max(0, Math.floor((quote.breakdown.expiresAt - now) / 1000)) : 0;
+
+  async function getQuote(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    if (!w.onChain) { setErr(`Switch your wallet to ${chain.name} first.`); return; }
+    const php = Number(phpText.replace(/,/g, ''));
+    if (!Number.isFinite(php) || php <= 0) { setErr('Enter how many pesos you want to spend.'); return; }
+    setWorking(true);
+    try {
+      const r = await fetch('/api/token/sale/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buyer: w.address, phpAmount: php }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j?.error?.message ?? 'Could not get a price.');
+      setQuote(j as QuoteResp); setNow(Date.now());
+    } catch (e2) { setErr(e2 instanceof Error ? e2.message : 'Could not get a price.'); }
+    finally { setWorking(false); }
+  }
+
+  async function confirm() {
+    if (!quote || busyRef.current) return;
+    // The quote is bound to this wallet, network and contract. If anything changed, get a new one.
+    if (left < 5) { setErr('This price expired. Get a new one.'); return; }
+    if (!w.address || !sameAddress(quote.buyer, w.address)) { setErr('Your wallet account changed. Get a new price for this account.'); return; }
+    if (quote.chainId !== chain.chainId || !sameAddress(quote.contract, sale.contract)) { setErr('This price is for a different network. Get a new one.'); return; }
+    busyRef.current = true; setWorking(true); setErr(null);
+    try {
+      const value = BigInt(quote.weiAmount);
+      const data = encodeFunctionData({ abi: BUY_ABI, functionName: 'buy', args: [BigInt(quote.tokenAmount), BigInt(quote.deadline), quote.quoteId, quote.signature] });
+      let fee = 0n;
+      try {
+        const [gas, gasPrice] = await Promise.all([w.read<string>('eth_estimateGas', [{ from: w.address, to: sale.contract, data, value: `0x${value.toString(16)}` }]), w.read<string>('eth_gasPrice', [])]);
+        fee = BigInt(gas) * BigInt(gasPrice);
+      } catch {
+        throw new Error('The sale contract would refuse this purchase right now (sold out, paused or the price expired). Nothing was charged. Get a new price.');
+      }
+      if (w.ethBalance != null && w.ethBalance < value + fee) throw new Error(`You need ${formatUnits(value + fee, 18, 8)} ETH (price plus network fee) and have ${formatUnits(w.ethBalance, 18, 8)} ETH.`);
+      const hash = await w.sendContractCall(sale.contract, data, value);
+      addPending({ hash: hash.toLowerCase(), to: sale.contract, amount: quote.tokenAmount, at: Date.now(), label: `Buying ${quote.breakdown.tokens} ${symbol}` }, chain.chainId, w.address);
+      setQuote(null); setPhpText('');
+      onBought();
+    } catch (e) { setErr(e instanceof Error ? e.message : walletMessage(e)); }
+    finally { busyRef.current = false; setWorking(false); }
+  }
+
+  if (quote) {
+    const b = quote.breakdown;
+    const rows: [string, React.ReactNode][] = [
+      ['You spend', `₱${Number(b.phpAmount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`],
+      ['Reference price', <span key="r">₱{b.referencePricePhp} per token <span className="text-xs text-mute">({b.priceLabel})</span></span>],
+      ['Palladium spread', `${b.spreadPct}%`],
+      ['Your price', `₱${b.unitPricePhp} per token`],
+      ['You receive', <b key="t">{b.tokens} {symbol}</b>],
+      ['You pay', <span key="e">{b.eth} ETH <span className="text-xs text-mute">at ₱{b.ethPhp} per ETH ({b.rateSources.join(' and ')})</span></span>],
+      ['Network fee', 'a small amount of ETH, shown in your wallet'],
+      ['Price valid for', left > 0 ? `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` : <span key="x" className="text-red-600">expired</span>],
+    ];
+    return (
+      <section className="card max-w-2xl p-6" aria-label="Review purchase">
+        <h2 className="k-h3 text-2xl">Check your purchase</h2>
+        <dl className="mt-4 divide-y divide-line border-y border-line text-sm">
+          {rows.map(([k, v]) => <div key={k} className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr]"><dt className="label">{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+        <p className="mt-4 text-xs text-mute">The tokens come from Palladium&apos;s sale contract on {chain.name} in the same transaction as your payment: you either get the tokens or keep your ETH. Blockchain transactions cannot be reversed. The value of {symbol} can go down; buy only what you are comfortable holding.</p>
+        {err && <p className="mt-3 text-sm text-red-600" role="alert">{err}</p>}
+        <div className="mt-5 flex flex-wrap gap-2">
+          {left > 0
+            ? <button type="button" className="btn-primary" onClick={() => void confirm()} disabled={working} aria-busy={working}>{working ? 'Confirm in your wallet...' : `Buy ${b.tokens} ${symbol}`}</button>
+            : <button type="button" className="btn-primary" onClick={() => { setQuote(null); setErr(null); }}>Get a new price</button>}
+          <button type="button" className="btn-outline" onClick={() => { setQuote(null); setErr(null); }} disabled={working}>Back</button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <form className="card max-w-2xl space-y-4 p-6" onSubmit={(e) => void getQuote(e)} noValidate aria-label={`Buy ${symbol}`}>
+      <div>
+        <label className="label" htmlFor="buy-php">Amount to spend (₱)</label>
+        <input id="buy-php" className="input" inputMode="decimal" placeholder="1,000" autoComplete="off" value={phpText} onChange={(e) => setPhpText(e.target.value)} />
+      </div>
+      {err && <p className="text-sm text-red-600" role="alert">{err}</p>}
+      <button type="submit" className="btn-primary" disabled={working || !w.onChain} aria-busy={working}>{working ? 'Getting a price...' : 'See price'}</button>
+      <p className="text-xs text-mute">You pay in ETH on {chain.name} from your own wallet. You will see the exact amounts, Palladium&apos;s spread and the exchange rate before you confirm.</p>
+    </form>
   );
 }
 
@@ -246,7 +358,7 @@ function SendPanel({ onSent }: { onSent: () => void }) {
 
 // ---------------- Pending transfers (survive reloads; the chain decides the outcome) ----------------
 
-interface Pending { hash: string; to: string; amount: string; at: number }
+interface Pending { hash: string; to: string; amount: string; at: number; /** Shown instead of "amount to address", e.g. for purchases. */ label?: string }
 const pendingKey = (chainId: number, address: string) => `pal-pending:${chainId}:${address.toLowerCase()}`;
 function readPending(chainId: number, address: string): Pending[] {
   try { const v = JSON.parse(localStorage.getItem(pendingKey(chainId, address)) ?? '[]'); return Array.isArray(v) ? v.filter((p) => typeof p?.hash === 'string') : []; } catch { return []; }
@@ -317,7 +429,7 @@ function PendingTransfers({ onSettled }: { onSettled: () => void }) {
           const slow = s.kind === 'submitted' && Date.now() - p.at > 20 * 60_000;
           return (
             <li key={p.hash} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
-              <span>{formatUnits(BigInt(p.amount), decimals, 6)} {symbol} to <span className="font-mono">{shortAddress(p.to)}</span></span>
+              <span>{p.label ?? <>{formatUnits(BigInt(p.amount), decimals, 6)} {symbol} to <span className="font-mono">{shortAddress(p.to)}</span></>}</span>
               <span className="flex items-center gap-3">
                 <span className={s.kind === 'confirmed' ? 'text-emerald-700' : s.kind === 'failed' ? 'text-red-600' : 'text-mute'}>
                   {s.kind === 'submitted' ? (slow ? 'Not mined yet. Check the explorer' : 'Waiting for the network...') : s.kind === 'confirming' ? `Confirming ${s.have}/${need}` : s.kind === 'confirmed' ? 'Confirmed' : 'Failed. Nothing was sent'}
@@ -365,9 +477,9 @@ function ReceivePanel() {
 
 // ---------------- Activity (from the blockchain via /api/wallet/activity) ----------------
 
-interface Entry { hash: string; logIndex: number; block: number; time: number | null; kind: 'received' | 'sent' | 'paid-palladium' | 'from-palladium' | 'self'; counterparty: string; amount: string; confirmations: number }
+interface Entry { hash: string; logIndex: number; block: number; time: number | null; kind: 'received' | 'sent' | 'paid-palladium' | 'from-palladium' | 'bought' | 'self'; counterparty: string; amount: string; confirmations: number }
 interface ActivityResponse { configured: boolean; entries: Entry[]; decimals: number; symbol: string; confirmationsRequired: number; partial: boolean }
-const KIND: Record<Entry['kind'], string> = { received: 'Received', sent: 'Sent', 'paid-palladium': 'Paid Palladium', 'from-palladium': 'From Palladium', self: 'To yourself' };
+const KIND: Record<Entry['kind'], string> = { bought: 'Bought', received: 'Received', sent: 'Sent', 'paid-palladium': 'Paid Palladium', 'from-palladium': 'From Palladium', self: 'To yourself' };
 
 function ActivityPanel({ price }: { price: DashboardPrice | null }) {
   const w = useLiveWallet();
@@ -392,7 +504,7 @@ function ActivityPanel({ price }: { price: DashboardPrice | null }) {
       const ids = new Set(d.entries.map((e) => `${e.hash}:${e.logIndex}`));
       if (known.current) {
         for (const e of d.entries) {
-          if (!known.current.has(`${e.hash}:${e.logIndex}`) && (e.kind === 'received' || e.kind === 'from-palladium') && e.confirmations >= d.confirmationsRequired) {
+          if (!known.current.has(`${e.hash}:${e.logIndex}`) && (e.kind === 'received' || e.kind === 'from-palladium' || e.kind === 'bought') && e.confirmations >= d.confirmationsRequired) {
             toastRef.current(`Received ${formatUnits(BigInt(e.amount), d.decimals, 6)} ${d.symbol}`);
             void wRef.current.refreshBalance();
           }

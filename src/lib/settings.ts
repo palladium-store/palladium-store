@@ -5,6 +5,18 @@ import { prisma } from './db';
 export interface StoreSettings { name: string; email: string; phone: string; address: string; facebook?: string; instagram?: string; freeShippingNote?: string }
 export interface PaymentSettings { QRPH: MethodCfg; GCASH: MethodCfg; MAYA: MethodCfg; CARD: MethodCfg; BANK_TRANSFER: MethodCfg; COD: MethodCfg }
 export interface MethodCfg { enabled: boolean; instructions: string }
+/** $PALLADIUM sale settings, edited in Admin > Token. Prices are PHP decimal strings; the sale also needs TOKEN_SALE_ENABLED=true. */
+export interface TokenSaleSettings {
+  saleEnabled: boolean;
+  /** PHP per token before the spread. Used when TOKEN_PRICE_SOURCE=admin (also for checkout). Empty means no price. */
+  referencePricePhp: string;
+  /** Buy spread in percent, 0 to 50. */
+  spreadPct: number;
+  minPurchasePhp: number;
+  maxPurchasePhp: number;
+  /** How long a buy quote stays valid, 60 to 900 seconds. */
+  quoteTtlSeconds: number;
+}
 export interface ContentSettings {
   hero: { eyebrow: string; title: string; subtitle: string; cta: string; image: string };
   banners: { title: string; text: string; href: string; cta: string }[];
@@ -24,6 +36,7 @@ export const DEFAULTS = {
     COD: { enabled: false, instructions: 'Pay in cash when your order arrives.' },
   } as PaymentSettings,
   inventory: { allowOversell: false },
+  tokenSale: { saleEnabled: false, referencePricePhp: '', spreadPct: 5, minPurchasePhp: 100, maxPurchasePhp: 20000, quoteTtlSeconds: 300 } as TokenSaleSettings,
   content: {
     hero: { eyebrow: '', title: 'Play with edge.', subtitle: 'Premium paddles, balls and gear for players who want more from every rally.', cta: 'Shop now', image: '/products/koru-hero.webp' },
     banners: [

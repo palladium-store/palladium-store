@@ -2,14 +2,16 @@ import type { Role } from '@prisma/client';
 
 export type Permission =
   | 'VIEW_ORDERS' | 'EDIT_ORDERS' | 'MANAGE_PRODUCTS' | 'MANAGE_INVENTORY'
-  | 'VIEW_CUSTOMERS' | 'VIEW_REPORTS' | 'MANAGE_DISCOUNTS' | 'MANAGE_SETTINGS' | 'MANAGE_STAFF' | 'VIEW_AUDIT';
+  | 'VIEW_CUSTOMERS' | 'VIEW_REPORTS' | 'MANAGE_DISCOUNTS' | 'MANAGE_SETTINGS' | 'MANAGE_STAFF' | 'VIEW_AUDIT'
+  /** Token sale settings and treasury actions. Super Admin only. */
+  | 'MANAGE_TOKEN';
 
-const ALL: Permission[] = ['VIEW_ORDERS', 'EDIT_ORDERS', 'MANAGE_PRODUCTS', 'MANAGE_INVENTORY', 'VIEW_CUSTOMERS', 'VIEW_REPORTS', 'MANAGE_DISCOUNTS', 'MANAGE_SETTINGS', 'MANAGE_STAFF', 'VIEW_AUDIT'];
+const ALL: Permission[] = ['VIEW_ORDERS', 'EDIT_ORDERS', 'MANAGE_PRODUCTS', 'MANAGE_INVENTORY', 'VIEW_CUSTOMERS', 'VIEW_REPORTS', 'MANAGE_DISCOUNTS', 'MANAGE_SETTINGS', 'MANAGE_STAFF', 'VIEW_AUDIT', 'MANAGE_TOKEN'];
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   CUSTOMER: [],
   SUPER_ADMIN: ALL,
-  ADMIN: ALL.filter((p) => p !== 'MANAGE_STAFF'),
+  ADMIN: ALL.filter((p) => p !== 'MANAGE_STAFF' && p !== 'MANAGE_TOKEN'),
   INVENTORY_MANAGER: ['MANAGE_PRODUCTS', 'MANAGE_INVENTORY', 'VIEW_ORDERS'],
   ORDER_MANAGER: ['VIEW_ORDERS', 'EDIT_ORDERS', 'VIEW_CUSTOMERS'],
   STAFF: ['VIEW_ORDERS', 'VIEW_CUSTOMERS'],
@@ -35,5 +37,6 @@ export const NAV: { href: string; label: string; perm: Permission | null }[] = [
   { href: '/admin/analytics', label: 'Analytics', perm: 'VIEW_REPORTS' },
   { href: '/admin/marketing', label: 'Marketing', perm: 'MANAGE_DISCOUNTS' },
   { href: '/admin/content', label: 'Content', perm: 'MANAGE_SETTINGS' },
+  { href: '/admin/token', label: 'Token', perm: 'MANAGE_TOKEN' },
   { href: '/admin/settings', label: 'Settings', perm: 'MANAGE_SETTINGS' },
 ];

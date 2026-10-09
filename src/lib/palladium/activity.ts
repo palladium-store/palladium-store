@@ -3,6 +3,7 @@ import { TRANSFER_TOPIC, addressTopic, hexToBigInt } from '@/lib/chain-config';
 import { getWalletConfig } from '@/lib/token';
 import { chainRpc, rpcUrlsFor } from './chain-rpc';
 import { paymentWalletAddress, requiredConfirmations } from './live-config';
+import { saleContractAddress } from './sale';
 import { scanWindows, toActivity, type ActivityEntry, type RawLog } from './activity-core';
 
 /**
@@ -64,7 +65,7 @@ export async function walletActivity(address: string): Promise<WalletActivity> {
   const last = windows[scanned - 1];
   const partial = !!last && last.from > floor;
 
-  const entries = toActivity(logs, { address, contract: w.contract, paymentWallet: paymentWalletAddress(), latestBlock: latest }).slice(0, LIMIT);
+  const entries = toActivity(logs, { address, contract: w.contract, paymentWallet: paymentWalletAddress(), latestBlock: latest, saleContract: saleContractAddress() }).slice(0, LIMIT);
   const blocks = Array.from(new Set(entries.map((e) => e.block)));
   const times = new Map<number, number>();
   await Promise.all(blocks.map(async (b) => {

@@ -4,6 +4,7 @@ import { getWalletConfig } from './token';
 import { PriceError, PRICE_SCALE, assertPriceInBounds, formatPrice, parsePrice, quoteTtlSeconds, tokenAmountForPhp } from './token-math';
 import { newQuoteId, signQuote, verifyQuote, type QuotePayload } from './token-quote';
 import { formatUnits } from './chain-config';
+import { getSetting } from './settings';
 
 /** The only store this build serves. Future platforms get their own identifier in payment records. */
 export const PLATFORM = 'PALLADIUM_STORE';
@@ -19,12 +20,26 @@ const env = (k: string) => (process.env[k] ?? '').trim();
  *  - unset / "none": no price. Token checkout stays off. This is the default and the honest state before a real market exists.
  *  - "manual": a fixed PHP-per-token rate set deliberately by the business (TOKEN_MANUAL_PRICE_PHP). It is refused unless
  *    TOKEN_MANUAL_PRICE_REVIEWED=yes confirms the rate was approved after review. Meant for testnet or a reviewed arrangement.
+ *  - "admin": the same kind of fixed rate, but set by the Super Admin in Admin > Token (every change is audited).
+ *    It is labelled as a set rate, never as a market price.
  * Live market sources (DEX pool with time-weighted average, or an oracle) plug in here later. Until one exists, unknown
  * source names are rejected instead of guessed.
  */
 export async function getCurrentPrice(now = Date.now()): Promise<PriceResult> {
   const source = env('TOKEN_PRICE_SOURCE').toLowerCase() || 'none';
   if (source === 'none') return { available: false, reason: 'No price source is configured.' };
+  if (source === 'admin') {
+    // A fixed rate the Super Admin sets in Admin > Token (audited). Same bounds as the manual rate.
+    const raw = (await getSetting('tokenSale')).referencePricePhp.trim();
+    if (!raw) return { available: false, reason: 'No reference price has been set in Admin > Token.' };
+    try {
+      const priceScaled = parsePrice(raw);
+      assertPriceInBounds(priceScaled, { min: parsePrice(env('TOKEN_PRICE_MIN_PHP') || '0.000001'), max: parsePrice(env('TOKEN_PRICE_MAX_PHP') || '1000000') });
+      return { available: true, priceScaled, source: 'admin', fixed: true, asOf: now };
+    } catch (e) {
+      return { available: false, reason: e instanceof PriceError ? e.message : 'The reference price is invalid.' };
+    }
+  }
   if (source !== 'manual') return { available: false, reason: 'The configured price source is not supported yet.' };
   if (env('TOKEN_MANUAL_PRICE_REVIEWED').toLowerCase() !== 'yes') return { available: false, reason: 'A fixed rate has not been marked as reviewed.' };
   try {

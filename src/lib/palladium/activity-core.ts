@@ -6,7 +6,7 @@ import { TRANSFER_TOPIC, hexToBigInt, sameAddress, topicToAddress } from '@/lib/
  */
 export interface RawLog { address: string; topics: string[]; data: string; blockNumber: string; transactionHash: string; logIndex: string; removed?: boolean }
 
-export type ActivityKind = 'received' | 'sent' | 'paid-palladium' | 'from-palladium' | 'self';
+export type ActivityKind = 'received' | 'sent' | 'paid-palladium' | 'from-palladium' | 'bought' | 'self';
 export interface ActivityEntry {
   hash: string;
   logIndex: number;
@@ -21,7 +21,7 @@ export interface ActivityEntry {
   confirmations: number;
 }
 
-export interface ActivityContext { address: string; contract: string; paymentWallet: string | null; latestBlock: bigint }
+export interface ActivityContext { address: string; contract: string; paymentWallet: string | null; latestBlock: bigint; saleContract?: string | null }
 
 /** Keeps only genuine Transfer logs of the token that involve `address`, newest first, each log once. */
 export function toActivity(logs: RawLog[], c: ActivityContext): ActivityEntry[] {
@@ -38,6 +38,7 @@ export function toActivity(logs: RawLog[], c: ActivityContext): ActivityEntry[] 
     seen.add(key);
     const kind: ActivityKind = fromMe && toMe ? 'self'
       : fromMe ? (c.paymentWallet && sameAddress(to, c.paymentWallet) ? 'paid-palladium' : 'sent')
+      : c.saleContract && sameAddress(from, c.saleContract) ? 'bought'
       : (c.paymentWallet && sameAddress(from, c.paymentWallet) ? 'from-palladium' : 'received');
     const block = hexToBigInt(l.blockNumber);
     out.push({

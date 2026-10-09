@@ -82,6 +82,8 @@ export interface LiveWallet {
   refreshBalance(): Promise<void>;
   /** Asks the wallet to send an ERC-20 transfer of `amount` (smallest units) to `to`. Resolves with the transaction hash. */
   sendTransfer(to: string, amount: bigint): Promise<string>;
+  /** Asks the wallet to send a contract call (for example a token purchase) with `value` wei attached; `to` null deploys a contract. Resolves with the hash. */
+  sendContractCall(to: string | null, data: string, value: bigint): Promise<string>;
   /** Read-only chain lookups through the wallet (balances, receipts, fee estimates). Refuses anything that could sign or send. */
   read<T = unknown>(method: ReadMethod, params: unknown[]): Promise<T>;
   /** Lets the customer pick a different wallet or account. */
@@ -248,23 +250,29 @@ export function LiveWalletProvider({ config, children }: { config: PalladiumClie
     return id === c.chainId;
   }, [config.wallet.chain]);
 
-  const sendTransfer = useCallback(async (to: string, amount: bigint) => {
+  const sendContractCall = useCallback(async (to: string | null, data: string, value: bigint) => {
     const p = provider();
     if (!p) throw new Error('No wallet found.');
     const from = addressRef.current;
     if (!from) throw new Error('Connect your wallet first.');
-    if (!config.wallet.contract) throw new Error('The token contract is not configured.');
     // Check the network at the last moment: the wallet can be switched between the screen check and this call.
     const live = parseInt(String(await p.request({ method: 'eth_chainId' })), 16);
     if (live !== config.wallet.chain.chainId) { setChainId(live); throw new Error(`Your wallet is not on ${config.wallet.chain.name}. Switch network and try again.`); }
     try {
-      const hash = await p.request({ method: 'eth_sendTransaction', params: [{ from, to: config.wallet.contract, data: transferData(to, amount), value: '0x0' }] });
+      const tx: Record<string, string> = { from, data, value: `0x${value.toString(16)}` };
+      if (to) tx.to = to;
+      const hash = await p.request({ method: 'eth_sendTransaction', params: [tx] });
       return String(hash);
     } catch (e) {
       if ((e as { code?: number })?.code === 4001) throw new WalletRejectedError();
       throw new Error(walletMessage(e));
     }
-  }, [config.wallet.contract, config.wallet.chain]);
+  }, [config.wallet.chain]);
+
+  const sendTransfer = useCallback(async (to: string, amount: bigint) => {
+    if (!config.wallet.contract) throw new Error('The token contract is not configured.');
+    return sendContractCall(config.wallet.contract, transferData(to, amount), 0n);
+  }, [config.wallet.contract, sendContractCall]);
 
   const read = useCallback(async <T,>(method: ReadMethod, params: unknown[]): Promise<T> => {
     const p = provider();
@@ -292,9 +300,9 @@ export function LiveWalletProvider({ config, children }: { config: PalladiumClie
 
   const value = useMemo<LiveWallet>(() => ({
     config, ready, hasWallet, isMetaMask, address, chainId, onChain, balance, ethBalance, busy, error, deepLink, wallets, walletName,
-    connect, disconnect, switchNetwork, refreshBalance, sendTransfer, read, changeAccount, clearError: () => setError(null),
+    connect, disconnect, switchNetwork, refreshBalance, sendTransfer, sendContractCall, read, changeAccount, clearError: () => setError(null),
     openConnect: () => setConnectOpen(true), openAccount: () => setAccountOpen(true),
-  }), [config, ready, hasWallet, isMetaMask, address, chainId, onChain, balance, ethBalance, busy, error, deepLink, wallets, walletName, connect, disconnect, switchNetwork, refreshBalance, sendTransfer, read, changeAccount]);
+  }), [config, ready, hasWallet, isMetaMask, address, chainId, onChain, balance, ethBalance, busy, error, deepLink, wallets, walletName, connect, disconnect, switchNetwork, refreshBalance, sendTransfer, sendContractCall, read, changeAccount]);
 
   return (
     <Ctx.Provider value={value}>

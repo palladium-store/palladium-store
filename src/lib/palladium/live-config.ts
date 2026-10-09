@@ -4,6 +4,7 @@ import { getWalletConfig } from '@/lib/token';
 import { tokenCheckoutState } from '@/lib/pricing';
 import { demoEnabled } from './demo-server';
 import { rpcUrlsFor } from './chain-rpc';
+import { saleContractAddress, saleOffered } from './sale';
 
 /**
  * Live $PALLADIUM payment configuration. Everything comes from environment variables; nothing is invented.
@@ -69,5 +70,6 @@ export async function getPalladiumClientConfig(): Promise<PalladiumClientConfig>
   const wallet = getWalletConfig();
   const live = await livePaymentEnabled();
   const mode: PalladiumClientConfig['mode'] = live || !demoEnabled() ? 'live' : 'demo';
-  return { mode, wallet, paymentWallet: paymentWalletAddress(), checkoutEnabled: live, confirmations: requiredConfirmations() };
+  const saleContract = (await saleOffered()) ? saleContractAddress() : null;
+  return { mode, wallet, paymentWallet: paymentWalletAddress(), checkoutEnabled: live, confirmations: requiredConfirmations(), sale: saleContract ? { contract: saleContract } : null };
 }

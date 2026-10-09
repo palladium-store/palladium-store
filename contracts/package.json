@@ -1,0 +1,15 @@
+{
+  "name": "palladium-contracts",
+  "private": true,
+  "description": "Smart contracts for $PALLADIUM on Robinhood Chain. Separate from the store so none of this is installed or deployed with the website.",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "5.0.0",
+    "@openzeppelin/contracts": "5.4.0",
+    "hardhat": "2.29.1",
+    "solc": "0.8.28"
+  }
+}

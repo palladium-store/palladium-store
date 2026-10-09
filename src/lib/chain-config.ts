@@ -82,4 +82,6 @@ export interface PalladiumClientConfig {
   checkoutEnabled: boolean;
   /** Blocks that must follow a transaction before the store treats it as confirmed. */
   confirmations: number;
+  /** The token sale contract, when buying is offered. */
+  sale: { contract: string } | null;
 }
