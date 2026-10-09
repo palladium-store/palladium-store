@@ -34,8 +34,24 @@ export function TokenAdmin({ o }: { o: SaleOverview }) {
   const tokenMatches = !!s && !!o.token && sameAddress(s.token, o.token);
   const hasInventory = !!s && Number(s.inventory.replace(/,/g, '')) > 0;
   const open = !!o.token && !!o.price && !!o.ethPhp && !!o.signerAddress && !!s && signerMatches && tokenMatches && hasInventory && !s.paused && o.masterSwitch && o.settings.saleEnabled;
+  const p = o.payments;
   return (
     <div className="space-y-8">
+      <section className="card p-5" aria-label="Checkout payments">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="k-h3 text-xl">Pay with {o.symbol} at checkout</h2>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${p.live ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-200 text-neutral-700'}`}>{p.live ? 'Customers can pay' : 'Off'}</span>
+        </div>
+        <ul className="mt-3 divide-y divide-line">
+          <Check ok={!!o.token} label={`Token contract on ${o.network}`} detail={o.token ?? 'Not set.'} />
+          <Check ok={!!p.wallet} label="Palladium payment wallet" detail={p.wallet ? <a className="underline" href={explorerAddressUrl(chain, p.wallet)} target="_blank" rel="noopener noreferrer">{p.wallet}</a> : 'Set PALLADIUM_PAYMENT_WALLET_ADDRESS in Vercel: the wallet customers pay into. A multisig wallet you control is safest. The store never needs its key.'} />
+          <Check ok={!!o.price} label="Token price" detail={o.price ? `₱${o.price.php} per token (${o.price.label}). Product prices stay in pesos; customers pay the matching amount of ${o.symbol}.` : `${o.priceProblem ?? ''} Use TOKEN_PRICE_SOURCE=admin in Vercel and set the price below.`} />
+          <Check ok={p.masterSwitch} label="Master switch" detail={p.masterSwitch ? 'TOKEN_CHECKOUT_ENABLED=true' : 'Set TOKEN_CHECKOUT_ENABLED=true in Vercel.'} />
+          <Check ok={o.settings.paymentsEnabled} label="Payments switched on below" detail="Untick it to stop token payments immediately, without a redeploy." />
+        </ul>
+        <p className="mt-3 text-xs text-mute">An order is marked paid only after the server reads the transfer on {o.network}: right token, Palladium&apos;s wallet, at least the locked amount, {p.confirmations} confirmations, made after the order was placed. A transaction can pay one order only. Anything unusual (underpaid, too early or too late) waits for you under Orders.</p>
+      </section>
+
       <section className="card p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="k-h3 text-xl">Sale status</h2>
@@ -95,10 +111,11 @@ function SettingsForm({ initial, symbol }: { initial: TokenSaleSettings; symbol:
   );
   return (
     <form className="card space-y-4 p-5" onSubmit={(e) => void save(e)} aria-label="Sale settings">
-      <h2 className="k-h3 text-xl">Sale settings</h2>
-      <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={f.saleEnabled} onChange={(e) => set('saleEnabled', e.target.checked)} /> Sale switched on (the master switch and the contract must also allow it)</label>
+      <h2 className="k-h3 text-xl">Settings</h2>
+      <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={f.paymentsEnabled} onChange={(e) => set('paymentsEnabled', e.target.checked)} /> Payments switched on: customers can pay for orders with {symbol}</label>
+      <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={f.saleEnabled} onChange={(e) => set('saleEnabled', e.target.checked)} /> Sale switched on: customers can buy {symbol} (the master switch and the contract must also allow it)</label>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div><label className="label" htmlFor="ts-ref">Reference price (₱ per token)</label><input id="ts-ref" className="input" inputMode="decimal" placeholder="2.00" value={f.referencePricePhp} onChange={(e) => set('referencePricePhp', e.target.value)} /><p className="mt-1 text-xs text-mute">A fixed rate you set, shown to customers as such. Also the checkout rate when TOKEN_PRICE_SOURCE=admin.</p></div>
+        <div><label className="label" htmlFor="ts-ref">Reference price (₱ per token)</label><input id="ts-ref" className="input" inputMode="decimal" placeholder="2.00" value={f.referencePricePhp} onChange={(e) => set('referencePricePhp', e.target.value)} /><p className="mt-1 text-xs text-mute">A fixed rate you set, shown to customers as such. Checkout payments use it as is; the sale adds the spread.</p></div>
         {num('spreadPct', 'Buy spread (%)', '0.1')}
         {num('minPurchasePhp', 'Smallest purchase (₱)')}
         {num('maxPurchasePhp', 'Largest purchase (₱)')}

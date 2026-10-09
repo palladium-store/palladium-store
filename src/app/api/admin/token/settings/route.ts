@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 const schema = z.object({
   saleEnabled: z.boolean(),
+  paymentsEnabled: z.boolean(),
   referencePricePhp: z.string().trim().max(30).refine((s) => s === '' || (() => { try { return parsePrice(s) > 0n; } catch { return false; } })(), 'Enter a price like 2 or 2.50.'),
   spreadPct: z.number().min(0).max(50),
   minPurchasePhp: z.number().int().min(1).max(1_000_000),

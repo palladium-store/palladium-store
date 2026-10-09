@@ -8,7 +8,7 @@ import { issueQuote } from '@/lib/pricing';
 import { formatUnits, isTxHash, sameAddress } from '@/lib/chain-config';
 import type { PaymentProvider } from '@/lib/payments';
 import { getLivePaymentConfig, livePaymentEnabled, type LivePaymentConfig } from './live-config';
-import { evaluateReceipt, type RpcReceipt, type VerifyResult } from './verify';
+import { evaluateReceipt, paymentTiming, type RpcReceipt, type VerifyResult } from './verify';
 import { chainRpc } from './chain-rpc';
 
 /**
@@ -248,6 +248,25 @@ export async function verifyOrderPayment(order: OrderRow): Promise<{ view: Token
       await audit(null, 'TOKEN_PAYMENT_NEEDS_REVIEW', 'Order', order.id, `Underpaid: ${order.orderNumber} received ${formatUnits(result.received, rec.decimals, 6)} of ${formatUnits(BigInt(rec.tokenAmount), rec.decimals, 6)} ${rec.symbol} in ${rec.txHash}. Review or refund.`);
       break;
     case 'ok': {
+      // The transfer must belong to this order in time: mined after the price was locked, and not long after it ran out.
+      let blockTime: number;
+      try {
+        const blk = await rpc<{ timestamp: string } | null>(cfg, 'eth_getBlockByNumber', [`0x${result.blockNumber.toString(16)}`, false]);
+        if (!blk?.timestamp) throw new Error('no block');
+        blockTime = Number(BigInt(blk.timestamp));
+      } catch (e) {
+        console.error('[robinhood-chain verify] block time', order.orderNumber, e);
+        return { view: await tokenPaymentView(order, rec) }; // try again on the next poll
+      }
+      const timing = paymentTiming(blockTime, rec.quotedAt, rec.expiresAt);
+      if (timing !== 'ok') {
+        rec = { ...rec, state: 'REVIEW', from: result.from, received: result.received.toString(), blockNumber: result.blockNumber.toString(), verifiedAt: stamp,
+          note: timing === 'too-early' ? 'This transaction was made before the order was placed. Palladium will check it and contact you.' : 'This payment arrived long after the price lock ended. Palladium will check it and contact you.' };
+        await prisma.$executeRaw`UPDATE orders SET "walletAddress"=${result.from} WHERE id=${order.id}`;
+        await saveRecord(paymentId, rec);
+        await audit(null, 'TOKEN_PAYMENT_NEEDS_REVIEW', 'Order', order.id, `${rec.symbol} payment ${rec.txHash} for ${order.orderNumber} was mined ${timing === 'too-early' ? 'before the order was placed' : 'more than an hour after the price lock ended'}. Review before shipping or refund.`);
+        return { view: await tokenPaymentView(order, rec) };
+      }
       rec = { ...rec, state: 'PAID', from: result.from, received: result.received.toString(), blockNumber: result.blockNumber.toString(), verifiedAt: stamp, note: null };
       await prisma.$executeRaw`UPDATE orders SET "walletAddress"=${result.from} WHERE id=${order.id}`;
       await saveRecord(paymentId, rec);

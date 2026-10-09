@@ -64,3 +64,24 @@ signed with the old key stop working immediately.
 Every purchase is a `Purchased(buyer, quoteId, tokenAmount, weiAmount)` event on the contract, listed in Admin > Token and
 on the block explorer. ETH goes straight to the treasury in the same transaction, so treasury inflows always equal the sum
 of `weiAmount`. There is no pending state to reconcile: a purchase either happened on-chain or did not.
+
+# Paying for orders with $PALLADIUM
+
+Separate from the sale: customers spend $PALLADIUM they already hold on products. Product prices stay in pesos; at
+checkout the store locks the matching token amount for 15 minutes, the customer's wallet sends one ERC-20 transfer to
+Palladium's payment wallet, and the server reads the transfer on Robinhood Chain before marking the order paid.
+
+An order is marked paid only when, in one successful transaction: the official token contract moved at least the locked
+amount to the payment wallet, enough blocks followed (`TOKEN_CONFIRMATIONS`, default 3), and the transaction was mined
+after the order was placed and no more than an hour after the lock ended. A transaction can pay one order only.
+Underpaid, too early or too late payments are not accepted automatically: they wait under Orders for a person to decide.
+
+## Switch-on checklist
+
+1. `PALLADIUM_PAYMENT_WALLET_ADDRESS` in Vercel: the wallet customers pay into (a multisig you control is safest; the
+   store never needs its key).
+2. A price: `TOKEN_PRICE_SOURCE=admin` and the reference price in **Admin > Token** (no spread is added at checkout).
+3. `TOKEN_CHECKOUT_ENABLED=true` in Vercel, redeploy.
+4. In **Admin > Token**, tick **Payments switched on**. Untick it to stop token payments immediately.
+5. Optional but recommended: a dedicated RPC endpoint in `TOKEN_RPC_URL` (the public one is rate-limited).
+6. Test with one small real order and check it under Orders before announcing it.

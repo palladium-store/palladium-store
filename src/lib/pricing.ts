@@ -51,9 +51,13 @@ export async function getCurrentPrice(now = Date.now()): Promise<PriceResult> {
   }
 }
 
-/** Token checkout needs an explicit switch AND a usable price. Both are off by default. */
+/**
+ * Token checkout needs the master switch (TOKEN_CHECKOUT_ENABLED=true in Vercel), the admin switch (Admin > Token, so it can
+ * be stopped instantly without a redeploy) AND a usable price. All are off by default.
+ */
 export async function tokenCheckoutState(): Promise<{ enabled: true; price: Extract<PriceResult, { available: true }> } | { enabled: false; reason: string }> {
   if (env('TOKEN_CHECKOUT_ENABLED').toLowerCase() !== 'true') return { enabled: false, reason: 'Token payments are not available yet.' };
+  if (!(await getSetting('tokenSale')).paymentsEnabled) return { enabled: false, reason: 'Token payments are paused.' };
   const price = await getCurrentPrice();
   if (!price.available) return { enabled: false, reason: 'Token payments are temporarily unavailable.' };
   return { enabled: true, price };

@@ -9,11 +9,14 @@ import { chainRpc, rpcUrlsFor } from './chain-rpc';
 import { scanWindows } from './activity-core';
 import { SALE_ABI, ethPhpRate, readSaleState, saleContractAddress, saleMasterSwitch, signerAddress } from './sale';
 import artifact from './sale-artifact.json';
+import { livePaymentEnabled, paymentWalletAddress, requiredConfirmations } from './live-config';
 
 /** Everything Admin > Token shows, as plain strings (no bigints) so it can go to the browser. No secrets. */
 export interface SaleOverview {
   network: string; chainId: number; explorerUrl: string; token: string | null; decimals: number; symbol: string;
   saleContract: string | null; signerAddress: string | null; masterSwitch: boolean; priceSource: string;
+  /** Checkout payments: Palladium's receiving wallet, the Vercel master switch, and whether customers can pay right now. */
+  payments: { wallet: string | null; masterSwitch: boolean; live: boolean; confirmations: number };
   settings: TokenSaleSettings;
   price: { php: string; label: string } | null; priceProblem: string | null;
   ethPhp: { rate: string; sources: string[] } | null;
@@ -37,6 +40,7 @@ export async function saleOverview(): Promise<SaleOverview> {
   const out: SaleOverview = {
     network: w.chain.name, chainId: w.chain.chainId, explorerUrl: w.chain.explorerUrl, token: w.contract, decimals: w.decimals, symbol: w.symbol,
     saleContract, signerAddress: signerAddress(), masterSwitch: saleMasterSwitch(), priceSource: (process.env.TOKEN_PRICE_SOURCE ?? 'none').trim() || 'none',
+    payments: { wallet: paymentWalletAddress(), masterSwitch: (process.env.TOKEN_CHECKOUT_ENABLED ?? '').trim().toLowerCase() === 'true', live: await livePaymentEnabled(), confirmations: requiredConfirmations() },
     settings,
     price: price.available ? { php: formatPrice(price.priceScaled, 6), label: price.source === 'admin' ? 'set in Admin > Token' : price.source } : null,
     priceProblem: price.available ? null : price.reason,

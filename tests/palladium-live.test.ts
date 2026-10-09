@@ -72,3 +72,14 @@ test('addresses compare case-insensitively (checksummed vs lowercase)', () => {
   const r = evaluateReceipt({ ...base, contract: CONTRACT.toUpperCase().replace('0X', '0x'), paymentWallet: PALLADIUM.toUpperCase().replace('0X', '0x'), receipt: receipt([{ value: 600n * ONE }]), latestBlock: 5000n });
   assert.equal(r.kind, 'ok');
 });
+
+test('a payment must be mined after the order\'s price lock and not long after it ran out', async () => {
+  const { paymentTiming } = await import('../src/lib/palladium/verify');
+  const quotedAt = 1_800_000_000_000, expiresAt = quotedAt + 15 * 60_000; // ms
+  const s = (ms: number) => Math.floor(ms / 1000);
+  assert.equal(paymentTiming(s(quotedAt + 60_000), quotedAt, expiresAt), 'ok');
+  assert.equal(paymentTiming(s(quotedAt - 60_000), quotedAt, expiresAt), 'ok', 'two minutes of clock difference is allowed');
+  assert.equal(paymentTiming(s(quotedAt - 10 * 60_000), quotedAt, expiresAt), 'too-early', 'an older transfer cannot pay a newer order');
+  assert.equal(paymentTiming(s(expiresAt + 30 * 60_000), quotedAt, expiresAt), 'ok', 'a slow wallet within the hour is fine');
+  assert.equal(paymentTiming(s(expiresAt + 2 * 3600_000), quotedAt, expiresAt), 'too-late');
+});

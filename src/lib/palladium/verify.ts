@@ -52,3 +52,14 @@ export function evaluateReceipt(i: VerifyInput): VerifyResult {
   if (have < i.confirmations) return { kind: 'confirming', received, from, blockNumber, have: Math.max(0, have), need: i.confirmations };
   return { kind: 'ok', received, from, blockNumber, confirmations: have };
 }
+
+/**
+ * When the payment was mined, relative to the order's price lock. A transfer mined before the order existed cannot be this
+ * order's payment (someone could otherwise attach an older, unrelated transfer to Palladium), and one mined long after the
+ * lock ran out was paid at a stale price. Both go to a person instead of being accepted automatically.
+ */
+export function paymentTiming(blockTimeSec: number, quotedAtMs: number, expiresAtMs: number, skewSec = 120, lateSec = 3600): 'ok' | 'too-early' | 'too-late' {
+  if (blockTimeSec * 1000 < quotedAtMs - skewSec * 1000) return 'too-early';
+  if (blockTimeSec * 1000 > expiresAtMs + lateSec * 1000) return 'too-late';
+  return 'ok';
+}
