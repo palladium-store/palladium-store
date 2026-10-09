@@ -46,6 +46,8 @@ export interface LiveWallet {
   onChain: boolean;
   /** $PALLADIUM balance in smallest units; null while unknown or without a contract. */
   balance: bigint | null;
+  /** ETH balance (wei) for network fees; null while unknown or off-chain. */
+  ethBalance: bigint | null;
   busy: boolean;
   error: string | null;
   deepLink: string | null;
@@ -56,10 +58,17 @@ export interface LiveWallet {
   refreshBalance(): Promise<void>;
   /** Asks the wallet to send an ERC-20 transfer of `amount` (smallest units) to `to`. Resolves with the transaction hash. */
   sendTransfer(to: string, amount: bigint): Promise<string>;
+  /** Read-only chain lookups through the wallet (balances, receipts, fee estimates). Refuses anything that could sign or send. */
+  read<T = unknown>(method: ReadMethod, params: unknown[]): Promise<T>;
+  /** Opens the wallet's account picker so the customer can connect a different address. */
+  changeAccount(): Promise<void>;
   clearError(): void;
   openConnect(): void;
   openAccount(): void;
 }
+
+export type ReadMethod = 'eth_call' | 'eth_getBalance' | 'eth_blockNumber' | 'eth_getTransactionReceipt' | 'eth_getTransactionByHash' | 'eth_estimateGas' | 'eth_gasPrice' | 'eth_chainId';
+const READ_METHODS = new Set<string>(['eth_call', 'eth_getBalance', 'eth_blockNumber', 'eth_getTransactionReceipt', 'eth_getTransactionByHash', 'eth_estimateGas', 'eth_gasPrice', 'eth_chainId']);
 
 const Ctx = createContext<LiveWallet | null>(null);
 export function useLiveWallet(): LiveWallet {
@@ -75,6 +84,7 @@ export function LiveWalletProvider({ config, children }: { config: PalladiumClie
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
   const [balance, setBalance] = useState<bigint | null>(null);
+  const [ethBalance, setEthBalance] = useState<bigint | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deepLink, setDeepLink] = useState<string | null>(null);
@@ -90,7 +100,7 @@ export function LiveWalletProvider({ config, children }: { config: PalladiumClie
     setHasWallet(!!p); setIsMetaMask(!!p?.isMetaMask);
     setDeepLink(`https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`);
     if (!p) { setReady(true); return; }
-    const onAccounts = (a: unknown) => { const list = a as string[]; const next = list?.[0] ?? null; setAddress(next); if (!next) setBalance(null); };
+    const onAccounts = (a: unknown) => { const list = a as string[]; const next = list?.[0] ?? null; setAddress(next); if (!next) { setBalance(null); setEthBalance(null); } };
     const onChainChanged = (id: unknown) => setChainId(parseInt(String(id), 16));
     p.on?.('accountsChanged', onAccounts);
     p.on?.('chainChanged', onChainChanged);
@@ -107,18 +117,22 @@ export function LiveWalletProvider({ config, children }: { config: PalladiumClie
   const refreshBalance = useCallback(async () => {
     const p = provider();
     const contract = config.wallet.contract;
-    if (!p || !addressRef.current || !contract) { setBalance(null); return; }
-    try {
-      const r = await p.request({ method: 'eth_call', params: [{ to: contract, data: balanceOfData(addressRef.current) }, 'latest'] });
-      setBalance(BigInt(String(r)));
-    } catch { setBalance(null); }
+    const who = addressRef.current;
+    if (!p || !who) { setBalance(null); setEthBalance(null); return; }
+    await Promise.all([
+      (async () => { try { setEthBalance(BigInt(String(await p.request({ method: 'eth_getBalance', params: [who, 'latest'] })))); } catch { setEthBalance(null); } })(),
+      (async () => {
+        if (!contract) { setBalance(null); return; }
+        try { setBalance(BigInt(String(await p.request({ method: 'eth_call', params: [{ to: contract, data: balanceOfData(who) }, 'latest'] })))); } catch { setBalance(null); }
+      })(),
+    ]);
   }, [config.wallet.contract]);
 
   useEffect(() => {
-    setBalance(null);
-    if (!address || !onChain || !config.wallet.contract) return;
+    setBalance(null); setEthBalance(null);
+    if (!address || !onChain) return;
     let live = true;
-    void refreshBalance().then(() => { if (!live) setBalance(null); });
+    void refreshBalance().then(() => { if (!live) { setBalance(null); setEthBalance(null); } });
     return () => { live = false; };
   }, [address, onChain, config.wallet.contract, refreshBalance]);
 
@@ -137,7 +151,7 @@ export function LiveWalletProvider({ config, children }: { config: PalladiumClie
 
   const disconnect = useCallback(async () => {
     const p = provider();
-    setFlag(true); setAddress(null); setBalance(null); setError(null); setAccountOpen(false);
+    setFlag(true); setAddress(null); setBalance(null); setEthBalance(null); setError(null); setAccountOpen(false);
     try { await p?.request({ method: 'wallet_revokePermissions', params: [{ eth_accounts: {} }] }); } catch { /* not supported by every wallet */ }
   }, []);
 
@@ -167,6 +181,9 @@ export function LiveWalletProvider({ config, children }: { config: PalladiumClie
     const from = addressRef.current;
     if (!from) throw new Error('Connect your wallet first.');
     if (!config.wallet.contract) throw new Error('The token contract is not configured.');
+    // Check the network at the last moment: the wallet can be switched between the screen check and this call.
+    const live = parseInt(String(await p.request({ method: 'eth_chainId' })), 16);
+    if (live !== config.wallet.chain.chainId) { setChainId(live); throw new Error(`Your wallet is not on ${config.wallet.chain.name}. Switch network and try again.`); }
     try {
       const hash = await p.request({ method: 'eth_sendTransaction', params: [{ from, to: config.wallet.contract, data: transferData(to, amount), value: '0x0' }] });
       return String(hash);
@@ -174,13 +191,31 @@ export function LiveWalletProvider({ config, children }: { config: PalladiumClie
       if ((e as { code?: number })?.code === 4001) throw new WalletRejectedError();
       throw new Error(walletMessage(e));
     }
-  }, [config.wallet.contract]);
+  }, [config.wallet.contract, config.wallet.chain]);
+
+  const read = useCallback(async <T,>(method: ReadMethod, params: unknown[]): Promise<T> => {
+    const p = provider();
+    if (!p) throw new Error('No wallet found.');
+    if (!READ_METHODS.has(method)) throw new Error('Not a read-only request.');
+    return (await p.request({ method, params })) as T;
+  }, []);
+
+  const changeAccount = useCallback(async () => {
+    const p = provider();
+    if (!p) return;
+    setError(null);
+    try {
+      await p.request({ method: 'wallet_requestPermissions', params: [{ eth_accounts: {} }] });
+      const a = (await p.request({ method: 'eth_accounts' })) as string[];
+      setFlag(false); setAddress(a?.[0] ?? null); await readChain(p);
+    } catch (e) { setError(walletMessage(e)); }
+  }, [readChain]);
 
   const value = useMemo<LiveWallet>(() => ({
-    config, ready, hasWallet, isMetaMask, address, chainId, onChain, balance, busy, error, deepLink,
-    connect, disconnect, switchNetwork, refreshBalance, sendTransfer, clearError: () => setError(null),
+    config, ready, hasWallet, isMetaMask, address, chainId, onChain, balance, ethBalance, busy, error, deepLink,
+    connect, disconnect, switchNetwork, refreshBalance, sendTransfer, read, changeAccount, clearError: () => setError(null),
     openConnect: () => setConnectOpen(true), openAccount: () => setAccountOpen(true),
-  }), [config, ready, hasWallet, isMetaMask, address, chainId, onChain, balance, busy, error, deepLink, connect, disconnect, switchNetwork, refreshBalance, sendTransfer]);
+  }), [config, ready, hasWallet, isMetaMask, address, chainId, onChain, balance, ethBalance, busy, error, deepLink, connect, disconnect, switchNetwork, refreshBalance, sendTransfer, read, changeAccount]);
 
   return (
     <Ctx.Provider value={value}>
@@ -249,7 +284,10 @@ function AccountModal({ open, onClose }: { open: boolean; onClose: () => void })
         {w.error && <p className="mt-3 text-sm text-red-600" role="alert">{w.error}</p>}
         <WalletPurposeNote className="mt-4 text-xs text-mute" />
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <a href={explorerAddressUrl(chain, w.address)} target="_blank" rel="noopener noreferrer" className="text-xs text-mute underline underline-offset-4 hover:text-ink">View on explorer</a>
+          <span className="flex flex-wrap gap-x-4 gap-y-1">
+            <a href="/wallet" onClick={onClose} className="text-xs text-mute underline underline-offset-4 hover:text-ink">Open wallet</a>
+            <a href={explorerAddressUrl(chain, w.address)} target="_blank" rel="noopener noreferrer" className="text-xs text-mute underline underline-offset-4 hover:text-ink">View on explorer</a>
+          </span>
           <div className="flex gap-2">
             {!w.onChain && <button type="button" className="btn-primary btn-sm" onClick={() => void w.switchNetwork()} disabled={w.busy} aria-busy={w.busy}>{w.busy ? 'Check your wallet...' : `Switch to ${chain.name}`}</button>}
             <button type="button" className="btn-outline btn-sm" onClick={() => void w.disconnect()}>Disconnect</button>

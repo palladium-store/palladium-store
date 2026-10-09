@@ -15,6 +15,21 @@ export interface WalletConfig { chain: ChainPreset; contract: string | null; dec
 
 export const toHexChainId = (id: number) => `0x${id.toString(16)}`;
 export const isAddress = (s: string) => /^0x[a-fA-F0-9]{40}$/.test(s);
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+/**
+ * Parses a typed token amount ("12", "0.5", "1,250.25") into smallest units without floating point. Returns null for anything
+ * that is not a plain positive decimal or has more decimals than the token supports, so a typo never becomes a different amount.
+ */
+export function parseUnits(input: string, decimals: number): bigint | null {
+  const s = input.trim().replace(/,/g, '');
+  if (!/^\d*(\.\d*)?$/.test(s) || s === '' || s === '.') return null;
+  const [whole, frac = ''] = s.split('.');
+  if (frac.length > decimals) return null;
+  return BigInt(whole || '0') * 10n ** BigInt(decimals) + BigInt((frac + '0'.repeat(decimals)).slice(0, decimals) || '0');
+}
+/** The 32-byte log topic form of an address (for eth_getLogs filters). */
+export const addressTopic = (a: string) => `0x${a.slice(2).toLowerCase().padStart(64, '0')}`;
 export const shortAddress = (a: string) => `${a.slice(0, 6)}...${a.slice(-4)}`;
 
 /** Formats an integer token amount (smallest units) without floating point. Truncates, never rounds up. */
@@ -65,4 +80,6 @@ export interface PalladiumClientConfig {
   paymentWallet: string | null;
   /** Whether "Pay with $PALLADIUM" is offered at checkout (needs the contract, the receiving wallet and a reviewed price). */
   checkoutEnabled: boolean;
+  /** Blocks that must follow a transaction before the store treats it as confirmed. */
+  confirmations: number;
 }

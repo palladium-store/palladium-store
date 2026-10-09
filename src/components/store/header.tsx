@@ -9,6 +9,7 @@ import { useCart } from './cart-context';
 
 const NAV = [
   { label: 'Shop', href: '/shop' },
+  { label: 'Wallet', href: '/wallet' },
   { label: '$PALLADIUM', href: '/pages/palladium-token' },
 ];
 const icon = 'h-5 w-5';

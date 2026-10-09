@@ -3,6 +3,7 @@ import { isAddress, type PalladiumClientConfig } from '@/lib/chain-config';
 import { getWalletConfig } from '@/lib/token';
 import { tokenCheckoutState } from '@/lib/pricing';
 import { demoEnabled } from './demo-server';
+import { rpcUrlsFor } from './chain-rpc';
 
 /**
  * Live $PALLADIUM payment configuration. Everything comes from environment variables; nothing is invented.
@@ -11,7 +12,8 @@ import { demoEnabled } from './demo-server';
  *   TOKEN_CONTRACT_ADDRESS             ERC-20 contract of $PALLADIUM on that chain
  *   TOKEN_DECIMALS                     token decimals (default 18)
  *   PALLADIUM_PAYMENT_WALLET_ADDRESS   Palladium's receiving wallet (customers transfer tokens here)
- *   TOKEN_RPC_URL                      JSON-RPC endpoint the server verifies payments with (default: the chain's public RPC)
+ *   TOKEN_RPC_URL                      JSON-RPC endpoint(s) the server reads the chain with, comma-separated, tried in
+ *                                      order; the chain's public RPC is always the last fallback
  *   TOKEN_CONFIRMATIONS                blocks that must follow a payment before it counts (default 3)
  *   TOKEN_CHECKOUT_ENABLED + a reviewed price (see pricing.ts) switch the checkout option on.
  *
@@ -21,7 +23,8 @@ import { demoEnabled } from './demo-server';
 export interface LivePaymentConfig {
   chainId: number;
   chainName: string;
-  rpcUrl: string;
+  /** Tried in order: TOKEN_RPC_URL entries, then the chain's public RPC. */
+  rpcUrls: string[];
   explorerUrl: string;
   contract: string;
   decimals: number;
@@ -31,6 +34,12 @@ export interface LivePaymentConfig {
 }
 
 const env = (k: string) => (process.env[k] ?? '').trim();
+
+/** TOKEN_CONFIRMATIONS, 1 to 64, default 3. */
+export function requiredConfirmations(): number {
+  const conf = Number(env('TOKEN_CONFIRMATIONS') || 3);
+  return Number.isInteger(conf) && conf >= 1 && conf <= 64 ? conf : 3;
+}
 
 export function paymentWalletAddress(): string | null {
   const w = env('PALLADIUM_PAYMENT_WALLET_ADDRESS');
@@ -42,12 +51,10 @@ export function getLivePaymentConfig(): LivePaymentConfig | null {
   const w = getWalletConfig();
   const paymentWallet = paymentWalletAddress();
   if (!w.contract || !paymentWallet) return null;
-  const conf = Number(env('TOKEN_CONFIRMATIONS') || 3);
-  const rpc = env('TOKEN_RPC_URL');
   return {
-    chainId: w.chain.chainId, chainName: w.chain.name, rpcUrl: /^https:\/\//.test(rpc) ? rpc : w.chain.rpcUrl, explorerUrl: w.chain.explorerUrl,
+    chainId: w.chain.chainId, chainName: w.chain.name, rpcUrls: rpcUrlsFor(w.chain), explorerUrl: w.chain.explorerUrl,
     contract: w.contract, decimals: w.decimals, symbol: w.symbol, paymentWallet,
-    confirmations: Number.isInteger(conf) && conf >= 1 && conf <= 64 ? conf : 3,
+    confirmations: requiredConfirmations(),
   };
 }
 
@@ -62,5 +69,5 @@ export async function getPalladiumClientConfig(): Promise<PalladiumClientConfig>
   const wallet = getWalletConfig();
   const live = await livePaymentEnabled();
   const mode: PalladiumClientConfig['mode'] = live || !demoEnabled() ? 'live' : 'demo';
-  return { mode, wallet, paymentWallet: paymentWalletAddress(), checkoutEnabled: live };
+  return { mode, wallet, paymentWallet: paymentWalletAddress(), checkoutEnabled: live, confirmations: requiredConfirmations() };
 }

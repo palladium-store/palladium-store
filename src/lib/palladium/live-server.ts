@@ -9,6 +9,7 @@ import { formatUnits, isTxHash, sameAddress } from '@/lib/chain-config';
 import type { PaymentProvider } from '@/lib/payments';
 import { getLivePaymentConfig, livePaymentEnabled, type LivePaymentConfig } from './live-config';
 import { evaluateReceipt, type RpcReceipt, type VerifyResult } from './verify';
+import { chainRpc } from './chain-rpc';
 
 /**
  * Server side of real $PALLADIUM payments on Robinhood Chain.
@@ -60,25 +61,8 @@ export const LIVE_INSTRUCTIONS = 'Pay with $PALLADIUM from your crypto wallet on
 
 // ---------- RPC ----------
 
-async function rpc<T>(cfg: LivePaymentConfig, method: string, params: unknown[]): Promise<T> {
-  const res = await fetch(cfg.rpcUrl, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', signal: AbortSignal.timeout(12000),
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
-  });
-  if (!res.ok) throw new AppError(502, 'CHAIN_UNAVAILABLE', 'The blockchain could not be reached. Please try again in a moment.');
-  const json = (await res.json().catch(() => null)) as { result?: T; error?: { message?: string } } | null;
-  if (!json || json.error) { console.error('[robinhood-chain rpc]', method, json?.error); throw new AppError(502, 'CHAIN_UNAVAILABLE', 'The blockchain could not be reached. Please try again in a moment.'); }
-  return json.result as T;
-}
-
-let chainChecked: number | null = null;
-/** Makes sure the RPC we verify with really is the configured chain (once per process). */
-async function assertChain(cfg: LivePaymentConfig) {
-  if (chainChecked === cfg.chainId) return;
-  const id = parseInt(String(await rpc<string>(cfg, 'eth_chainId', [])), 16);
-  if (id !== cfg.chainId) { console.error('[robinhood-chain] RPC chain mismatch', id, cfg.chainId); throw new AppError(503, 'CHAIN_MISCONFIGURED', 'Token payments are temporarily unavailable.'); }
-  chainChecked = cfg.chainId;
-}
+/** Every chain read goes through the shared client: fallback endpoints, each checked to be on the configured chain first. */
+const rpc = <T>(cfg: LivePaymentConfig, method: string, params: unknown[]) => chainRpc<T>(cfg.rpcUrls, cfg.chainId, method, params);
 
 // ---------- records ----------
 
@@ -231,7 +215,6 @@ export async function verifyOrderPayment(order: OrderRow): Promise<{ view: Token
 
   let result: VerifyResult;
   try {
-    await assertChain(cfg);
     const [receipt, latestHex] = await Promise.all([rpc<RpcReceipt | null>(cfg, 'eth_getTransactionReceipt', [rec.txHash]), rpc<string>(cfg, 'eth_blockNumber', [])]);
     result = evaluateReceipt({ receipt, latestBlock: BigInt(latestHex), contract: rec.contract, paymentWallet: rec.to, expectedAmount: BigInt(rec.tokenAmount), confirmations: cfg.confirmations });
   } catch (e) {
