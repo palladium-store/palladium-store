@@ -12,6 +12,9 @@ const schema = z.object({
   minPurchasePhp: z.number().int().min(1).max(1_000_000),
   maxPurchasePhp: z.number().int().min(1).max(1_000_000),
   quoteTtlSeconds: z.number().int().min(60).max(900),
+  marketMinLiquidityUsd: z.number().min(0).max(100_000_000),
+  marketMaxDeviationPct: z.number().min(1).max(100),
+  maxTokenOrderPhp: z.number().int().min(0).max(10_000_000),
 }).refine((v) => v.maxPurchasePhp >= v.minPurchasePhp, { message: 'The maximum must be at least the minimum.', path: ['maxPurchasePhp'] });
 
 /** Token sale settings. Super Admin only (MANAGE_TOKEN). The audit entry records every old and new value. */

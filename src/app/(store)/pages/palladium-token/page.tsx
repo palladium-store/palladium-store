@@ -27,7 +27,7 @@ export default async function PalladiumTokenPage() {
   const t = getTokenInfo();
   const p = await getCurrentPrice();
   const payLive = await livePaymentEnabled();
-  const price = p.available ? { text: `₱${formatPrice(p.priceScaled, 4)} per ${t.symbol}`, note: p.fixed ? '(fixed rate set by Palladium, indicative)' : '(indicative, not a guarantee)' } : null;
+  const price = p.available ? { text: `₱${formatPrice(p.priceScaled, 8)} per ${t.symbol}`, note: p.fixed ? '(fixed rate set by Palladium, indicative)' : '(live market price, updated every minute; indicative, not a guarantee)' } : null;
   return (
     <>
       <section className="bg-night text-white">

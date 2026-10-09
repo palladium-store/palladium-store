@@ -28,7 +28,7 @@ export function useIndicativeAmount(totalCentavos: number | null) {
   if (!price?.available || !price.phpPerToken || totalCentavos == null || totalCentavos <= 0) return { amount: null as bigint | null, display: null as string | null, rate: price?.phpPerToken ?? null, loading: price == null };
   try {
     const amount = tokenAmountForPhp(totalCentavos, parsePrice(price.phpPerToken), config.wallet.decimals);
-    return { amount, display: formatUnits(amount, config.wallet.decimals, 6), rate: formatPrice(parsePrice(price.phpPerToken), 4), loading: false };
+    return { amount, display: formatUnits(amount, config.wallet.decimals, 6), rate: formatPrice(parsePrice(price.phpPerToken), 8), loading: false };
   } catch { return { amount: null, display: null, rate: null, loading: false }; }
 }
 
@@ -61,6 +61,9 @@ export function LivePayPanel({ totalCentavos }: { totalCentavos: number | null }
         <button type="button" onClick={() => void w.switchNetwork()} className="btn-primary btn-sm mt-2 w-full" disabled={w.busy} aria-busy={w.busy}>{w.busy ? 'Check your wallet...' : `Switch to ${chain.name}`}</button>
       )}
       {short && <p className="mt-2 text-xs text-red-600" role="alert">Your wallet holds less {symbol} than this order needs.</p>}
+      {w.config.paymentCapPhp > 0 && (totalCentavos != null && totalCentavos > w.config.paymentCapPhp * 100
+        ? <p className="mt-2 text-xs text-red-600" role="alert">Paying with {symbol} is limited to {peso(w.config.paymentCapPhp * 100)} per order. Please choose another payment method or split your order.</p>
+        : <p className="mt-2 text-xs text-mute">{symbol} payments are limited to {peso(w.config.paymentCapPhp * 100)} per order.</p>)}
       {w.error && <p className="mt-2 text-xs text-red-600" role="alert">{w.error}</p>}
     </div>
   );

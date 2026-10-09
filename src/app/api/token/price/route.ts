@@ -9,5 +9,5 @@ export const GET = route(async () => {
   const p = await getCurrentPrice();
   const checkout = await tokenCheckoutState();
   if (!p.available) return ok({ available: false, checkoutEnabled: false });
-  return ok({ available: true, phpPerToken: formatPrice(p.priceScaled), source: p.source, fixedRate: p.fixed, asOf: new Date(p.asOf).toISOString(), checkoutEnabled: checkout.enabled });
+  return ok({ available: true, phpPerToken: formatPrice(p.priceScaled, 12), source: p.source, fixedRate: p.fixed, asOf: new Date(p.asOf).toISOString(), checkoutEnabled: checkout.enabled });
 });

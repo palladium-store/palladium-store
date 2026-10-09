@@ -85,3 +85,20 @@ Underpaid, too early or too late payments are not accepted automatically: they w
 4. In **Admin > Token**, tick **Payments switched on**. Untick it to stop token payments immediately.
 5. Optional but recommended: a dedicated RPC endpoint in `TOKEN_RPC_URL` (the public one is rate-limited).
 6. Test with one small real order and check it under Orders before announcing it.
+
+# Live market price (TOKEN_PRICE_SOURCE=market)
+
+With `TOKEN_PRICE_SOURCE=market` the token price follows the market instead of a number you type:
+
+- ETH per $PALLADIUM comes from the token's pool as reported by GeckoTerminal (default pool: PALLADIUM/WETH on Pons,
+  `0xc6b7af281d8fb8ad7dd1b22c1a75904fbff90762`; override with `TOKEN_MARKET_POOL`). Pesos per ETH come from CoinGecko and
+  Coinbase. Refreshed every minute; product pages and checkout show the current token amount, and placing an order locks
+  it for 15 minutes.
+- Safeguards (Admin > Token): a minimum pool liquidity; a pause when the live price is more than X% away from its recent
+  hourly average; payments use the lower of the live price and the average (so pumping the price just before paying does
+  not help), the sale uses the higher; and a maximum order value payable in tokens.
+- If any source fails or a safeguard trips, token payments and the sale pause until the price is usable again. Customers
+  can still pay in pesos.
+
+While the market is small, a single order can need a large share of the pool. Keep the per-order limit modest and convert
+received tokens carefully: selling many at once into a thin pool lowers the price you get.

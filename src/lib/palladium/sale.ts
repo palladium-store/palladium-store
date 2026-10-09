@@ -7,9 +7,10 @@ import { formatUnits, isAddress, sameAddress } from '@/lib/chain-config';
 import { getWalletConfig } from '@/lib/token';
 import { getCurrentPrice } from '@/lib/pricing';
 import { getSetting } from '@/lib/settings';
-import { formatPrice, parsePrice } from '@/lib/token-math';
+import { formatPrice } from '@/lib/token-math';
 import { chainRpc, rpcUrlsFor } from './chain-rpc';
-import { agreeRate, meetsPriceFloor, priceWithSpread, tokensForPhp, weiForPhp } from './sale-math';
+import { meetsPriceFloor, priceWithSpread, tokensForPhp, weiForPhp } from './sale-math';
+import { ethPhpRate } from './eth-rate';
 import artifact from './sale-artifact.json';
 
 /**
@@ -77,35 +78,7 @@ export async function readSaleState(force = false): Promise<SaleState> {
   return state;
 }
 
-// ---------------- ETH / PHP rate ----------------
-
-let rateCache: { at: number; value: { rate: bigint; sources: string[] } | null } | null = null;
-async function fetchJson(url: string): Promise<unknown> {
-  const r = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(6000), headers: { accept: 'application/json' } });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
-}
-const toScaled = (n: unknown): bigint | null => {
-  const v = typeof n === 'string' ? Number(n) : typeof n === 'number' ? n : NaN;
-  return Number.isFinite(v) && v > 1000 && v < 100_000_000 ? parsePrice(v.toFixed(6)) : null; // sanity: ETH between ₱1k and ₱100M
-};
-
-/** Pesos per ETH (scaled by 1e18) from two independent public sources that must agree within 2%. Cached for a minute. */
-export async function ethPhpRate(): Promise<{ rate: bigint; sources: string[] } | null> {
-  if (rateCache && Date.now() - rateCache.at < 60_000) return rateCache.value;
-  const [cg, cb] = await Promise.allSettled([
-    fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=php').then((j) => toScaled((j as { ethereum?: { php?: number } })?.ethereum?.php)),
-    fetchJson('https://api.coinbase.com/v2/exchange-rates?currency=ETH').then((j) => toScaled((j as { data?: { rates?: { PHP?: string } } })?.data?.rates?.PHP)),
-  ]);
-  const found: { name: string; v: bigint }[] = [];
-  if (cg.status === 'fulfilled' && cg.value) found.push({ name: 'CoinGecko', v: cg.value });
-  if (cb.status === 'fulfilled' && cb.value) found.push({ name: 'Coinbase', v: cb.value });
-  const rate = agreeRate(found.map((f) => f.v), 200, true);
-  const value = rate ? { rate, sources: found.map((f) => f.name) } : null;
-  if (!value) console.error('[token-sale] no agreed ETH/PHP rate', found.map((f) => `${f.name}=${formatPrice(f.v, 2)}`).join(' '));
-  rateCache = { at: Date.now(), value };
-  return value;
-}
+export { ethPhpRate } from './eth-rate';
 
 // ---------------- quote ----------------
 
@@ -135,7 +108,7 @@ export async function createBuyQuote(buyer: string, phpCentavos: number): Promis
     throw new AppError(422, 'BAD_AMOUNT', `Enter an amount from ₱${settings.minPurchasePhp.toLocaleString('en-PH')} to ₱${settings.maxPurchasePhp.toLocaleString('en-PH')}.`);
   }
 
-  const [price, rate, state] = await Promise.all([getCurrentPrice(), ethPhpRate(), readSaleState()]);
+  const [price, rate, state] = await Promise.all([getCurrentPrice(Date.now(), 'sale'), ethPhpRate(), readSaleState()]);
   if (!price.available) throw new AppError(503, 'NO_PRICE', 'The token price is not available right now.');
   if (!rate) throw new AppError(503, 'NO_ETH_RATE', 'The ETH exchange rate is not available right now. Please try again shortly.');
   // The contract must be the one we expect, signing with our key, for our token, and open.
@@ -175,7 +148,7 @@ export async function createBuyQuote(buyer: string, phpCentavos: number): Promis
       phpAmount: (phpCentavos / 100).toFixed(2), referencePricePhp: formatPrice(price.priceScaled, 6), spreadPct: settings.spreadPct,
       unitPricePhp: formatPrice(unitPrice, 6), tokens: formatUnits(tokenAmount, w.decimals, 6), eth: formatUnits(weiAmount, 18, 8),
       ethPhp: formatPrice(rate.rate, 2), rateSources: rate.sources,
-      priceLabel: price.source === 'market' ? 'market price' : 'a fixed rate set by Palladium, not a market price', expiresAt: deadline * 1000,
+      priceLabel: price.fixed ? 'a fixed rate set by Palladium, not a market price' : 'live market price', expiresAt: deadline * 1000,
     },
   };
 }

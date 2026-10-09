@@ -18,6 +18,12 @@ export interface TokenSaleSettings {
   maxPurchasePhp: number;
   /** How long a buy quote stays valid, 60 to 900 seconds. */
   quoteTtlSeconds: number;
+  /** Market price (TOKEN_PRICE_SOURCE=market): pool liquidity below this (USD) is not used. */
+  marketMinLiquidityUsd: number;
+  /** Market price: largest gap between the live price and its recent average, in percent, before pricing pauses. */
+  marketMaxDeviationPct: number;
+  /** Most an order may cost (PHP) when paid with $PALLADIUM. 0 means no limit. */
+  maxTokenOrderPhp: number;
 }
 export interface ContentSettings {
   hero: { eyebrow: string; title: string; subtitle: string; cta: string; image: string };
@@ -38,7 +44,7 @@ export const DEFAULTS = {
     COD: { enabled: false, instructions: 'Pay in cash when your order arrives.' },
   } as PaymentSettings,
   inventory: { allowOversell: false },
-  tokenSale: { saleEnabled: false, paymentsEnabled: false, referencePricePhp: '', spreadPct: 5, minPurchasePhp: 100, maxPurchasePhp: 20000, quoteTtlSeconds: 300 } as TokenSaleSettings,
+  tokenSale: { saleEnabled: false, paymentsEnabled: false, referencePricePhp: '', spreadPct: 5, minPurchasePhp: 100, maxPurchasePhp: 20000, quoteTtlSeconds: 300, marketMinLiquidityUsd: 1000, marketMaxDeviationPct: 20, maxTokenOrderPhp: 10000 } as TokenSaleSettings,
   content: {
     hero: { eyebrow: '', title: 'Play with edge.', subtitle: 'Premium paddles, balls and gear for players who want more from every rally.', cta: 'Shop now', image: '/products/koru-hero.webp' },
     banners: [

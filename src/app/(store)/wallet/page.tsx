@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default async function WalletPage() {
   const p = await getCurrentPrice();
-  const price: DashboardPrice | null = p.available ? { phpPerToken: formatPrice(p.priceScaled, 4), fixed: p.fixed } : null;
+  const price: DashboardPrice | null = p.available ? { phpPerToken: formatPrice(p.priceScaled, 10), fixed: p.fixed } : null;
   const { chain } = getWalletConfig();
   return (
     <Container className="py-12 sm:py-16">

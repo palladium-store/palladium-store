@@ -5,12 +5,14 @@ import { PriceError, PRICE_SCALE, assertPriceInBounds, formatPrice, parsePrice, 
 import { newQuoteId, signQuote, verifyQuote, type QuotePayload } from './token-quote';
 import { formatUnits } from './chain-config';
 import { getSetting } from './settings';
+import { getMarketPrice } from './palladium/market-price';
+import type { PricePurpose } from './palladium/market-price-core';
 
 /** The only store this build serves. Future platforms get their own identifier in payment records. */
 export const PLATFORM = 'PALLADIUM_STORE';
 
 export type PriceResult =
-  | { available: true; priceScaled: bigint; source: string; fixed: boolean; asOf: number }
+  | { available: true; priceScaled: bigint; source: string; fixed: boolean; asOf: number; detail?: { spotPhp: string; averagePhp: string; deviationPct: number; liquidityUsd: number; ethPhp: string; pool: string } }
   | { available: false; reason: string };
 
 const env = (k: string) => (process.env[k] ?? '').trim();
@@ -22,12 +24,18 @@ const env = (k: string) => (process.env[k] ?? '').trim();
  *    TOKEN_MANUAL_PRICE_REVIEWED=yes confirms the rate was approved after review. Meant for testnet or a reviewed arrangement.
  *  - "admin": the same kind of fixed rate, but set by the Super Admin in Admin > Token (every change is audited).
  *    It is labelled as a set rate, never as a market price.
+ *  - "market": the live price from the token's DEX pool (see palladium/market-price.ts), with liquidity and stability
+ *    checks. Payments use the lower of spot and recent average, the sale the higher (`purpose`).
  * Live market sources (DEX pool with time-weighted average, or an oracle) plug in here later. Until one exists, unknown
  * source names are rejected instead of guessed.
  */
-export async function getCurrentPrice(now = Date.now()): Promise<PriceResult> {
+export async function getCurrentPrice(now = Date.now(), purpose: PricePurpose = 'payment'): Promise<PriceResult> {
   const source = env('TOKEN_PRICE_SOURCE').toLowerCase() || 'none';
   if (source === 'none') return { available: false, reason: 'No price source is configured.' };
+  if (source === 'market') {
+    const m = await getMarketPrice(purpose);
+    return m.available ? { available: true, priceScaled: m.priceScaled, source: 'market', fixed: false, asOf: now, detail: m.detail } : { available: false, reason: m.reason };
+  }
   if (source === 'admin') {
     // A fixed rate the Super Admin sets in Admin > Token (audited). Same bounds as the manual rate.
     const raw = (await getSetting('tokenSale')).referencePricePhp.trim();
@@ -107,6 +115,6 @@ export const checkQuote = (token: string, now = Date.now()) => verifyQuote(token
 export async function displayTokenPricePhp(): Promise<number | null> {
   const p = await getCurrentPrice();
   if (!p.available) return null;
-  const n = Number(formatPrice(p.priceScaled, 6).replace(/,/g, ''));
+  const n = Number(formatPrice(p.priceScaled, 12).replace(/,/g, ''));
   return Number.isFinite(n) && n > 0 ? n : null;
 }

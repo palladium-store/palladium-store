@@ -42,7 +42,7 @@ export async function saleOverview(): Promise<SaleOverview> {
     saleContract, signerAddress: signerAddress(), masterSwitch: saleMasterSwitch(), priceSource: (process.env.TOKEN_PRICE_SOURCE ?? 'none').trim() || 'none',
     payments: { wallet: paymentWalletAddress(), masterSwitch: (process.env.TOKEN_CHECKOUT_ENABLED ?? '').trim().toLowerCase() === 'true', live: await livePaymentEnabled(), confirmations: requiredConfirmations() },
     settings,
-    price: price.available ? { php: formatPrice(price.priceScaled, 6), label: price.source === 'admin' ? 'set in Admin > Token' : price.source } : null,
+    price: price.available ? { php: formatPrice(price.priceScaled, 10), label: price.source === 'admin' ? 'set in Admin > Token' : price.source === 'market' && price.detail ? `live market price: now ₱${price.detail.spotPhp}, recent average ₱${price.detail.averagePhp}, ${price.detail.deviationPct}% apart; pool liquidity ${Math.round(price.detail.liquidityUsd).toLocaleString('en-US')}; checkout uses the lower of the two` : price.source } : null,
     priceProblem: price.available ? null : price.reason,
     ethPhp: rate ? { rate: formatPrice(rate.rate, 2), sources: rate.sources } : null,
     state: null, stateError: null, purchases: [], totals: null,

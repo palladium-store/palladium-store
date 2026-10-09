@@ -10,6 +10,7 @@ import { processOutbox, queueCustomerEmail } from './email';
 import { hashPassword, startSession, getUser, assertStrongPassword, createVerifyToken } from './auth';
 import { sendVerifyEmail } from './email';
 import { normalizePhone } from './validators';
+import { getSetting } from './settings';
 import type { SessionUser } from './auth';
 import { z } from 'zod';
 import { checkoutSchema } from './validators';
@@ -76,6 +77,11 @@ export async function placeOrder(input: Checkout) {
   if (!quote.ok) throw new AppError(409, 'CART_CHANGED', quote.lines.find((l) => l.problem)?.problem ? `${quote.lines.find((l) => l.problem)!.productName}: ${quote.lines.find((l) => l.problem)!.problem}` : 'Your cart changed. Please review it.');
   if (quote.discountError) throw new AppError(422, 'DISCOUNT_INVALID', quote.discountError, { discountCode: quote.discountError });
   if (quote.shippingCentavos == null) throw new AppError(422, 'NO_SHIPPING', quote.shippingError ?? 'We cannot ship to that province.');
+  if (input.method === 'PALLADIUM') {
+    // While the token's market is small, an order paid in $PALLADIUM is capped (Admin > Token).
+    const cap = (await getSetting('tokenSale')).maxTokenOrderPhp;
+    if (cap > 0 && quote.totalCentavos > cap * 100) throw new AppError(422, 'TOKEN_ORDER_LIMIT', `Paying with $PALLADIUM is limited to ₱${cap.toLocaleString('en-PH')} per order. Please choose another payment method or split your order.`, { method: 'Over the $PALLADIUM limit for one order.' });
+  }
 
   const payload = {
     customerId: customer.id, email: emailLower, phone: normalizePhone(input.phone), method: input.method,

@@ -84,4 +84,6 @@ export interface PalladiumClientConfig {
   confirmations: number;
   /** The token sale contract, when buying is offered. */
   sale: { contract: string } | null;
+  /** Most an order may cost (PHP) when paid with $PALLADIUM; 0 means no limit. */
+  paymentCapPhp: number;
 }

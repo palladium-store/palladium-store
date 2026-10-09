@@ -106,7 +106,7 @@ function SettingsForm({ initial, symbol }: { initial: TokenSaleSettings; symbol:
     catch (err) { setMsg({ ok: false, text: err instanceof Error ? err.message : 'Could not save.' }); }
     finally { setBusy(false); }
   }
-  const num = (k: 'spreadPct' | 'minPurchasePhp' | 'maxPurchasePhp' | 'quoteTtlSeconds', label: string, step = '1') => (
+  const num = (k: 'spreadPct' | 'minPurchasePhp' | 'maxPurchasePhp' | 'quoteTtlSeconds' | 'marketMinLiquidityUsd' | 'marketMaxDeviationPct' | 'maxTokenOrderPhp', label: string, step = '1') => (
     <div><label className="label" htmlFor={`ts-${k}`}>{label}</label><input id={`ts-${k}`} className="input" type="number" step={step} value={f[k]} onChange={(e) => set(k, Number(e.target.value))} /></div>
   );
   return (
@@ -115,11 +115,14 @@ function SettingsForm({ initial, symbol }: { initial: TokenSaleSettings; symbol:
       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={f.paymentsEnabled} onChange={(e) => set('paymentsEnabled', e.target.checked)} /> Payments switched on: customers can pay for orders with {symbol}</label>
       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={f.saleEnabled} onChange={(e) => set('saleEnabled', e.target.checked)} /> Sale switched on: customers can buy {symbol} (the master switch and the contract must also allow it)</label>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div><label className="label" htmlFor="ts-ref">Reference price (₱ per token)</label><input id="ts-ref" className="input" inputMode="decimal" placeholder="2.00" value={f.referencePricePhp} onChange={(e) => set('referencePricePhp', e.target.value)} /><p className="mt-1 text-xs text-mute">A fixed rate you set, shown to customers as such. Checkout payments use it as is; the sale adds the spread.</p></div>
+        <div><label className="label" htmlFor="ts-ref">Reference price (₱ per token)</label><input id="ts-ref" className="input" inputMode="decimal" placeholder="2.00" value={f.referencePricePhp} onChange={(e) => set('referencePricePhp', e.target.value)} /><p className="mt-1 text-xs text-mute">Used when TOKEN_PRICE_SOURCE=admin: a fixed rate, shown to customers as such. With TOKEN_PRICE_SOURCE=market the live price is used instead and this is ignored.</p></div>
         {num('spreadPct', 'Buy spread (%)', '0.1')}
         {num('minPurchasePhp', 'Smallest purchase (₱)')}
         {num('maxPurchasePhp', 'Largest purchase (₱)')}
         {num('quoteTtlSeconds', 'Price valid for (seconds)')}
+        {num('maxTokenOrderPhp', 'Max order paid in tokens (₱, 0 = no limit)')}
+        {num('marketMinLiquidityUsd', 'Live price: minimum pool liquidity (US$)')}
+        {num('marketMaxDeviationPct', 'Live price: pause if it jumps more than (%)')}
       </div>
       {unit != null && Number.isFinite(unit) && <p className="text-sm text-mute">Customers pay ₱{unit.toFixed(4)} per {symbol}. Example: ₱1,000 buys {(1000 / unit).toLocaleString('en-PH', { maximumFractionDigits: 4 })} {symbol}.</p>}
       {msg && <p className={`text-sm ${msg.ok ? 'text-emerald-700' : 'text-red-600'}`} role={msg.ok ? 'status' : 'alert'}>{msg.text}</p>}
