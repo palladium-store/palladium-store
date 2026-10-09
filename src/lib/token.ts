@@ -22,9 +22,20 @@ export interface TokenInfo {
   circulatingSupply: string | null;
 }
 
-/** TOKEN_NETWORK=mainnet switches to mainnet; anything else (or unset) means testnet. */
-export const activeChain = () => ((process.env.TOKEN_NETWORK ?? '').trim().toLowerCase() === 'mainnet' ? CHAINS.mainnet : CHAINS.testnet);
-const contract = () => { const raw = (process.env.TOKEN_CONTRACT_ADDRESS ?? '').trim(); return isAddress(raw) ? raw : null; };
+/**
+ * The official $PALLADIUM contract on Robinhood Chain mainnet. Checked on-chain on 9 Oct 2026: name "Palladium", symbol
+ * "PALLADIUM", 18 decimals, total supply exactly 1,000,000,000; no owner, no mint, no pause, not an upgradeable proxy.
+ */
+export const OFFICIAL_MAINNET_CONTRACT = '0xa6620f098b7d916e5279cdfde9261efe14d4aa8b';
+
+/** Mainnet (where the token lives) unless TOKEN_NETWORK=testnet is set for testing. */
+export const activeChain = () => ((process.env.TOKEN_NETWORK ?? '').trim().toLowerCase() === 'testnet' ? CHAINS.testnet : CHAINS.mainnet);
+/** TOKEN_CONTRACT_ADDRESS when set; otherwise the official contract on mainnet (testnet has no default). */
+const contract = () => {
+  const raw = (process.env.TOKEN_CONTRACT_ADDRESS ?? '').trim();
+  if (isAddress(raw)) return raw;
+  return activeChain().testnet ? null : OFFICIAL_MAINNET_CONTRACT;
+};
 
 export function getWalletConfig(): WalletConfig {
   const d = Number(process.env.TOKEN_DECIMALS ?? 18);

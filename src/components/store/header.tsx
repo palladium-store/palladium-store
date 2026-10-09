@@ -5,6 +5,7 @@ import { Logo } from './logo';
 import { Container } from './container';
 import { SearchPanel } from './search-panel';
 import { WalletButton } from './palladium/wallet';
+import { ContractAddress } from './palladium/contract-address';
 import { useCart } from './cart-context';
 
 const NAV = [
@@ -40,6 +41,7 @@ export function Header({ userName }: { userName: string | null }) {
         </nav>
 
         <div className="flex items-center">
+          <ContractAddress className="mr-1 hidden md:flex" />
           <WalletButton />
           <button type="button" className={iconBtn} aria-label="Search" aria-expanded={search} onClick={() => { setSearch((s) => !s); setMenu(false); }}>
             <svg className={icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -61,6 +63,7 @@ export function Header({ userName }: { userName: string | null }) {
             {NAV.map((n) => (
               <Link key={n.href} href={n.href} onClick={() => setMenu(false)} className="border-b border-line py-4 font-display text-2xl tracking-tightest last:border-0">{n.label}</Link>
             ))}
+            <ContractAddress className="flex border-b border-line !px-0 py-4 md:hidden" />
             <Link href={userName ? '/account' : '/login'} onClick={() => setMenu(false)} className="py-4 text-sm font-semibold uppercase tracking-[0.14em] text-mute">{userName ? 'My account' : 'Sign in or create account'}</Link>
           </Container>
         </nav>
