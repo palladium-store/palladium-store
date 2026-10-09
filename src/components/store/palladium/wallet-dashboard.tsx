@@ -97,7 +97,7 @@ export function WalletDashboard({ price }: { price: DashboardPrice | null }) {
           {w.onChain && w.ethBalance === 0n && <p className="mt-1 text-xs text-mute">Sending tokens needs a small amount of ETH on {chain.name} to pay the network fee.</p>}
         </div>
         <dl className="space-y-3 text-sm">
-          <div><dt className="label">Wallet</dt><dd className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1"><span className="font-mono" title={w.address}>{shortAddress(w.address)}</span><Copy text={w.address} /><a className="k-link !text-[11px]" href={explorerAddressUrl(chain, w.address)} target="_blank" rel="noopener noreferrer">Explorer</a></dd></div>
+          <div><dt className="label">Wallet</dt><dd className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1"><span className="font-mono" title={w.address}>{shortAddress(w.address)}</span>{w.walletName && <span className="text-xs text-mute">{w.walletName}</span>}<Copy text={w.address} /><a className="k-link !text-[11px]" href={explorerAddressUrl(chain, w.address)} target="_blank" rel="noopener noreferrer">Explorer</a></dd></div>
           <div><dt className="label">Network</dt><dd className="mt-1">{w.onChain ? chain.name : <span className="text-red-600">Wrong network</span>}</dd></div>
           {contract && <div><dt className="label">Token contract</dt><dd className="mt-1 flex flex-wrap items-center gap-x-3"><span className="font-mono">{shortAddress(contract)}</span><Copy text={contract} /></dd></div>}
           <div className="flex flex-wrap gap-2 pt-1">
