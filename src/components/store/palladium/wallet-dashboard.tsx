@@ -138,6 +138,65 @@ export function WalletDashboard({ price }: { price: DashboardPrice | null }) {
   );
 }
 
+/**
+ * "Buy $PALLADIUM" on its own (the account page). Same purchase flow as the wallet page's Buy tab, with the connection
+ * steps in front of it and an honest message while the sale is not open.
+ */
+export function BuyPalladium() {
+  const w = useLiveWallet();
+  const { chain, contract, decimals, symbol } = w.config.wallet;
+  if (!w.config.sale || !contract) {
+    return (
+      <div className="card max-w-2xl p-6">
+        <p className="label">Not open yet</p>
+        <p className="mt-2 text-sm text-mute">Buying {symbol} on Palladium opens soon. When it does, you will be able to buy it here with ETH from your own wallet, and see the exact price, Palladium&apos;s spread and the exchange rate before you confirm.</p>
+        <p className="mt-4 text-sm"><Link href="/wallet" className="underline underline-offset-4">Open your wallet</Link> to connect it and see your balance in the meantime.</p>
+      </div>
+    );
+  }
+  if (!w.ready) return <div className="card p-6 text-sm text-mute">Looking for a wallet...</div>;
+  if (!w.hasWallet) {
+    return (
+      <div className="card max-w-2xl p-6">
+        <p className="text-sm text-mute">To buy {symbol} you need a crypto wallet. On a computer, install MetaMask and reload this page. On a phone, open this page inside your wallet app.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {w.deepLink && <a href={w.deepLink} className="btn-primary btn-sm">Open in MetaMask app</a>}
+          <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer" className="btn-outline btn-sm">Get MetaMask</a>
+        </div>
+      </div>
+    );
+  }
+  if (!w.address) {
+    return (
+      <div className="card max-w-2xl p-6">
+        <p className="text-sm text-mute">Connect the wallet you want your {symbol} sent to. You pay with ETH on {chain.name} from that same wallet.</p>
+        <button type="button" className="btn-primary mt-4" onClick={() => void w.connect()} disabled={w.busy} aria-busy={w.busy}>{w.busy ? 'Check your wallet...' : 'Connect wallet'}</button>
+        {w.error && <p className="mt-3 text-sm text-red-600" role="alert">{w.error}</p>}
+        <p className="mt-4 text-xs text-mute">Connecting only shares your public address. Palladium never asks for your seed phrase or private key.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-5">
+      <div className="card flex flex-wrap items-center justify-between gap-3 p-5 text-sm">
+        <span>
+          <span className="font-mono" title={w.address}>{shortAddress(w.address)}</span>{w.walletName && <span className="text-mute"> · {w.walletName}</span>}
+          {w.onChain && <span className="block text-mute">{w.balance != null ? `${formatUnits(w.balance, decimals, 4)} ${symbol}` : '...'} · {w.ethBalance != null ? `${formatUnits(w.ethBalance, 18, 6)} ETH` : '...'}</span>}
+        </span>
+        <span className="flex gap-2">
+          {!w.onChain && <button type="button" className="btn-primary btn-sm" onClick={() => void w.switchNetwork()} disabled={w.busy} aria-busy={w.busy}>{w.busy ? 'Check your wallet...' : `Switch to ${chain.name}`}</button>}
+          <button type="button" className="btn-outline btn-sm" onClick={() => void w.changeAccount()}>Change wallet</button>
+        </span>
+      </div>
+      {w.error && <p className="text-sm text-red-600" role="alert">{w.error}</p>}
+      {w.onChain
+        ? <BuyPanel onBought={() => void w.refreshBalance()} />
+        : <p className="text-sm text-mute">Your wallet is on another network. Switch to {chain.name} to buy.</p>}
+      <PendingTransfers onSettled={() => void w.refreshBalance()} />
+    </div>
+  );
+}
+
 // ---------------- Buy (sale contract; the server only signs a short-lived quote) ----------------
 
 interface QuoteResp {

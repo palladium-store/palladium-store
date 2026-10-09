@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/toast';
 
 const LINKS = [
   { href: '/account', label: 'Overview' }, { href: '/account/orders', label: 'Orders' }, { href: '/account/addresses', label: 'Addresses' },
-  { href: '/account/wishlist', label: 'Wishlist' }, { href: '/account/wallet', label: 'Wallet' }, { href: '/account/profile', label: 'Profile' }, { href: '/account/password', label: 'Change password' },
+  { href: '/account/wishlist', label: 'Wishlist' }, { href: '/account/wallet', label: 'Wallet' }, { href: '/account/buy', label: 'Buy $PALLADIUM' }, { href: '/account/profile', label: 'Profile' }, { href: '/account/password', label: 'Change password' },
 ];
 
 export function AccountNav() {
